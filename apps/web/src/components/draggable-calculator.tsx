@@ -6,7 +6,7 @@ import { ThemePanel } from './theme-panel';
 
 interface DraggableCalculatorProps {
   defaultTheme?: ThemeMode;
-  initialMode?: 'basic' | 'scientific' | 'graphing';
+  initialMode?: 'basic' | 'scientific';
   lockTheme?: boolean;
   lockSize?: boolean;
   lockMode?: boolean;
@@ -26,7 +26,7 @@ export function DraggableCalculator({
   const [isResizing, setIsResizing] = useState(false);
   const [visible, setVisible] = useState(true);
   const [menuOpen, setMenuOpen] = useState<'theme' | 'embed' | 'config' | null>(null);
-  const [mode, setMode] = useState<'basic' | 'scientific' | 'graphing'>(initialMode);
+  const [mode, setMode] = useState<'basic' | 'scientific'>(initialMode);
   const [copyMsg, setCopyMsg] = useState('Copy');
   const dragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number } | null>(null);
   const resizeRef = useRef<{ startX: number; startY: number; startW: number; startH: number } | null>(null);
