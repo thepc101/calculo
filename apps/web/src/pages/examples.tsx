@@ -1,48 +1,26 @@
-import { Calculator } from '../components/calculator';
+import { DraggableCalculator } from '../components/draggable-calculator';
 import { CodeBlock } from '../components/code-block';
 
 const examples = [
   {
     title: 'Scientific Calculator',
-    description: 'Full scientific calculator with trig, log, and advanced functions.',
-    config: {
-      type: 'scientific' as const,
-      graph: true,
-      buttons: ['sin', 'cos', 'tan', 'log', 'ln', 'sqrt', '^', '!', 'π'],
-    },
-  },
-  {
-    title: 'Mortgage Calculator',
-    description: 'Calculate monthly payments with amortization schedule.',
-    config: {
-      type: 'financial' as const,
-      variables: [
-        { name: 'principal', value: 300000, description: 'Loan amount', visible: true },
-        { name: 'rate', value: 6.5, description: 'Annual interest rate %', visible: true },
-        { name: 'years', value: 30, description: 'Loan term in years', visible: true },
-      ],
-    },
+    description: 'Full scientific calculator with trig, log, and advanced functions — draggable, resizable, themeable.',
+    type: 'scientific' as const,
   },
   {
     title: 'Graphing Calculator',
-    description: 'Interactive 2D graphing with multiple expressions.',
-    config: {
-      type: 'graphing' as const,
-      graph: true,
-      width: '100%',
-      height: 500,
-    },
+    description: 'Interactive 2D graphing with multiple expressions. Drag and resize freely.',
+    type: 'graphing' as const,
   },
   {
-    title: 'BMI Calculator',
-    description: 'Calculate Body Mass Index from height and weight.',
-    config: {
-      type: 'basic' as const,
-      variables: [
-        { name: 'weight', value: 70, description: 'Weight in kg', visible: true },
-        { name: 'height', value: 175, description: 'Height in cm', visible: true },
-      ],
-    },
+    title: 'Financial / Mortgage Calculator',
+    description: 'Calculate monthly payments with adjustable variables and live preview.',
+    type: 'financial' as const,
+  },
+  {
+    title: 'Basic Calculator',
+    description: 'Clean, fast arithmetic. The foundation of every calculator type.',
+    type: 'basic' as const,
   },
 ];
 
@@ -52,7 +30,7 @@ export function ExamplesPage() {
       <div className="text-center mb-16">
         <h1 className="text-4xl font-bold mb-4">Examples</h1>
         <p className="text-lg text-zinc-400 max-w-2xl mx-auto">
-          Production-quality examples to help you get started quickly.
+          Production-quality examples built with calculo. Drag, resize, and theme each one.
         </p>
       </div>
 
@@ -65,7 +43,7 @@ export function ExamplesPage() {
               <div className="mb-6">
                 <h3 className="text-sm font-semibold text-zinc-500 uppercase mb-3">Configuration</h3>
                 <CodeBlock
-                  code={JSON.stringify(example.config, null, 2)}
+                  code={JSON.stringify({ type: example.type, theme: { mode: 'dark' }, precision: 12 }, null, 2)}
                   language="json"
                 />
               </div>
@@ -80,7 +58,7 @@ export function ExamplesPage() {
               </div>
             </div>
             <div className={i % 2 === 1 ? 'lg:order-1' : ''}>
-              <Calculator />
+              <DraggableCalculator config={{ type: example.type }} />
             </div>
           </div>
         ))}

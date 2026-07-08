@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Calculator } from '../components/calculator';
+import { DraggableCalculator } from '../components/draggable-calculator';
 import { CodeBlock } from '../components/code-block';
 import { CalculatorEngine } from '@calculo/calculator-engine';
 
@@ -63,7 +63,10 @@ export function PlaygroundPage() {
 
           <div className="border border-zinc-800 rounded-xl p-6">
             <h2 className="text-lg font-semibold mb-4">Interactive Calculator</h2>
-            <Calculator />
+            <p className="text-sm text-zinc-500 mb-4">
+              Drag to move · Resize from corner · Click <strong>Theme</strong> to switch styles
+            </p>
+            <DraggableCalculator />
           </div>
         </div>
 

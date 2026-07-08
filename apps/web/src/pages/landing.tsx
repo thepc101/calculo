@@ -1,5 +1,5 @@
 import { Link } from '@tanstack/react-router';
-import { Calculator } from '../components/calculator';
+import { DraggableCalculator } from '../components/draggable-calculator';
 import { CodeBlock } from '../components/code-block';
 
 const features = [
@@ -95,15 +95,22 @@ export function LandingPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="grid lg:grid-cols-2 gap-16 items-start">
           <div>
             <h2 className="text-3xl font-bold mb-4">Try it now</h2>
-            <p className="text-zinc-400 mb-8">
-              Evaluate expressions instantly. Switch themes. No sign-up required.
+            <p className="text-zinc-400 mb-6">
+              Drag the calculator around. Resize it from the corner.&nbsp;
+              Click <strong>Theme</strong> to switch between 8 live themes.
             </p>
-            <Calculator />
+            <p className="text-zinc-500 text-sm mb-8">
+              Every calculator built with calculo is fully customizable — themes,
+              size, layout, buttons, and behavior — all from a single JSON config.
+            </p>
+            <div className="mt-8">
+              <DraggableCalculator />
+            </div>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-4 lg:pt-16">
             <CodeBlock code={codeExamples.typescript} language="TypeScript" />
             <CodeBlock code={codeExamples.react} language="React" />
             <CodeBlock code={codeExamples.curl} language="curl" />

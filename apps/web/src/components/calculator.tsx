@@ -1,20 +1,79 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { CalculatorEngine } from '@calculo/calculator-engine';
-import type { CalculatorConfig } from '@calculo/shared';
-import { createDefaultConfig } from '@calculo/shared';
+import type { CalculatorConfig, ThemeConfig } from '@calculo/shared';
+import { createDefaultConfig, createDefaultTheme } from '@calculo/shared';
 
 interface CalculatorProps {
   config?: Partial<CalculatorConfig>;
+  theme?: Partial<ThemeConfig>;
+  onThemeChange?: (theme: ThemeConfig) => void;
 }
 
 const engine = new CalculatorEngine();
 
-export function Calculator({ config }: CalculatorProps) {
+const basicLayout = [
+  ['C', '(', ')', '/'],
+  ['7', '8', '9', '*'],
+  ['4', '5', '6', '-'],
+  ['1', '2', '3', '+'],
+  ['±', '0', '.', '='],
+];
+
+const scientificLayout = [
+  ['sin', 'cos', 'tan', '/'],
+  ['log', 'ln', 'sqrt', '*'],
+  ['7', '8', '9', '-'],
+  ['4', '5', '6', '+'],
+  ['1', '2', '3', '^'],
+  ['±', '0', '.', '='],
+];
+
+function toCssVars(theme: ThemeConfig): React.CSSProperties {
+  return {
+    '--calc-bg': theme.backgroundColor,
+    '--calc-text': theme.textColor,
+    '--calc-primary': theme.primaryColor,
+    '--calc-radius': `${theme.borderRadius}px`,
+    '--calc-spacing': `${theme.spacing}px`,
+    '--calc-font': theme.fontFamily,
+  } as React.CSSProperties;
+}
+
+function buttonClass(
+  label: string,
+  primary: string,
+  bg: string,
+  text: string,
+  radius: string,
+): string {
+  const base = `h-14 rounded-[var(--calc-radius,0.75rem)] text-lg font-medium transition-all duration-100 active:scale-95`;
+  const isNum = /^\d$/.test(label);
+  const isOp = /[+\-*/÷^%]/.test(label);
+  const isEq = label === '=';
+  const isClr = label === 'C';
+  const isParen = label === '(' || label === ')';
+  const isFn = ['sin', 'cos', 'tan', 'log', 'ln', 'sqrt'].includes(label);
+
+  if (isFn) return `${base} bg-[var(--calc-bg)]/60 text-[var(--calc-primary)] hover:brightness-125`;
+  if (isNum) return `${base} bg-zinc-800/60 text-[var(--calc-text)] hover:bg-zinc-700/60`;
+  if (isOp) return `${base} bg-zinc-800/40 text-[var(--calc-primary)] hover:bg-zinc-700/40`;
+  if (isEq) return `${base} bg-[var(--calc-primary)] text-white hover:brightness-110`;
+  if (isClr) return `${base} bg-zinc-800/40 text-red-400 hover:bg-zinc-700/40`;
+  if (isParen) return `${base} bg-zinc-800/40 text-zinc-300 hover:bg-zinc-700/40`;
+  return `${base} bg-zinc-800/60 text-[var(--calc-text)] hover:bg-zinc-700/60`;
+}
+
+export function Calculator({ config, theme: themeProp, onThemeChange }: CalculatorProps) {
   const fullConfig = { ...createDefaultConfig(), ...config };
+  const resolvedTheme: ThemeConfig = { ...createDefaultTheme(), ...themeProp };
   const [expression, setExpression] = useState('');
   const [result, setResult] = useState('0');
   const [history, setHistory] = useState<Array<{ expr: string; result: string }>>([]);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [showHistory, setShowHistory] = useState(false);
+
+  const isScientific = fullConfig.type === 'scientific' || fullConfig.type === 'graphing';
+  const buttons = isScientific ? scientificLayout : basicLayout;
+  const displayFontSize = fullConfig.display?.fontSize ?? 24;
 
   const handleButton = useCallback((value: string) => {
     if (value === 'clear') {
@@ -38,6 +97,8 @@ export function Calculator({ config }: CalculatorProps) {
       } else {
         setExpression((prev) => '-' + prev);
       }
+    } else if (['sin', 'cos', 'tan', 'log', 'ln', 'sqrt'].includes(value)) {
+      setExpression((prev) => prev + value + '(');
     } else {
       setExpression((prev) => prev + value);
     }
@@ -55,59 +116,115 @@ export function Calculator({ config }: CalculatorProps) {
         handleButton(e.key);
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleButton]);
 
-  const buttons = [
-    ['C', '(', ')', '/'],
-    ['7', '8', '9', '*'],
-    ['4', '5', '6', '-'],
-    ['1', '2', '3', '+'],
-    ['±', '0', '.', '='],
-  ];
+  const mapped = buttons.flat().map((label) => {
+    const val =
+      label === '=' ? 'evaluate' :
+      label === 'C' ? 'clear' :
+      label === '±' ? 'negate' :
+      label;
+    return { label, value: val };
+  });
+
+  const lastResult = history.length > 0 ? history[history.length - 1]!.result : null;
 
   return (
-    <div className="w-full max-w-sm mx-auto">
-      <div className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-4 space-y-4">
-        <div className="bg-zinc-950 rounded-xl p-4 min-h-[100px]">
-          <div className="text-sm text-zinc-400 font-mono min-h-[24px] break-all">
+    <div
+      className="w-full select-none"
+      style={{
+        ...toCssVars(resolvedTheme),
+        fontFamily: resolvedTheme.fontFamily,
+        color: resolvedTheme.textColor,
+      }}
+    >
+      <div
+        className="p-[var(--calc-spacing,4px)] space-y-[var(--calc-spacing,4px)]"
+        style={{
+          backgroundColor: resolvedTheme.backgroundColor,
+          borderRadius: resolvedTheme.borderRadius,
+        }}
+      >
+        <div
+          className="p-4 min-h-[100px] space-y-1"
+          style={{
+            backgroundColor: `color-mix(in srgb, ${resolvedTheme.backgroundColor} 80%, transparent)`,
+            borderRadius: resolvedTheme.borderRadius,
+          }}
+        >
+          {showHistory && history.length > 0 && (
+            <div className="max-h-24 overflow-y-auto space-y-0.5 mb-2 opacity-60 text-xs">
+              {history.map((h, i) => (
+                <div key={i} className="flex justify-between gap-4 font-mono">
+                  <span>{h.expr}</span>
+                  <span>= {h.result}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {lastResult && !expression && result === '0' && (
+            <div className="text-sm opacity-40 font-mono mb-1">Ans = {lastResult}</div>
+          )}
+          <div
+            className="font-mono min-h-[1.5em] break-all truncate"
+            style={{ fontSize: 14, opacity: 0.5 }}
+          >
             {expression || '\u00A0'}
           </div>
-          <div className="text-3xl font-semibold text-zinc-100 mt-2 font-mono">
+          <div
+            className="font-semibold font-mono mt-1 truncate"
+            style={{ fontSize: displayFontSize }}
+          >
             {result}
           </div>
         </div>
-        <div className="grid grid-cols-4 gap-2">
-          {buttons.flat().map((label) => (
+
+        <div
+          className="grid gap-[var(--calc-spacing,4px)]"
+          style={{
+            gridTemplateColumns: `repeat(${buttons[0]?.length ?? 4}, 1fr)`,
+          }}
+        >
+          {mapped.map(({ label, value }) => (
             <button
               key={label}
-              onClick={() => handleButton(
-                label === '=' ? 'evaluate' :
-                label === 'C' ? 'clear' :
-                label === '±' ? 'negate' :
-                label
-              )}
-              className={cn(
-                'h-14 rounded-xl text-lg font-medium transition-all duration-100 active:scale-95',
-                /^\d$/.test(label) && 'bg-zinc-800 text-zinc-100 hover:bg-zinc-700',
-                /[+\-*/÷^]/.test(label) && 'bg-zinc-800/50 text-blue-400 hover:bg-zinc-700/50',
-                label === '=' && 'bg-blue-600 text-white hover:bg-blue-500',
-                label === 'C' && 'bg-zinc-800/50 text-red-400 hover:bg-zinc-700/50',
-                label === '(' || label === ')' ? 'bg-zinc-800/50 text-zinc-300 hover:bg-zinc-700/50' : '',
-                label === '±' || label === '.' ? 'bg-zinc-800 text-zinc-100 hover:bg-zinc-700' : '',
-              )}
+              onClick={() => handleButton(value)}
+              className={buttonClass(label, resolvedTheme.primaryColor, resolvedTheme.backgroundColor, resolvedTheme.textColor, String(resolvedTheme.borderRadius))}
             >
               {label}
             </button>
           ))}
         </div>
+
+        {(fullConfig.history || fullConfig.memory) && (
+          <div className="flex gap-1 pt-1">
+            <button
+              onClick={() => setShowHistory(!showHistory)}
+              className="px-2 py-1 text-[10px] rounded uppercase tracking-wider font-medium"
+              style={{
+                backgroundColor: `color-mix(in srgb, ${resolvedTheme.primaryColor} 20%, transparent)`,
+                color: resolvedTheme.primaryColor,
+              }}
+            >
+              {showHistory ? 'Hide' : 'History'}
+            </button>
+            {history.length > 0 && (
+              <button
+                onClick={() => { setHistory([]); setShowHistory(false); }}
+                className="px-2 py-1 text-[10px] rounded uppercase tracking-wider font-medium opacity-50 hover:opacity-100"
+                style={{
+                  backgroundColor: `color-mix(in srgb, ${resolvedTheme.textColor} 10%, transparent)`,
+                  color: resolvedTheme.textColor,
+                }}
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
-}
-
-function cn(...classes: (string | boolean | undefined | null)[]): string {
-  return classes.filter(Boolean).join(' ');
 }
