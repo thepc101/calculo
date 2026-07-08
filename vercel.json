@@ -4,16 +4,6 @@
   "buildCommand": "pnpm --filter @calculo/web build",
   "outputDirectory": "apps/web/dist",
   "framework": null,
-  "functions": {
-    "api/evaluate.ts": { "maxDuration": 10 },
-    "api/v1/evaluate.ts": { "maxDuration": 10 },
-    "api/auth/**/*.ts": { "maxDuration": 10 },
-    "api/apikeys/**/*.ts": { "maxDuration": 10 },
-    "api/calculators/**/*.ts": { "maxDuration": 10 },
-    "api/embed/**/*.ts": { "maxDuration": 10 },
-    "api/forum/**/*.ts": { "maxDuration": 10 },
-    "api/profile/**/*.ts": { "maxDuration": 10 }
-  },
   "headers": [
     {
       "source": "/api/(.*)",
