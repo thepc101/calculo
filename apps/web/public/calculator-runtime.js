@@ -91,12 +91,13 @@ var mountCalculator;
     container.innerHTML = '';
     var w = config._embedWidth || '340px';
     var h = config._embedHeight || '';
-    container.style.cssText = 'font-family:system-ui,-apple-system,sans-serif;color:' + theme.text + ';background:' + theme.bg + ';border-radius:12px;overflow:hidden;width:' + w + ';min-width:' + w + ';box-sizing:border-box;' + (h ? 'height:' + h + ';' : '');
+    var isScientific = config.type !== 'basic';
+    var minW = isScientific ? '380px' : '280px';
+    container.style.cssText = 'font-family:system-ui,-apple-system,sans-serif;color:' + theme.text + ';background:' + theme.bg + ';border-radius:12px;overflow:hidden;width:100%;min-width:' + minW + ';max-width:' + w + ';box-sizing:border-box;' + (h ? 'height:' + h + ';' : '');
 
     var wrapper = el('div', { style: { display: 'flex', flexDirection: 'column' } });
 
     // Header
-    var isScientific = config.type !== 'basic';
     var header = el('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px 4px' } }, [
       el('span', { style: { fontSize: '9px', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', opacity: '0.3' } }, 'calculo'),
       el('span', { style: { fontSize: '9px', fontFamily: 'monospace', opacity: '0.35' }, id: 'calc-status' }, isScientific ? angleMode : ''),
