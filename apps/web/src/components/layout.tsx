@@ -7,6 +7,7 @@ const navItems = [
   { href: '/examples' as const, label: 'Examples' },
   { href: '/playground' as const, label: 'Playground' },
   { href: '/pricing' as const, label: 'Pricing' },
+  { href: '/forum' as const, label: 'Forum' },
   { href: '/blog' as const, label: 'Blog' },
   { href: '/changelog' as const, label: 'Changelog' },
 ];

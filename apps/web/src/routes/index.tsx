@@ -8,6 +8,7 @@ import { PlaygroundPage } from '../pages/playground';
 import { PricingPage } from '../pages/pricing';
 import { BlogPage } from '../pages/blog';
 import { ChangelogPage } from '../pages/changelog';
+import { ForumPage } from '../pages/forum';
 import { LoginPage } from '../pages/login';
 import { SignupPage } from '../pages/signup';
 import { DashboardPage } from '../pages/dashboard';
@@ -68,6 +69,12 @@ const changelogRoute = createRoute({
   component: ChangelogPage,
 });
 
+const forumRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/forum',
+  component: ForumPage,
+});
+
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
@@ -107,6 +114,7 @@ const routeTree = rootRoute.addChildren([
   pricingRoute,
   blogRoute,
   changelogRoute,
+  forumRoute,
   loginRoute,
   signupRoute,
   dashboardRoute,

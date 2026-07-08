@@ -10,7 +10,6 @@ import { jsonResponse, readBody } from '../_lib/http';
 
 const createSchema = z.object({
   name: z.string().min(1).max(64),
-  projectId: z.string().min(1).max(64).optional(),
   expiresInDays: z.number().int().min(1).max(365).optional(),
 });
 
@@ -40,14 +39,14 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       return jsonResponse(res, { error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message ?? 'Invalid input' } }, 422);
     }
 
-    const { name, projectId, expiresInDays } = parsed.data;
+    const { name, expiresInDays } = parsed.data;
     const { plaintext, prefix } = generateApiKey();
     const tokenHash = await hashKey(plaintext);
     const expiresAt = expiresInDays ? new Date(Date.now() + expiresInDays * 86400000) : null;
 
     const rows = await db
       .insert(apiKeys)
-      .values({ userId: user.userId, projectId: projectId ?? null, name, tokenHash, prefix, expiresAt })
+      .values({ userId: user.userId, name, tokenHash, prefix, expiresAt })
       .returning({ id: apiKeys.id, name: apiKeys.name, prefix: apiKeys.prefix, projectId: apiKeys.projectId, createdAt: apiKeys.createdAt, expiresAt: apiKeys.expiresAt });
 
     const created = rows[0];

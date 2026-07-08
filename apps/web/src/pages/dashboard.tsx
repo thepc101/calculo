@@ -97,7 +97,6 @@ function ApiKeysSection({ authFetch }: { authFetch: (url: string, init?: Request
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [newKeyName, setNewKeyName] = useState('');
-  const [newKeyProject, setNewKeyProject] = useState('');
   const [createdKey, setCreatedKey] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
@@ -125,14 +124,12 @@ function ApiKeysSection({ authFetch }: { authFetch: (url: string, init?: Request
         method: 'POST',
         body: JSON.stringify({
           name: newKeyName.trim(),
-          projectId: newKeyProject.trim() || 'default',
         }),
       });
       const data = await res.json();
       if (data.key) {
         setCreatedKey(data.key);
         setNewKeyName('');
-        setNewKeyProject('');
         fetchKeys();
       } else {
         setError(data.error?.message ?? 'Failed to create key');
@@ -172,13 +169,6 @@ function ApiKeysSection({ authFetch }: { authFetch: (url: string, init?: Request
             placeholder="Key name (e.g. production)"
             value={newKeyName}
             onChange={(e) => setNewKeyName(e.target.value)}
-            className="w-full px-3 py-2 text-sm rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500"
-          />
-          <input
-            type="text"
-            placeholder="Project ID (optional)"
-            value={newKeyProject}
-            onChange={(e) => setNewKeyProject(e.target.value)}
             className="w-full px-3 py-2 text-sm rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500"
           />
           {error && <div className="text-xs text-red-400">{error}</div>}
@@ -306,6 +296,132 @@ const sidebarLinks = [
   { id: 'usage', label: 'Usage', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6' },
   { id: 'settings', label: 'Settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
 ];
+
+function SettingsTab({ authFetch, token }: { authFetch: (url: string, init?: RequestInit) => Promise<Response>; token: string | null }) {
+  const [name, setName] = useState('');
+  const [bio, setBio] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!token) return;
+    authFetch('/api/profile')
+      .then(r => r.json())
+      .then(d => {
+        const p = d.profile;
+        if (p) {
+          setName(p.name ?? '');
+          setBio(p.bio ?? '');
+          setAvatarUrl(p.avatarUrl ?? '');
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, [authFetch, token]);
+
+  const save = async () => {
+    setSaving(true);
+    setError('');
+    setSaved(false);
+    try {
+      const res = await authFetch('/api/profile', {
+        method: 'PATCH',
+        body: JSON.stringify({ name: name.trim() || undefined, bio: bio.trim() || undefined, avatarUrl: avatarUrl.trim() || undefined }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      } else {
+        setError(data.error?.message ?? 'Failed to save');
+      }
+    } catch {
+      setError('Network error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <div className="text-sm text-zinc-500 py-8">Loading...</div>;
+
+  return (
+    <>
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold">Settings</h1>
+        <p className="text-sm text-zinc-400 mt-1">Account and profile.</p>
+      </div>
+
+      <div className="space-y-6">
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 space-y-4">
+          <h2 className="font-semibold text-sm">Profile</h2>
+          <div>
+            <label className="block text-xs text-zinc-500 mb-1">Display Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Your name"
+              maxLength={64}
+              className="w-full px-3 py-2 text-sm rounded-lg bg-zinc-800/50 border border-zinc-700 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-zinc-500 mb-1">Bio</label>
+            <textarea
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="A short bio about yourself"
+              rows={3}
+              maxLength={512}
+              className="w-full px-3 py-2 text-sm rounded-lg bg-zinc-800/50 border border-zinc-700 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500 resize-none"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-zinc-500 mb-1">Avatar URL</label>
+            <input
+              type="url"
+              value={avatarUrl}
+              onChange={(e) => setAvatarUrl(e.target.value)}
+              placeholder="https://example.com/avatar.png"
+              maxLength={512}
+              className="w-full px-3 py-2 text-sm rounded-lg bg-zinc-800/50 border border-zinc-700 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500"
+            />
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={save}
+              disabled={saving}
+              className="px-4 py-2 text-sm font-medium rounded-lg bg-zinc-100 text-zinc-900 hover:bg-zinc-200 disabled:opacity-40 transition-colors"
+            >
+              {saving ? 'Saving...' : 'Save Profile'}
+            </button>
+            {saved && <span className="text-xs text-green-400">Saved</span>}
+            {error && <span className="text-xs text-red-400">{error}</span>}
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 space-y-4">
+          <div>
+            <div className="text-sm font-medium mb-1">Plan</div>
+            <div className="text-sm text-zinc-400">Free tier — $0/month</div>
+          </div>
+          <div>
+            <div className="text-sm font-medium mb-1">Danger Zone</div>
+            <button
+              onClick={() => { localStorage.removeItem('calculo_token'); window.location.href = '/login'; }}
+              className="mt-2 px-4 py-2 text-sm rounded-lg border border-red-900/50 text-red-400 hover:bg-red-900/20 transition-colors"
+            >
+              Sign out
+            </button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
 
 export function DashboardPage() {
   const { token, loading: authLoading, authFetch } = useAuth();
@@ -442,31 +558,7 @@ export function DashboardPage() {
           )}
 
           {activeTab === 'settings' && (
-            <>
-              <div className="mb-8">
-                <h1 className="text-2xl font-bold">Settings</h1>
-                <p className="text-sm text-zinc-400 mt-1">Account and preferences.</p>
-              </div>
-              <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 space-y-4">
-                <div>
-                  <div className="text-sm font-medium mb-1">Account</div>
-                  <div className="text-sm text-zinc-400">Signed in as <span className="text-zinc-200 font-mono">{token ? 'you' : '—'}</span></div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium mb-1">Plan</div>
-                  <div className="text-sm text-zinc-400">Free tier — $0/month</div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium mb-1">Danger Zone</div>
-                  <button
-                    onClick={() => { localStorage.removeItem('calculo_token'); window.location.href = '/login'; }}
-                    className="mt-2 px-4 py-2 text-sm rounded-lg border border-red-900/50 text-red-400 hover:bg-red-900/20 transition-colors"
-                  >
-                    Sign out
-                  </button>
-                </div>
-              </div>
-            </>
+            <SettingsTab authFetch={authFetch} token={token} />
           )}
         </div>
       </div>

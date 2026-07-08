@@ -11,6 +11,7 @@ export const profiles = pgTable('profiles', {
   id: uuid('id').primaryKey().references(() => users.id, { onDelete: 'cascade' }),
   email: text('email').notNull(),
   name: text('name'),
+  bio: text('bio').default(''),
   avatarUrl: text('avatar_url'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -73,4 +74,30 @@ export const usageEvents = pgTable('usage_events', {
   index('usage_user_idx').on(t.userId),
   index('usage_calc_idx').on(t.calculatorId),
   index('usage_created_idx').on(t.createdAt),
+]);
+
+// ── Forum ───────────────────────────────────────────────────
+
+export const forumPosts = pgTable('forum_posts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  title: text('title').notNull(),
+  body: text('body').notNull(),
+  pinned: integer('pinned').notNull().default(0),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index('forum_posts_user_idx').on(t.userId),
+  index('forum_posts_created_idx').on(t.createdAt),
+]);
+
+export const forumComments = pgTable('forum_comments', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  postId: uuid('post_id').notNull().references(() => forumPosts.id, { onDelete: 'cascade' }),
+  userId: uuid('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  body: text('body').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index('forum_comments_post_idx').on(t.postId),
+  index('forum_comments_user_idx').on(t.userId),
 ]);

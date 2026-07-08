@@ -15,7 +15,7 @@ export interface TokenPayload extends JWTPayload {
 }
 
 export async function signToken(payload: { sub: string; email: string; type: 'access' | 'refresh' }): Promise<string> {
-  const expiresIn = payload.type === 'access' ? '1h' : '7d';
+  const expiresIn = payload.type === 'access' ? '30d' : '90d';
   return new SignJWT(payload)
     .setProtectedHeader({ alg: ALG })
     .setIssuedAt()
