@@ -56,15 +56,15 @@ const SHIFT_LABEL: Record<string, string> = {
 const GRAPH_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
 function keyClasses(kind: KeyDef['kind']): string {
-  const b = 'relative rounded-xl font-medium transition-all duration-100 active:scale-[0.93] select-none flex items-center justify-center leading-none cursor-pointer';
+  const b = 'relative rounded-2xl font-medium transition-all duration-150 active:scale-[0.92] select-none flex items-center justify-center leading-none cursor-pointer';
   switch (kind) {
-    case 'num':  return `${b} bg-zinc-700/60 text-zinc-100 hover:bg-zinc-600/60`;
-    case 'op':   return `${b} bg-zinc-600/40 text-[var(--calc-primary)] hover:bg-zinc-500/40`;
-    case 'fn':   return `${b} bg-zinc-800/70 text-zinc-300 hover:bg-zinc-700/70`;
-    case 'ctrl': return `${b} bg-zinc-800/50 text-zinc-400 hover:bg-zinc-700/50`;
-    case 'mem':  return `${b} bg-zinc-800/40 text-zinc-400 hover:bg-zinc-700/40`;
-    case 'eq':   return `${b} bg-[var(--calc-primary)] text-white hover:brightness-110 font-bold shadow-lg shadow-[var(--calc-primary)]/20`;
-    default:     return `${b} bg-zinc-800/50 text-zinc-200`;
+    case 'num':  return `${b} bg-zinc-700/80 text-zinc-50 hover:bg-zinc-600/80 shadow-sm shadow-black/20`;
+    case 'op':   return `${b} bg-zinc-600/50 text-[var(--calc-primary)] hover:bg-zinc-500/50 shadow-sm shadow-black/10`;
+    case 'fn':   return `${b} bg-zinc-800/80 text-zinc-300 hover:bg-zinc-700/80 shadow-sm shadow-black/20`;
+    case 'ctrl': return `${b} bg-zinc-800/60 text-zinc-400 hover:bg-zinc-700/60`;
+    case 'mem':  return `${b} bg-zinc-800/50 text-zinc-400 hover:bg-zinc-700/50`;
+    case 'eq':   return `${b} bg-[var(--calc-primary)] text-white hover:brightness-110 font-bold shadow-lg shadow-[var(--calc-primary)]/30`;
+    default:     return `${b} bg-zinc-800/60 text-zinc-200`;
   }
 }
 
@@ -278,15 +278,15 @@ export function Calculator({ theme: themeProp, mode: externalMode, compact = fal
 
   return (
     <div className="w-full h-full select-none flex flex-col" style={{ '--calc-primary': T.primaryColor } as React.CSSProperties}>
-      <div className="flex-1 flex flex-col rounded-2xl overflow-hidden" style={{ backgroundColor: T.backgroundColor, color: T.textColor, fontFamily: T.fontFamily }}>
+      <div className="flex-1 flex flex-col rounded-3xl overflow-hidden shadow-2xl shadow-black/40" style={{ backgroundColor: T.backgroundColor, color: T.textColor, fontFamily: T.fontFamily }}>
 
         {/* ── Header ── */}
-        <div className="flex items-center justify-between px-3 pt-2.5 pb-1">
+        <div className="flex items-center justify-between px-4 pt-3 pb-1">
           {!externalMode && (
-            <div className="flex items-center gap-0.5">
+            <div className="flex items-center gap-0.5 rounded-lg p-0.5" style={{ backgroundColor: 'rgba(255,255,255,0.03)' }}>
               {(['basic', 'scientific'] as const).map(m => (
                 <button key={m} onClick={() => { setIntMode(m); setExpr(''); setResult('0'); setHistory([]); setHistIdx(-1); setGraphOpen(false); }}
-                  className="px-2 py-0.5 text-[9px] rounded-md uppercase tracking-wider font-semibold transition-all"
+                  className="px-2.5 py-1 text-[9px] rounded-md uppercase tracking-wider font-semibold transition-all"
                   style={{ backgroundColor: mode === m ? `color-mix(in srgb, ${T.primaryColor} 20%, transparent)` : 'transparent', color: mode === m ? T.primaryColor : `${T.textColor}40` }}
                 >{m === 'basic' ? 'Basic' : 'Sci'}</button>
               ))}
@@ -304,17 +304,17 @@ export function Calculator({ theme: themeProp, mode: externalMode, compact = fal
         </div>
 
         {/* ── LCD Display ── */}
-        <div className="mx-3 mb-2 rounded-xl overflow-hidden" style={{ backgroundColor: '#111113', border: '1px solid rgba(255,255,255,0.04)' }}>
-          <div className="px-3 pt-2 pb-1">
-            <div ref={dispRef} className="overflow-x-auto scrollbar-none font-mono text-xs leading-relaxed" style={{ color: `${T.textColor}55`, minHeight: '1.2em', whiteSpace: 'nowrap' }}>
+        <div className="mx-3 mb-3 rounded-2xl overflow-hidden" style={{ backgroundColor: '#0e0e10', border: '1px solid rgba(255,255,255,0.05)', boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.3)' }}>
+          <div className="px-4 pt-3 pb-2">
+            <div ref={dispRef} className="overflow-x-auto scrollbar-none font-mono text-xs leading-relaxed" style={{ color: `${T.textColor}45`, minHeight: '1.2em', whiteSpace: 'nowrap' }}>
               {expr || (ans && result === '0' ? '' : '\u00A0')}
             </div>
-            <div className="font-mono font-semibold truncate leading-none text-right" style={{ fontSize: compact ? '1.25rem' : '1.75rem' }}>
+            <div className="font-mono font-semibold truncate leading-none text-right" style={{ fontSize: compact ? '1.25rem' : '1.85rem', letterSpacing: '-0.02em' }}>
               {result}
             </div>
           </div>
-          <div className="flex items-center justify-between px-3 py-1" style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.03)' }}>
-            <div className="flex items-center gap-1.5 text-[8px] font-mono tracking-widest uppercase" style={{ color: `${T.textColor}30` }}>
+          <div className="flex items-center justify-between px-4 py-1.5" style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.03)' }}>
+            <div className="flex items-center gap-2 text-[8px] font-mono tracking-widest uppercase" style={{ color: `${T.textColor}30` }}>
               {mode === 'scientific' && <span>{angle}</span>}
               <span>{mode === 'basic' ? 'BASIC' : 'SCI'}</span>
             </div>
@@ -365,19 +365,19 @@ export function Calculator({ theme: themeProp, mode: externalMode, compact = fal
         )}
 
         {/* ── Key grid ── */}
-        <div className="flex-1 flex flex-col gap-[3px] px-2 pb-2 auto-rows-fr">
+        <div className="flex-1 flex flex-col gap-[5px] px-3 pb-3 auto-rows-fr">
           {keys.map((row, ri) => (
-            <div key={ri} className="flex gap-[3px] flex-1">
+            <div key={ri} className="flex gap-[5px] flex-1">
               {row.map((k, ci) => {
                 const sl = sLabel(k);
                 const dl = dLabel(k);
                 return (
                   <button key={ci} onClick={() => act(k.action)}
-                    className={`${keyClasses(k.kind)} flex-1 text-xs relative overflow-hidden ${compact ? 'min-h-[32px]' : 'min-h-[38px]'}`}
+                    className={`${keyClasses(k.kind)} flex-1 text-[13px] relative overflow-hidden ${compact ? 'min-h-[34px]' : 'min-h-[42px]'}`}
                     style={k.kind === 'eq' ? { backgroundColor: T.primaryColor } : k.action === 'shift' && shift ? { backgroundColor: `color-mix(in srgb, ${T.primaryColor} 25%, transparent)`, color: T.primaryColor } : undefined}
                   >
                     {sl && !shift && (
-                      <span className="absolute top-0.5 left-1 text-[7px] font-semibold tracking-wide pointer-events-none" style={{ color: '#facc15', opacity: 0.7 }}>{sl}</span>
+                      <span className="absolute top-[3px] left-1.5 text-[7px] font-semibold tracking-wide pointer-events-none" style={{ color: '#facc15', opacity: 0.7 }}>{sl}</span>
                     )}
                     <span className={sl && !shift ? 'mt-1' : ''}>{dl}</span>
                   </button>
@@ -398,10 +398,10 @@ export function Calculator({ theme: themeProp, mode: externalMode, compact = fal
         )}
 
         {/* ── Branding ── */}
-        <div className="flex justify-center pb-2 pt-0.5">
+        <div className="flex justify-center pb-3 pt-1">
           <a href="https://calculo-fawn.vercel.app" target="_blank" rel="noopener noreferrer"
-            className="text-[9px] font-mono tracking-[0.2em] uppercase transition-all hover:opacity-80 active:scale-95"
-            style={{ color: `${T.textColor}20` }}
+            className="text-[9px] font-mono tracking-[0.25em] uppercase transition-all hover:opacity-80 active:scale-95"
+            style={{ color: `${T.textColor}18` }}
           >calculo</a>
         </div>
       </div>
