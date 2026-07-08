@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Calculo API Demo</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; background: #111; color: #eee; }
+  h1 { font-size: 24px; }
+  h2 { font-size: 18px; color: #aaa; margin-top: 32px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+  textarea, input, select { width: 100%; padding: 10px; font-size: 16px; background: #1a1a1a; color: #eee; border: 1px solid #333; border-radius: 6px; box-sizing: border-box; }
+  button { padding: 10px 24px; font-size: 16px; background: #fff; color: #000; border: none; border-radius: 6px; cursor: pointer; margin-top: 8px; }
+  button:hover { background: #ddd; }
+  .result { background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 16px; margin-top: 12px; font-family: monospace; white-space: pre-wrap; }
+  .error { color: #f44; }
+  pre { background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 16px; overflow-x: auto; font-size: 14px; line-height: 1.5; }
+  code { background: #222; padding: 2px 6px; border-radius: 3px; font-size: 14px; }
+  a { color: #6af; }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .row > * { flex: 0 0 auto; width: auto; }
+  .row input { flex: 1; }
+  select { width: auto; }
+</style>
+</head>
+<body>
+
+<h1>Calculo API</h1>
+<p>Evaluate math expressions via REST API. Try it below or copy the code.</p>
+
+<h2>Try it</h2>
+<div class="row">
+  <input type="text" id="expr" value="sin(45 deg) + cos(30 deg)" placeholder="e.g. 2^10, sqrt(144), log(100)">
+  <select id="angle">
+    <option value="rad">RAD</option>
+    <option value="deg" selected>DEG</option>
+  </select>
+  <button onclick="run()">Calculate</button>
+</div>
+<div id="out" class="result" style="color: #888;">Result will appear here</div>
+
+<h2>Copy &amp; Paste</h2>
+<p>W3Schools Tryit Editor — paste this HTML and click Run:</p>
+<pre><code>&lt;button onclick="calc()"&gt;Calculate 2+2&lt;/button&gt;
+&lt;span id="result"&gt;&lt;/span&gt;
+
+&lt;script&gt;
+async function calc() {
+  var r = await fetch(
+    "https://calculo-fawn.vercel.app/api/embed/evaluate?expr=2%2B2"
+  );
+  var d = await r.json();
+  document.getElementById("result").innerText = d.result;
+}
+&lt;/script&gt;</code></pre>
+
+<h2>API Reference</h2>
+<h3>Endpoint</h3>
+<pre><code>GET  /api/embed/evaluate?expr={expression}&amp;angle={rad|deg}
+POST /api/embed/evaluate  { "expr": "...", "angle": "deg" }</code></pre>
+
+<h3>Parameters</h3>
+<pre><code>expr   — Math expression (URL-encode + as %2B)
+angle  — "rad" (default) or "deg"</code></pre>
+
+<h3>Supported Functions</h3>
+<pre><code>sin, cos, tan, asin, acos, atan
+sinh, cosh, tanh
+sqrt, cbrt, abs, ceil, floor, round
+log (log10), ln (natural), log2
+exp, sign, pow(a,b), min(...), max(...)
+pi, e, %, ^, +, -, *, /</code></pre>
+
+<h3>Response</h3>
+<pre><code>{ "result": 1.5731, "expression": "sin(45)+cos(30)", "angle": "deg" }</code></pre>
+
+<h3>Examples</h3>
+<pre><code>// Basic arithmetic
+?expr=2%2B3%2B4
+?expr=100%2F4
+
+// Trig (degrees)
+?expr=sin(45)&amp;angle=deg
+?expr=cos(60)&amp;angle=deg
+
+// Powers and roots
+?expr=2%5E10
+?expr=sqrt(144)
+?expr=cbrt(27)
+
+// Logarithms
+?expr=log(1000)
+?expr=ln(2.718)
+?expr=log2(1024)
+
+// Constants
+?expr=pi
+?expr=e</code></pre>
+
+<script>
+var API = "https://calculo-fawn.vercel.app/api/embed/evaluate";
+
+async function run() {
+  var expr = document.getElementById("expr").value;
+  var angle = document.getElementById("angle").value;
+  var out = document.getElementById("out");
+  if (!expr) { out.innerHTML = "Type an expression"; return; }
+
+  out.style.color = "#888";
+  out.innerHTML = "Loading...";
+
+  try {
+    var url = API + "?expr=" + encodeURIComponent(expr) + "&angle=" + angle;
+    var res = await fetch(url);
+    var data = await res.json();
+
+    if (data.error) {
+      out.className = "result error";
+      out.innerHTML = data.error.message;
+    } else {
+      out.className = "result";
+      out.innerHTML = "= " + data.result;
+    }
+  } catch (err) {
+    out.className = "result error";
+    out.innerHTML = "Network error: " + err.message;
+  }
+}
+
+document.getElementById("expr").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") run();
+});
+</script>
+
+</body>
+</html>
