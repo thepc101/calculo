@@ -1,123 +1,105 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { CalculatorEngine } from '@calculo/calculator-engine';
-import type { CalculatorConfig, ThemeConfig } from '@calculo/shared';
-import { createDefaultConfig, createDefaultTheme } from '@calculo/shared';
+import type { ThemeConfig } from '@calculo/shared';
+import { GraphCanvas } from './graph-canvas';
 
 interface CalculatorProps {
-  config?: Partial<CalculatorConfig>;
   theme?: Partial<ThemeConfig>;
   mode?: 'basic' | 'scientific' | 'graphing';
   onModeChange?: (mode: 'basic' | 'scientific' | 'graphing') => void;
   compact?: boolean;
-  lockConfig?: { theme?: boolean; size?: boolean; mode?: boolean; };
+  lockConfig?: { theme?: boolean; size?: boolean; mode?: boolean };
 }
 
 const engine = new CalculatorEngine();
 
-const CONSTANTS_LIST: [string, string, number][] = [
-  ['c', 'Speed of light', 299792458],
-  ['h', 'Planck const', 6.62607015e-34],
-  ['G', 'Gravitational', 6.6743e-11],
-  ['ε₀', 'Vacuum perm', 8.854187817e-12],
-  ['μ₀', 'Vacuum perm', 1.25663706212e-6],
-  ['e', 'Elementary charge', 1.602176634e-19],
-  ['mₑ', 'Electron mass', 9.1093837e-31],
-  ['mₚ', 'Proton mass', 1.67262192369e-27],
-  ['Nₐ', 'Avogadro', 6.02214076e23],
-  ['k', 'Boltzmann', 1.380649e-23],
-  ['R', 'Gas const', 8.314462618],
-  ['σ', 'Stefan-Boltzmann', 5.670374419e-8],
-];
+type AngleMode = 'DEG' | 'RAD' | 'GRAD';
 
-const shiftFunctions: Record<string, string> = {
-  sin: 'sin⁻¹', cos: 'cos⁻¹', tan: 'tan⁻¹',
-  log: '10ˣ', ln: 'eˣ',
-  '√': '∛', 'x²': 'x³', 'xʸ': 'ʸ√x',
-  'n!': 'nPr', nPr: 'nCr',
-  sinh: 'sinh⁻¹', cosh: 'cosh⁻¹', tanh: 'tanh⁻¹',
-};
+const rows = 6;
+const cols = 5;
 
-const alphaVars = ['A', 'B', 'C', 'D', 'E', 'F', 'M', 'X', 'Y', 'Z'];
-
-function isShiftFn(fn: string): boolean {
-  return fn in shiftFunctions;
-}
-
-interface RowDef {
+interface Btn {
   label: string;
   shift?: string;
-  span?: number;
+  action: string;
+  type: 'num' | 'op' | 'fn' | 'ctrl' | 'mem' | 'eq' | 'alpha' | 'graph';
 }
 
-const basicLayout: RowDef[][] = [
-  [{ label: 'C', shift: 'AC' }, { label: 'M+' }, { label: 'M-' }, { label: 'MR' }, { label: '÷' }],
-  [{ label: '7' }, { label: '8' }, { label: '9' }, { label: '×' }, { label: '⌫' }],
-  [{ label: '4' }, { label: '5' }, { label: '6' }, { label: '-' }, { label: '(' }],
-  [{ label: '1' }, { label: '2' }, { label: '3' }, { label: '+' }, { label: ')' }],
-  [{ label: '±' }, { label: '0' }, { label: '.' }, { label: '=' }],
+function btn(type: Btn['type'], label: string, action: string, shift?: string): Btn {
+  return { label, action, shift, type };
+}
+
+const basicKeys: Btn[] = [
+  btn('ctrl', 'AC', 'clearAll'),   btn('mem', 'M+', 'm+'),    btn('mem', 'M-', 'm-'),    btn('mem', 'MR', 'mr'),    btn('mem', 'MC', 'mc'),
+  btn('ctrl', '(', '('),            btn('ctrl', ')', ')'),     btn('op', '÷', '/'),       btn('op', '×', '*'),       btn('ctrl', '⌫', 'del'),
+  btn('num', '7', '7'),            btn('num', '8', '8'),      btn('num', '9', '9'),      btn('op', '-', '-'),        btn('op', '+', '+'),
+  btn('num', '4', '4'),            btn('num', '5', '5'),      btn('num', '6', '6'),      btn('ctrl', '±', 'neg'),    btn('eq', '=', 'eval'),
+  btn('num', '1', '1'),            btn('num', '2', '2'),      btn('num', '3', '3'),      btn('ctrl', '^', '^'),      btn('ctrl', '√', 'sqrt'),
+  btn('num', '0', '0'),            btn('num', '.', '.'),      btn('ctrl', 'π', 'pi'),    btn('fn', 'sin', 'sin'),    btn('fn', 'cos', 'cos'),
 ];
 
-const scientificLayout: RowDef[][] = [
-  [{ label: 'Shift' }, { label: 'Alpha' }, { label: 'MODE' }, { label: 'ON' }],
-  [{ label: 'sin', shift: 'sin⁻¹' }, { label: 'cos', shift: 'cos⁻¹' }, { label: 'tan', shift: 'tan⁻¹' }, { label: 'n!', shift: 'nPr' }, { label: '(' }],
-  [{ label: 'log', shift: '10ˣ' }, { label: 'ln', shift: 'eˣ' }, { label: '√', shift: '∛' }, { label: 'x²', shift: 'x³' }, { label: ')' }],
-  [{ label: 'α', shift: 'β' }, { label: 'xʸ', shift: 'ʸ√x' }, { label: 'π' }, { label: 'e' }, { label: '÷' }],
-  [{ label: '7' }, { label: '8' }, { label: '9' }, { label: 'DEL' }, { label: 'AC' }],
-  [{ label: '4' }, { label: '5' }, { label: '6' }, { label: '×' }, { label: '-' }],
-  [{ label: '1' }, { label: '2' }, { label: '3' }, { label: '+' }, { label: '×10ˣ' }],
-  [{ label: '0' }, { label: '.' }, { label: '±' }, { label: 'Ans' }, { label: '=' }],
+const sciKeys: Btn[] = [
+  btn('ctrl', '2nd', 'shift'),     btn('alpha', 'ALPHA', 'alpha'), btn('ctrl', 'DEG', 'mode'), btn('ctrl', 'AC', 'clearAll'), btn('ctrl', '⌫', 'del'),
+  btn('fn', 'sin', 'sin', 'sin⁻¹'), btn('fn', 'cos', 'cos', 'cos⁻¹'), btn('fn', 'tan', 'tan', 'tan⁻¹'), btn('op', '^', '^'), btn('ctrl', '√', 'sqrt'),
+  btn('fn', 'log', 'log', '10ˣ'), btn('fn', 'ln', 'ln', 'eˣ'),  btn('ctrl', '(','('),        btn('ctrl', ')',')'),       btn('op', '÷', '/'),
+  btn('num', '7', '7'),           btn('num', '8', '8'),         btn('num', '9', '9'),       btn('op', '×', '*'),        btn('ctrl', '±', 'neg'),
+  btn('num', '4', '4'),           btn('num', '5', '5'),         btn('num', '6', '6'),       btn('op', '-', '-'),         btn('op', '+', '+'),
+  btn('num', '1', '1'),           btn('num', '2', '2'),         btn('num', '3', '3'),       btn('eq', '=', 'eval'),      btn('num', '0', '0'),
 ];
 
-const graphingLayout: RowDef[][] = [
-  [{ label: 'Shift' }, { label: 'Alpha' }, { label: 'MODE' }, { label: 'ON' }],
-  [{ label: 'y=' }, { label: 'WINDOW' }, { label: 'ZOOM' }, { label: 'TRACE' }, { label: 'GRAPH' }],
-  [{ label: 'sin', shift: 'sin⁻¹' }, { label: 'cos', shift: 'cos⁻¹' }, { label: 'tan', shift: 'tan⁻¹' }, { label: 'x²', shift: 'x³' }, { label: '^' }],
-  [{ label: 'log', shift: '10ˣ' }, { label: 'ln', shift: 'eˣ' }, { label: '√', shift: '∛' }, { label: '(', shift: '{' }, { label: ')' }],
-  [{ label: '7' }, { label: '8' }, { label: '9' }, { label: 'DEL' }, { label: 'AC' }],
-  [{ label: '4' }, { label: '5' }, { label: '6' }, { label: '×' }, { label: '÷' }],
-  [{ label: '1' }, { label: '2' }, { label: '3' }, { label: '+' }, { label: '-' }],
-  [{ label: '0' }, { label: '.' }, { label: '±' }, { label: 'Ans' }, { label: '=' }],
+const graphKeys: Btn[] = [
+  btn('ctrl', '2nd', 'shift'),     btn('graph', 'WINDOW', 'window'), btn('graph', 'ZOOM', 'zoom'), btn('ctrl', 'AC', 'clearAll'), btn('ctrl', '⌫', 'del'),
+  btn('fn', 'sin', 'sin', 'sin⁻¹'), btn('fn', 'cos', 'cos', 'cos⁻¹'), btn('fn', 'tan', 'tan', 'tan⁻¹'), btn('op', '^', '^'), btn('ctrl', '√', 'sqrt'),
+  btn('fn', 'log', 'log', '10ˣ'), btn('fn', 'ln', 'ln', 'eˣ'),  btn('ctrl', '(','('),        btn('ctrl', ')',')'),       btn('ctrl', 'π', 'pi'),
+  btn('num', '7', '7'),           btn('num', '8', '8'),         btn('num', '9', '9'),       btn('op', '×', '*'),        btn('op', '÷', '/'),
+  btn('num', '4', '4'),           btn('num', '5', '5'),         btn('num', '6', '6'),       btn('op', '-', '-'),         btn('op', '+', '+'),
+  btn('num', '1', '1'),           btn('num', '2', '2'),         btn('num', '3', '3'),       btn('eq', '=', 'eval'),      btn('num', '0', '0'),
 ];
 
-function toCssVars(theme: ThemeConfig): React.CSSProperties {
+const keyMap: Record<string, Btn[]> = {
+  basic: basicKeys, scientific: sciKeys, graphing: graphKeys,
+};
+
+const SHIFT_MAP: Record<string, string> = {
+  'sin': 'sin⁻¹', 'cos': 'cos⁻¹', 'tan': 'tan⁻¹',
+  'log': '10ˣ', 'ln': 'eˣ',
+};
+
+const SHIFT_TO_FN: Record<string, string> = {
+  'sin⁻¹': 'asin', 'cos⁻¹': 'acos', 'tan⁻¹': 'atan',
+  '10ˣ': '10**', 'eˣ': 'e**',
+};
+
+function toCssVars(t: ThemeConfig): React.CSSProperties {
   return {
-    '--calc-bg': theme.backgroundColor,
-    '--calc-text': theme.textColor,
-    '--calc-primary': theme.primaryColor,
-    '--calc-radius': `${theme.borderRadius}px`,
-    '--calc-spacing': `${theme.spacing}px`,
-    '--calc-font': theme.fontFamily,
+    '--calc-bg': t.backgroundColor,
+    '--calc-text': t.textColor,
+    '--calc-primary': t.primaryColor,
+    '--calc-radius': `${t.borderRadius}px`,
+    '--calc-spacing': `${t.spacing}px`,
+    '--calc-font': t.fontFamily,
   } as React.CSSProperties;
 }
 
-function btnClass(label: string, _primary: string, compact: boolean): string {
-  const h = compact ? 'h-8 text-[11px]' : 'h-10 text-sm';
-  const base = `${h} rounded-[var(--calc-radius,0.75rem)] font-medium transition-all duration-100 active:scale-95 select-none px-1`;
-  if (['Shift', 'Alpha', 'MODE', 'ON', 'AC', 'DEL'].includes(label)) {
-    return `${base} bg-zinc-800/30 text-zinc-300 hover:bg-zinc-700/30 text-[10px]`;
+function styleByType(type: Btn['type'], primary: string, compact: boolean): string {
+  const base = compact
+    ? 'h-8 text-[11px] rounded-lg font-medium transition-all duration-75 active:scale-95 select-none'
+    : 'h-11 text-sm rounded-xl font-medium transition-all duration-75 active:scale-95 select-none';
+  switch (type) {
+    case 'num':   return `${base} bg-zinc-800/50 text-[var(--calc-text)] hover:bg-zinc-700/50`;
+    case 'op':    return `${base} bg-zinc-800/30 text-[var(--calc-primary)] hover:bg-zinc-700/30`;
+    case 'fn':    return `${base} bg-zinc-800/20 text-[var(--calc-primary)] hover:brightness-125 font-mono`;
+    case 'ctrl':  return `${base} bg-zinc-800/30 text-zinc-400 hover:bg-zinc-700/30`;
+    case 'mem':   return `${base} bg-zinc-800/20 text-zinc-400 hover:bg-zinc-700/20 text-[10px]`;
+    case 'eq':    return `${base} bg-[var(--calc-primary)] text-white hover:brightness-110 font-bold text-base`;
+    case 'alpha': return `${base} bg-zinc-800/30 text-blue-400 hover:bg-zinc-700/30 text-[10px]`;
+    case 'graph': return `${base} bg-zinc-800/20 text-emerald-400 hover:brightness-125 font-mono text-[10px]`;
+    default:      return `${base} bg-zinc-800/40 text-[var(--calc-text)]`;
   }
-  if (['sin', 'cos', 'tan', 'log', 'ln'].includes(label)) {
-    return `${base} bg-zinc-800/20 text-[var(--calc-primary)] hover:brightness-125 font-mono`;
-  }
-  if (label === '=') return `${base} bg-[var(--calc-primary)] text-white hover:brightness-110 font-bold text-base`;
-  if (/^\d$/.test(label)) return `${base} bg-zinc-800/50 text-[var(--calc-text)] hover:bg-zinc-700/50 font-semibold`;
-  if (['+', '-', '×', '÷', '^', '×10ˣ'].includes(label)) {
-    return `${base} bg-zinc-800/30 text-[var(--calc-primary)] hover:bg-zinc-700/30`;
-  }
-  if (['(', ')', 'DEL', 'AC'].includes(label)) return `${base} bg-zinc-800/30 text-zinc-300 hover:bg-zinc-700/30`;
-  if (['√', 'x²', 'xʸ', 'n!', 'nPr', 'Ans', 'π', 'e', 'α', 'β', '±', '.', 'M+', 'M-', 'MR', 'MC'].includes(label)) {
-    return `${base} bg-zinc-800/25 text-zinc-300 hover:bg-zinc-700/25`;
-  }
-  if (['y=', 'WINDOW', 'ZOOM', 'TRACE', 'GRAPH'].includes(label)) {
-    return `${base} bg-zinc-800/20 text-[var(--calc-primary)] hover:brightness-125 font-mono text-[10px]`;
-  }
-  if (label === 'C') return `${base} bg-zinc-800/30 text-red-400 hover:bg-zinc-700/30`;
-  return `${base} bg-zinc-800/40 text-[var(--calc-text)] hover:bg-zinc-700/40`;
 }
 
-export function Calculator({ config, theme: themeProp, mode: externalMode, onModeChange, compact = false, lockConfig }: CalculatorProps) {
-  const fullConfig = { ...createDefaultConfig(), ...config };
-  const resolvedTheme: ThemeConfig = { ...createDefaultTheme(), ...themeProp };
+export function Calculator({ theme: themeProp, mode: externalMode, onModeChange, compact = false, lockConfig }: CalculatorProps) {
+  const resolvedTheme: ThemeConfig = { mode: 'dark', primaryColor: '#3b82f6', backgroundColor: '#0a0a0b', textColor: '#fafafa', fontFamily: 'Geist, system-ui, sans-serif', borderRadius: 8, spacing: 4, ...themeProp };
   const [expression, setExpression] = useState('');
   const [result, setResult] = useState('0');
   const [history, setHistory] = useState<Array<{ expr: string; result: string }>>([]);
@@ -125,17 +107,14 @@ export function Calculator({ config, theme: themeProp, mode: externalMode, onMod
   const [internalMode, setInternalMode] = useState<'basic' | 'scientific' | 'graphing'>('basic');
   const [shiftOn, setShiftOn] = useState(false);
   const [alphaOn, setAlphaOn] = useState(false);
-  const [angleMode, setAngleMode] = useState<'DEG' | 'RAD' | 'GRAD'>('DEG');
+  const [angleMode, setAngleMode] = useState<AngleMode>('DEG');
   const [memory, setMemory] = useState<number | null>(null);
-  const [cursorPos, setCursorPos] = useState(expression.length);
-  const [showConstants, setShowConstants] = useState(false);
   const [ans, setAns] = useState<string | null>(null);
+  const [graphExprs, setGraphExprs] = useState<{ expr: string; color: string }[]>([{ expr: 'sin(x)', color: '#3b82f6' }]);
   const inputRef = useRef<HTMLDivElement>(null);
 
   const mode = externalMode ?? internalMode;
-
-  const layout = mode === 'scientific' ? scientificLayout : mode === 'graphing' ? graphingLayout : basicLayout;
-  const displayFontSize = compact ? 18 : (fullConfig.display?.fontSize ?? 24);
+  const keys = keyMap[mode];
 
   const setMode = (m: 'basic' | 'scientific' | 'graphing') => {
     if (lockConfig?.mode) return;
@@ -143,226 +122,130 @@ export function Calculator({ config, theme: themeProp, mode: externalMode, onMod
     onModeChange?.(m);
     setExpression('');
     setResult('0');
-    setShowHistory(false);
   };
 
-  const handleButton = useCallback((label: string) => {
-    let activeLabel = label;
-    if (shiftOn && isShiftFn(label)) {
-      activeLabel = shiftFunctions[label] ?? label;
-      setShiftOn(false);
-    }
+  const insert = (text: string) => setExpression(prev => prev + text);
 
-    const insertAtCursor = (text: string) => {
-      setExpression(prev => prev.slice(0, cursorPos) + text + prev.slice(cursorPos));
-      setCursorPos(prev => prev + text.length);
-    };
+  const handleAction = useCallback((action: string) => {
+    if (action === 'shift') { setShiftOn(prev => !prev); setAlphaOn(false); return; }
+    if (action === 'alpha') { setAlphaOn(prev => !prev); setShiftOn(false); return; }
+    if (action === 'mode') { setAngleMode(prev => prev === 'DEG' ? 'RAD' : prev === 'RAD' ? 'GRAD' : 'DEG'); return; }
 
-    if (label === 'Shift') {
-      setShiftOn(prev => !prev);
+    if (alphaOn && /^[A-Z]$/.test(action)) {
+      insert(action);
       setAlphaOn(false);
       return;
     }
-    if (label === 'Alpha' || label === 'α') {
-      setAlphaOn(prev => !prev);
+
+    let finalAction = action;
+    if (shiftOn && action in SHIFT_MAP) {
+      finalAction = SHIFT_MAP[action]!;
       setShiftOn(false);
+    } else if (shiftOn) {
+      setShiftOn(false);
+    }
+
+    if (finalAction === 'clearAll') { setExpression(''); setResult('0'); setHistory([]); setAns(null); return; }
+    if (finalAction === 'del') { setExpression(prev => prev.slice(0, -1)); return; }
+    if (finalAction === 'neg') { setExpression(prev => prev.startsWith('-') ? prev.slice(1) : '-' + prev); return; }
+    if (finalAction === 'pi') { insert('π'); return; }
+
+    if (finalAction in SHIFT_TO_FN) {
+      insert(`${SHIFT_TO_FN[finalAction]}(`);
       return;
     }
-    if (label === 'ON') {
-      setExpression('');
-      setResult('0');
-      setHistory([]);
-      setAns(null);
+    if (['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'log', 'ln', 'sqrt'].includes(finalAction)) {
+      insert(`${finalAction}(`);
       return;
     }
-    if (label === 'C') {
-      setExpression('');
-      setResult('0');
-      setCursorPos(0);
-      return;
-    }
-    if (label === 'AC') {
-      setExpression('');
-      setResult('0');
-      setHistory([]);
-      setAns(null);
-      setCursorPos(0);
-      return;
-    }
-    if (label === 'DEL' || label === '⌫') {
-      setExpression(prev => prev.slice(0, -1));
-      setCursorPos(prev => Math.max(0, prev - 1));
-      return;
-    }
-    if (label === '=') {
-      const subst = expression
-        .replace(/π/g, 'pi')
-        .replace(/√\(/g, 'sqrt(')
-        .replace(/∛\(/g, 'cbrt(')
-        .replace(/×10ˣ/g, 'e')
-        .replace(/×/g, '*')
-        .replace(/÷/g, '/');
-      const evalResult = engine.evaluate({ expression: subst, angleMode: angleMode.toLowerCase() as any });
-      if (evalResult.error) {
-        setResult(`Error: ${evalResult.error}`);
-      } else {
-        const resultStr = String(evalResult.result);
-        setResult(resultStr);
-        setAns(resultStr);
-        setHistory(prev => [...prev, { expr: expression, result: resultStr }]);
-        setExpression('');
-        setCursorPos(0);
-      }
-      return;
-    }
-    if (label === '±') {
-      setExpression(prev => prev.startsWith('-') ? prev.slice(1) : '-' + prev);
-      return;
-    }
-    if (label === 'Ans') {
-      insertAtCursor(ans ?? '0');
-      return;
-    }
-    if (label === 'MODE') {
-      setAngleMode(prev => prev === 'DEG' ? 'RAD' : prev === 'RAD' ? 'GRAD' : 'DEG');
-      return;
-    }
-    if (label === 'M+') {
+    if (finalAction === '10ˣ') { insert('10**'); return; }
+    if (finalAction === 'eˣ') { insert('e**'); return; }
+
+    if (finalAction === 'm+') {
       const v = parseFloat(result);
       if (!isNaN(v)) setMemory(prev => (prev ?? 0) + v);
       return;
     }
-    if (label === 'M-') {
+    if (finalAction === 'm-') {
       const v = parseFloat(result);
       if (!isNaN(v)) setMemory(prev => (prev ?? 0) - v);
       return;
     }
-    if (label === 'MR') {
-      if (memory !== null) insertAtCursor(String(memory));
-      return;
-    }
-    if (label === 'MC') {
-      setMemory(null);
-      return;
-    }
-    if (label === 'π') {
-      insertAtCursor('π');
-      return;
-    }
-    if (label === 'e') {
-      insertAtCursor('e');
-      return;
-    }
-    if (alphaOn) {
-      const upper = label.toUpperCase();
-      if (alphaVars.includes(upper)) {
-        insertAtCursor(upper);
-        setAlphaOn(false);
-        return;
+    if (finalAction === 'mr') { if (memory !== null) insert(String(memory)); return; }
+    if (finalAction === 'mc') { setMemory(null); return; }
+
+    if (finalAction === 'eval') {
+      const subst = expression.replace(/π/g, 'pi').replace(/×/g, '*').replace(/÷/g, '/').replace(/√\(/g, 'sqrt(');
+      const evalResult = engine.evaluate({ expression: subst, angleMode: angleMode.toLowerCase() as any });
+      if (evalResult.error) {
+        setResult(`Error: ${evalResult.error}`);
+      } else {
+        const rs = String(evalResult.result);
+        setResult(rs);
+        setAns(rs);
+        setHistory(prev => [...prev, { expr: expression, result: rs }]);
+        if (mode === 'graphing') {
+          setGraphExprs(prev => [{ ...prev[0]!, expr: subst }]);
+        }
+        setExpression('');
       }
-      setAlphaOn(false);
-    }
-    if (['sin', 'cos', 'tan', 'sin⁻¹', 'cos⁻¹', 'tan⁻¹', 'log', 'ln', '√', '∛'].includes(activeLabel)) {
-      const fnMap: Record<string, string> = {
-        'sin⁻¹': 'asin', 'cos⁻¹': 'acos', 'tan⁻¹': 'atan',
-        '10ˣ': '10^', 'eˣ': 'e^', '∛': 'cbrt',
-      };
-      const fn = fnMap[activeLabel] ?? activeLabel;
-      insertAtCursor(fn + '(');
       return;
     }
-    if (activeLabel === 'x²') { insertAtCursor('^2'); return; }
-    if (activeLabel === 'x³') { insertAtCursor('^3'); return; }
-    if (activeLabel === 'xʸ') { insertAtCursor('^'); return; }
-    if (activeLabel === 'ʸ√x') { insertAtCursor('^(1/'); return; }
-    if (activeLabel === 'n!') { insertAtCursor('!'); return; }
-    if (activeLabel === 'nPr') { insertAtCursor('P('); return; }
-    if (activeLabel === 'nCr') { insertAtCursor('C('); return; }
-    if (activeLabel === '×10ˣ') { insertAtCursor('e'); return; }
-    if (activeLabel === 'β') { setAngleMode(prev => prev === 'DEG' ? 'RAD' : prev === 'RAD' ? 'GRAD' : 'DEG'); return; }
-    if (label === 'WINDOW') { return; }
-    if (label === 'ZOOM') { return; }
-    if (label === 'TRACE') { return; }
-    if (label === 'GRAPH') { return; }
 
-    insertAtCursor(label);
-  }, [expression, cursorPos, shiftOn, alphaOn, angleMode, ans, memory, result, lockConfig]);
+    if (finalAction === 'window' || finalAction === 'zoom' || finalAction === 'trace') return;
+
+    insert(finalAction);
+  }, [expression, shiftOn, alphaOn, angleMode, memory, result, mode]);
 
   useEffect(() => {
-    setCursorPos(expression.length);
-  }, [expression]);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Enter') { handleButton('='); }
-      else if (e.key === 'Backspace') { handleButton('DEL'); }
-      else if (e.key === 'Escape') { handleButton('C'); }
-      else if (e.key === 'Delete') { handleButton('AC'); }
-      else if (e.key === 'ArrowUp') { setShowHistory(true); }
-      else if (e.key === 'ArrowDown') { setShowHistory(false); }
-      else if (/^[0-9+\-*/.^()!%]$/.test(e.key)) { handleButton(e.key); }
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') handleAction('eval');
+      else if (e.key === 'Backspace') handleAction('del');
+      else if (e.key === 'Escape') handleAction('clearAll');
+      else if (/^[0-9+\-*/.^()]$/.test(e.key)) handleAction(e.key);
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleButton]);
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [handleAction]);
 
-  const hasMemory = memory !== null;
+  const displayFontSize = compact ? 20 : 28;
+
+  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
   return (
-    <div
-      className="w-full select-none"
-      style={{
-        ...toCssVars(resolvedTheme),
-        fontFamily: resolvedTheme.fontFamily,
-        color: resolvedTheme.textColor,
-      }}
-    >
-      <div
-        className="p-[var(--calc-spacing,4px)] space-y-[var(--calc-spacing,4px)]"
-        style={{
-          backgroundColor: resolvedTheme.backgroundColor,
-          borderRadius: resolvedTheme.borderRadius,
-        }}
-      >
+    <div className="w-full select-none" style={{ ...toCssVars(resolvedTheme), fontFamily: resolvedTheme.fontFamily, color: resolvedTheme.textColor }}>
+      <div className="p-[var(--calc-spacing,4px)] space-y-[var(--calc-spacing,4px)]" style={{ backgroundColor: resolvedTheme.backgroundColor, borderRadius: resolvedTheme.borderRadius }}>
         {!externalMode && (
-          <div className="flex items-center gap-1 px-1 pt-1">
-            {(['basic', 'scientific', 'graphing'] as const).map((m) => (
-              <button
-                key={m}
-                onClick={() => setMode(m)}
-                className={`px-2 py-0.5 text-[10px] rounded uppercase tracking-wider font-medium transition-all ${
+          <div className="flex items-center gap-1.5 px-1 pt-1.5">
+            {(['basic', 'scientific', 'graphing'] as const).map(m => (
+              <button key={m} onClick={() => setMode(m)}
+                className={`px-2.5 py-0.5 text-[10px] rounded-md uppercase tracking-wider font-semibold transition-all ${
                   mode === m ? 'opacity-100' : 'opacity-30 hover:opacity-60'
                 }`}
                 style={{
-                  backgroundColor: mode === m
-                    ? `color-mix(in srgb, ${resolvedTheme.primaryColor} 25%, transparent)`
-                    : 'transparent',
+                  backgroundColor: mode === m ? `color-mix(in srgb, ${resolvedTheme.primaryColor} 20%, transparent)` : 'transparent',
                   color: mode === m ? resolvedTheme.primaryColor : resolvedTheme.textColor,
-                  border: mode === m ? `1px solid color-mix(in srgb, ${resolvedTheme.primaryColor} 30%, transparent)` : '1px solid transparent',
                 }}
-              >
-                {m === 'basic' ? 'Basic' : m === 'scientific' ? 'Sci' : 'Graph'}
-              </button>
+              >{m}</button>
             ))}
             <div className="flex-1" />
-            <span className="text-[10px] font-mono opacity-40 tracking-wider">{angleMode}</span>
-            {hasMemory && <span className="text-[10px] font-mono opacity-60 text-yellow-400 ml-1">M</span>}
-            {shiftOn && <span className="text-[10px] font-mono opacity-80 text-green-400 ml-1">S</span>}
-            {alphaOn && <span className="text-[10px] font-mono opacity-80 text-blue-400 ml-1">A</span>}
+            <span className="text-[10px] font-mono opacity-30 tracking-widest">{angleMode}</span>
+            {memory !== null && <span className="text-[10px] font-mono text-yellow-400 opacity-70">M</span>}
+            {shiftOn && <span className="text-[10px] font-mono text-green-400 opacity-80">2nd</span>}
+            {alphaOn && <span className="text-[10px] font-mono text-blue-400 opacity-80">A</span>}
           </div>
         )}
 
-        <div
-          className="p-3 min-h-[72px] space-y-1"
-          style={{
-            backgroundColor: `color-mix(in srgb, ${resolvedTheme.backgroundColor} 80%, transparent)`,
-            borderRadius: resolvedTheme.borderRadius,
-          }}
-        >
+        <div className="p-4 min-h-[88px] space-y-1 flex flex-col justify-end" style={{ backgroundColor: `color-mix(in srgb, ${resolvedTheme.backgroundColor} 70%, #000)`, borderRadius: resolvedTheme.borderRadius }}>
+          {mode === 'graphing' && graphExprs.length > 0 && !expression && (
+            <div className="mb-2">
+              <GraphCanvas expressions={graphExprs} width={280} height={160} />
+            </div>
+          )}
           {showHistory && history.length > 0 && (
-            <div className="max-h-16 overflow-y-auto space-y-0.5 mb-1 opacity-50 text-[10px]">
+            <div className="max-h-20 overflow-y-auto space-y-0.5 mb-1 opacity-50">
               {history.map((h, i) => (
-                <div key={i} className="flex justify-between gap-4 font-mono">
+                <div key={i} className="flex justify-between gap-4 font-mono text-[10px]">
                   <span>{h.expr}</span>
                   <span>= {h.result}</span>
                 </div>
@@ -370,101 +253,77 @@ export function Calculator({ config, theme: themeProp, mode: externalMode, onMod
             </div>
           )}
           {ans && !expression && result === '0' && (
-            <div className="text-[10px] opacity-30 font-mono mb-0.5">Ans = {ans}</div>
+            <div className="text-[10px] opacity-30 font-mono">Ans = {ans}</div>
           )}
-          <div ref={inputRef} className="font-mono min-h-[1.1em] break-all truncate text-[11px] opacity-50">
+          <div ref={inputRef} className="font-mono min-h-[1.2em] break-all truncate text-xs opacity-50">
             {expression || '\u00A0'}
           </div>
-          <div className="font-semibold font-mono mt-0.5 truncate leading-tight" style={{ fontSize: displayFontSize }}>
+          <div className="font-semibold font-mono mt-0.5 truncate leading-none" style={{ fontSize: displayFontSize }}>
             {result}
           </div>
         </div>
 
-        <div className="space-y-[var(--calc-spacing,4px)]">
-          {layout.map((row, ri) => (
-            <div
-              key={ri}
-              className="grid gap-[var(--calc-spacing,4px)]"
-              style={{ gridTemplateColumns: `repeat(${row.length}, 1fr)` }}
-            >
-              {row.map((btn) => {
-                const display = shiftOn && btn.shift ? btn.shift : btn.label;
-                return (
-                  <button
-                    key={btn.label}
-                    onClick={() => handleButton(btn.label)}
-                    className={btnClass(display, resolvedTheme.primaryColor, compact)}
-                    title={btn.shift ? `Shift: ${btn.shift}` : undefined}
-                  >
-                    {display}
-                  </button>
-                );
-              })}
-            </div>
-          ))}
+        <div className="grid grid-cols-5 gap-[var(--calc-spacing,4px)]">
+          {keys.map((btn, i) => {
+            const display = shiftOn && btn.shift ? btn.shift : btn.label;
+            return (
+              <button
+                key={i}
+                onClick={() => handleAction(btn.action)}
+                className={styleByType(btn.type, resolvedTheme.primaryColor, compact)}
+                title={btn.shift ? `${btn.shift}` : undefined}
+              >
+                {display}
+              </button>
+            );
+          })}
         </div>
 
-        <div className="flex gap-1 pt-1">
-          <button
-            onClick={() => setShowHistory(!showHistory)}
-            className="px-2 py-0.5 text-[10px] rounded uppercase tracking-wider font-medium"
-            style={{
-              backgroundColor: `color-mix(in srgb, ${resolvedTheme.primaryColor} 20%, transparent)`,
-              color: resolvedTheme.primaryColor,
-            }}
-          >
-            {showHistory ? 'Hide' : 'History'}
-          </button>
-          {history.length > 0 && (
-            <button
-              onClick={() => { setHistory([]); setShowHistory(false); setAns(null); }}
-              className="px-2 py-0.5 text-[10px] rounded uppercase tracking-wider font-medium opacity-50 hover:opacity-100"
-              style={{
-                backgroundColor: `color-mix(in srgb, ${resolvedTheme.textColor} 10%, transparent)`,
-                color: resolvedTheme.textColor,
-              }}
-            >
-              Clear
-            </button>
-          )}
-          <div className="flex-1" />
-          <button
-            onClick={() => setShowConstants(!showConstants)}
-            className="px-2 py-0.5 text-[10px] rounded uppercase tracking-wider font-medium opacity-50 hover:opacity-100"
-            style={{
-              backgroundColor: `color-mix(in srgb, ${resolvedTheme.primaryColor} 15%, transparent)`,
-              color: resolvedTheme.primaryColor,
-            }}
-          >
-            Constants
-          </button>
-        </div>
-
-        {showConstants && (
-          <div
-            className="p-2 rounded-lg max-h-32 overflow-y-auto space-y-1"
-            style={{
-              backgroundColor: `color-mix(in srgb, ${resolvedTheme.backgroundColor} 80%, #000)`,
-              border: `1px solid color-mix(in srgb, ${resolvedTheme.primaryColor} 15%, transparent)`,
-            }}
-          >
-            <div className="text-[10px] uppercase tracking-wider font-medium opacity-40 mb-1">Scientific Constants</div>
-            <div className="grid grid-cols-3 gap-1">
-              {CONSTANTS_LIST.map(([sym, name, val]) => (
-                <button
-                  key={sym}
-                  onClick={() => setExpression(prev => prev + `(${val})`)}
-                  className="text-[10px] text-left px-2 py-1 rounded hover:bg-zinc-800/50 transition-colors"
-                  style={{ color: resolvedTheme.textColor }}
-                  title={name}
-                >
-                  <span className="opacity-80">{sym}</span>{' '}
-                  <span className="opacity-40">{val.toExponential(3)}</span>
-                </button>
-              ))}
-            </div>
+        {mode === 'graphing' && (
+          <div className="flex gap-1.5 px-1 pb-1">
+            {graphExprs.map((ge, i) => (
+              <div key={i} className="flex items-center gap-1.5">
+                <input
+                  value={ge.expr}
+                  onChange={e => {
+                    const next = [...graphExprs];
+                    next[i] = { ...next[i]!, expr: e.target.value };
+                    setGraphExprs(next);
+                  }}
+                  className="w-20 h-6 rounded bg-zinc-800/50 px-2 text-[10px] font-mono text-zinc-300 border border-zinc-700/50 focus:outline-none"
+                />
+                <input
+                  type="color"
+                  value={ge.color}
+                  onChange={e => {
+                    const next = [...graphExprs];
+                    next[i] = { ...next[i]!, color: e.target.value };
+                    setGraphExprs(next);
+                  }}
+                  className="w-5 h-5 rounded cursor-pointer border-0 p-0"
+                />
+                {i === graphExprs.length - 1 && graphExprs.length < 6 && (
+                  <button onClick={() => setGraphExprs(prev => [...prev, { expr: 'x', color: COLORS[prev.length % COLORS.length]! }])}
+                    className="w-5 h-5 rounded bg-zinc-800/40 text-zinc-500 hover:text-zinc-300 text-xs flex items-center justify-center"
+                  >+</button>
+                )}
+              </div>
+            ))}
           </div>
         )}
+
+        <div className="flex gap-1.5 px-1 pb-1.5">
+          <button onClick={() => setShowHistory(!showHistory)}
+            className="px-2 py-0.5 text-[9px] rounded-md uppercase tracking-wider font-medium"
+            style={{ backgroundColor: `color-mix(in srgb, ${resolvedTheme.primaryColor} 15%, transparent)`, color: resolvedTheme.primaryColor }}
+          >{showHistory ? 'Hide' : 'History'}</button>
+          {history.length > 0 && (
+            <button onClick={() => { setHistory([]); setShowHistory(false); setAns(null); }}
+              className="px-2 py-0.5 text-[9px] rounded-md uppercase tracking-wider font-medium opacity-40 hover:opacity-80"
+              style={{ backgroundColor: `color-mix(in srgb, ${resolvedTheme.textColor} 8%, transparent)`, color: resolvedTheme.textColor }}
+            >Clear</button>
+          )}
+        </div>
       </div>
     </div>
   );

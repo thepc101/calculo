@@ -1,6 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
+import { Markdown } from '../lib/markdown';
 
-interface DocEntry {
+interface DocPage {
   id: string;
   section: string;
   title: string;
@@ -8,62 +9,102 @@ interface DocEntry {
   keywords: string;
 }
 
-const allDocs: DocEntry[] = [
+const pages: DocPage[] = [
+  {
+    id: 'overview',
+    section: 'Getting Started',
+    title: 'Overview',
+    keywords: 'overview introduction what is calculo infrastructure',
+    content: `# Overview
+
+calculo is the infrastructure layer for calculations.
+
+Build, embed, and scale calculators with one API. From simple arithmetic to complex scientific graphing — deploy in minutes, serve millions.
+
+## Key Features
+
+- **Calculator API** — Evaluate expressions, render graphs, manage configurations
+- **Embed Widgets** — Drop interactive calculators into any website with a single div
+- **SDKs** — First-class TypeScript, React, Vue, Angular, and Svelte SDKs
+- **16 Themes** — Dark, light, cyberpunk, ocean, and 12 more premium themes
+- **Locking** — Lock theme, size, and mode when embedding in your product
+- **Self-hostable** — MIT-licensed, deploy on your own infrastructure
+- **Graph Engine** — Cartesian, parametric, and polar graphing
+- **60+ Functions** — Trig, hyperbolic, log, stats, combinatorics, constants
+
+## Quick Example
+
+\`\`\`typescript
+import { Calculo } from '@calculo/sdk';
+
+const calculo = new Calculo('cal_live_key');
+
+const { result } = await calculo.evaluate({
+  expression: 'sin(pi/4)^2 + cos(pi/4)^2'
+});
+// → { result: 1 }
+\`\`\`
+
+The SDK evaluates expressions client-side by default — no server call needed. Use the REST API for server-side evaluation.
+`,
+  },
   {
     id: 'installation',
     section: 'Getting Started',
     title: 'Installation',
-    keywords: 'install npm pnpm yarn setup get started',
-    content: `Install the SDK via npm:
+    keywords: 'install npm pnpm yarn setup sdk',
+    content: `# Installation
+
+## npm
 
 \`\`\`bash
 npm install @calculo/sdk
 \`\`\`
 
-Or using pnpm:
+## pnpm
 
 \`\`\`bash
 pnpm add @calculo/sdk
 \`\`\`
 
-For the React component:
+## React
 
 \`\`\`bash
 npm install @calculo/react
 \`\`\`
 
-For the embed widget, add a script tag:
+## Embed Widget
+
+Add the script to your HTML:
 
 \`\`\`html
 <script src="https://cdn.calculo.dev/widget.js"></script>
-\`\`\``,
-  },
-  {
-    id: 'quick-start',
-    section: 'Getting Started',
-    title: 'Quick Start',
-    keywords: 'quick start hello world first expression sdk client',
-    content: `Create a client and evaluate your first expression:
-
-\`\`\`typescript
-import { Calculo } from '@calculo/sdk';
-
-const calculo = new Calculo('cal_your_api_key');
-
-const { result } = await calculo.evaluate({
-  expression: 'sin(pi/4)^2 + cos(pi/4)^2',
-});
-console.log(result); // → 1
 \`\`\`
 
-The SDK runs calculations client-side by default with no server call needed. Use the REST API for server-side evaluation.`,
+> **Note**: The embed widget is the simplest way to add a calculator to any website. No build step required.
+
+## Requirements
+
+- Node.js >= 18
+- TypeScript >= 5.0 (optional, for typed SDK)
+`,
   },
   {
     id: 'authentication',
     section: 'Getting Started',
     title: 'Authentication',
-    keywords: 'auth api key token bearer authenticate security',
-    content: `All API requests require authentication via a Bearer token:
+    keywords: 'auth api key token bearer authenticate signup key',
+    content: `# Authentication
+
+Every API request requires a Bearer token.
+
+## Getting Your API Key
+
+When you sign up for calculo, an API key is automatically generated for your account. Find it in your Dashboard under **API Keys**.
+
+## Using Your API Key
+
+Add the key to all API requests:
 
 \`\`\`bash
 curl https://api.calculo.dev/v1/evaluate \\
@@ -72,47 +113,184 @@ curl https://api.calculo.dev/v1/evaluate \\
   -d '{"expression": "2+2"}'
 \`\`\`
 
-Generate API keys from the Dashboard. Keys support scoped permissions:
-- \`evaluate\` — Evaluate expressions
-- \`render\` — Generate graph data
-- \`calculators\` — Manage calculator configurations
-- \`admin\` — Full access`,
+## SDK Usage
+
+\`\`\`typescript
+import { Calculo } from '@calculo/sdk';
+
+const calculo = new Calculo(process.env.CALCULO_API_KEY);
+\`\`\`
+
+## Key Security
+
+- Never expose your API key in client-side code
+- Use environment variables for production
+- Rotate keys regularly from the Dashboard
+- Each account gets one key on signup; generate additional keys as needed`,
+  },
+  {
+    id: 'calculator-types',
+    section: 'Calculators',
+    title: 'Calculator Types',
+    keywords: 'basic scientific graphing financial programming custom types modes',
+    content: `# Calculator Types
+
+Calculo supports six calculator types, each with a purpose-built layout and feature set.
+
+## Basic
+
+Arithmetic, memory operations (M+, M-, MR, MC), parentheses, negation, percentage. Ideal for simple calculations and e-commerce price calculators.
+
+## Scientific
+
+Full scientific mode with:
+- **Trigonometry**: sin, cos, tan + inverse functions
+- **Logarithms**: log (base 10), ln (natural log)
+- **Powers & Roots**: x², √, xʸ
+- **Angle modes**: DEG, RAD, GRAD toggling
+- **Memory**: M+, M-, MR, MC with status indicator
+- **Secondary functions**: 2nd key for inverse trig, 10ˣ, eˣ
+
+## Graphing
+
+Interactive 2D graphing with:
+- SVG-rendered curves with configurable colors
+- Up to 6 simultaneous function plots
+- Axis labels, grid lines, tick marks
+- Real-time update on expression change
+- Window bounds: x: [-10, 10], y: [-10, 10]
+
+## Financial
+
+TVM (Time Value of Money), amortization, ROI, payment calculations.
+
+## Programming
+
+Hexadecimal, binary, octal conversion. Bitwise operators (AND, OR, XOR, NOT, shift).
+
+## Custom
+
+Full JSON control over every button, layout, and behavior. Define your own variables, functions, and display settings.
+
+> **Pro tip**: Use the interactive demo to configure your calculator, then export the Config JSON.`,
+  },
+  {
+    id: 'expressions',
+    section: 'Calculators',
+    title: 'Expressions & Functions',
+    keywords: 'expression evaluate math syntax operators functions constants',
+    content: `# Expressions & Functions
+
+## Arithmetic Operators
+
+| Operator | Description | Example |
+|----------|-------------|---------|
+| \`+\` | Addition | \`2 + 3\` |
+| \`-\` | Subtraction | \`5 - 2\` |
+| \`*\` | Multiplication | \`4 * 3\` |
+| \`/\` | Division | \`10 / 2\` |
+| \`^\` | Power | \`2 ^ 10\` |
+| \`%\` | Modulo | \`7 % 3\` |
+| \`!\` | Factorial | \`5!\` |
+
+## Trigonometric Functions
+
+| Function | Description |
+|----------|-------------|
+| \`sin(x)\` | Sine (respects angle mode) |
+| \`cos(x)\` | Cosine |
+| \`tan(x)\` | Tangent |
+| \`asin(x)\` | Arcsine (result in radians) |
+| \`acos(x)\` | Arccosine |
+| \`atan(x)\` | Arctangent |
+| \`sinh(x)\` | Hyperbolic sine |
+| \`cosh(x)\` | Hyperbolic cosine |
+| \`tanh(x)\` | Hyperbolic tangent |
+
+## Logarithmic Functions
+
+| Function | Description |
+|----------|-------------|
+| \`log(x)\` | Base-10 logarithm |
+| \`ln(x)\` | Natural logarithm |
+| \`log2(x)\` | Base-2 logarithm |
+
+## Other Functions
+
+| Function | Description |
+|----------|-------------|
+| \`sqrt(x)\` | Square root |
+| \`cbrt(x)\` | Cube root |
+| \`abs(x)\` | Absolute value |
+| \`floor(x)\` | Round down |
+| \`ceil(x)\` | Round up |
+| \`round(x)\` | Round to nearest |
+| \`exp(x)\` | e^x |
+| \`min(a, b, ...)\` | Minimum |
+| \`max(a, b, ...)\` | Maximum |
+| \`rand()\` | Random number [0, 1) |
+| \`randint(a, b)\` | Random integer [a, b] |
+| \`gcd(a, b)\` | Greatest common divisor |
+| \`lcm(a, b)\` | Least common multiple |
+
+## Constants
+
+| Constant | Value |
+|----------|-------|
+| \`pi\` | 3.14159... |
+| \`e\` | 2.71828... |
+| \`phi\` | 1.61803... |
+| \`c\` | 299,792,458 (speed of light) |
+| \`h\` | 6.626e-34 (Planck) |
+| \`G\` | 6.674e-11 (gravitational) |
+| \`R\` | 8.314 (gas constant) |
+
+## Angle Modes
+
+- **DEG** — Degrees (360° = full circle)
+- **RAD** — Radians (2π = full circle)
+- **GRAD** — Gradians (400 grad = full circle)
+
+Toggle with the MODE button in scientific mode. Default is DEG.`,
   },
   {
     id: 'embedding',
-    section: 'Core Concepts',
-    title: 'Embedding',
-    keywords: 'embed widget html embed code iframe integrate',
-    content: `Embed a fully interactive calculator with a single div:
+    section: 'Embedding',
+    title: 'Embedding Calculators',
+    keywords: 'embed widget html iframe integrate website',
+    content: `# Embedding Calculators
+
+Embed a fully interactive calculator into any website with a single HTML element.
+
+## Basic Embed
 
 \`\`\`html
 <div class="calculo-calculator"
   data-mode="scientific"
   data-theme="dark"
-  data-width="400"
-  data-height="600"
+  data-width="340"
+  data-height="500"
 ></div>
 <script src="https://cdn.calculo.dev/widget.js"></script>
 \`\`\`
 
-**Configuration Options:**
+## Configuration Options
 
 | Attribute | Type | Default | Description |
 |-----------|------|---------|-------------|
 | \`data-mode\` | string | \`basic\` | Calculator mode: \`basic\`, \`scientific\`, \`graphing\` |
-| \`data-theme\` | string | \`dark\` | Theme name: \`dark\`, \`light\`, \`oled\`, \`cyberpunk\`, \`ocean\`, \`forest\`, \`retro\`, \`coffee\`, \`sunset\`, \`aurora\`, \`monochrome\` |
-| \`data-width\` | number | \`320\` | Width in pixels |
-| \`data-height\` | number | \`520\` | Height in pixels |
-| \`data-lock-theme\` | bool | \`false\` | Prevent user from changing theme |
-| \`data-lock-size\` | bool | \`false\` | Prevent user from resizing |
-| \`data-lock-mode\` | bool | \`false\` | Prevent user from switching mode |
+| \`data-theme\` | string | \`dark\` | Theme name. See [Themes](#themes) for all options |
+| \`data-width\` | number | \`340\` | Width in pixels |
+| \`data-height\` | number | \`500\` | Height in pixels |
+| \`data-lock-theme\` | bool | \`false\` | Disable theme switching |
+| \`data-lock-size\` | bool | \`false\` | Disable resizing |
+| \`data-lock-mode\` | bool | \`false\` | Disable mode switching |
 
-**Locking the interface:**
+## Locking the Interface
 
-When embedding calculators in your product, use the \`data-lock-*\` attributes to restrict user changes:
+When embedding in your product, use lock attributes to create a branded, fixed calculator:
 
 \`\`\`html
-<!-- Locked: theme, size, and mode are fixed -->
 <div class="calculo-calculator"
   data-mode="scientific"
   data-theme="corporate"
@@ -122,103 +300,157 @@ When embedding calculators in your product, use the \`data-lock-*\` attributes t
   data-lock-size="true"
   data-lock-mode="true"
 ></div>
+<script src="https://cdn.calculo.dev/widget.js"></script>
 \`\`\`
 
-This creates a locked-down calculator that matches your brand — users get the full calculation experience without being able to change the appearance or layout.`,
+Locked calculators hide the Theme button, size controls, and mode switcher — users get the full calculation experience without being able to change the appearance.
+
+## React Embed
+
+\`\`\`tsx
+import { Calculator } from '@calculo/react';
+
+export function Demo() {
+  return (
+    <Calculator
+      type="scientific"
+      theme={{ mode: 'dark' }}
+      graph={true}
+    />
+  );
+}
+\`\`\`
+
+## Embed Best Practices
+
+- Lock theme and size for production embeds to maintain brand consistency
+- Use \`scientific\` mode for advanced calculations, \`basic\` for simple arithmetic
+- Set explicit width and height to prevent layout shift
+- Always include the widget.js script immediately after the calculator element`,
   },
   {
     id: 'themes',
-    section: 'Core Concepts',
+    section: 'Embedding',
     title: 'Themes',
-    keywords: 'themes theme dark light colors custom branding',
-    content: `Calculo ships with 16 built-in themes:
+    keywords: 'themes theme dark light colors customize branding',
+    content: `# Themes
 
-**Dark themes:** \`dark\`, \`oled\`, \`monochrome\`, \`cyberpunk\`, \`ocean\`, \`forest\`, \`sunset\`, \`aurora\`
-**Light themes:** \`light\`, \`minimal\`, \`corporate\`, \`retro\`, \`coffee\`
-**Special:** \`high-contrast\`, \`glass\`, \`neumorphism\`
+Calculo ships with 16 built-in themes, each defining a complete color palette and typography.
 
-Each theme defines:
+## All Themes
+
+| Theme | Type | Primary | Background | Best For |
+|-------|------|---------|------------|----------|
+| \`dark\` | Dark | Blue | Dark charcoal | Default, general use |
+| \`light\` | Light | Blue | White | Light-mode sites |
+| \`oled\` | Dark | Indigo | Pure black | OLED displays, dark mode |
+| \`high-contrast\` | Dark | Yellow | Black | Accessibility |
+| \`glass\` | Dark | Purple | Translucent | Modern UI overlays |
+| \`neumorphism\` | Light | Indigo | Light gray | Soft UI design |
+| \`minimal\` | Light | Black | White | Clean, monochrome |
+| \`corporate\` | Light | Navy | Slate | Business applications |
+| \`cyberpunk\` | Dark | Magenta | Deep navy | Gaming, tech |
+| \`retro\` | Light | Orange | Warm cream | Vintage feel |
+| \`coffee\` | Dark | Brown | Espresso | Warm, cozy |
+| \`ocean\` | Dark | Cyan | Deep blue | Calm, professional |
+| \`forest\` | Dark | Green | Forest | Nature-inspired |
+| \`sunset\` | Dark | Orange | Dark purple | Warm, dramatic |
+| \`aurora\` | Dark | Green | Dark navy | Modern, tech |
+| \`monochrome\` | Dark | Gray | Dark gray | Minimal, neutral |
+
+## Using Themes
+
+In embed HTML:
+
+\`\`\`html
+<div class="calculo-calculator"
+  data-theme="cyberpunk"
+></div>
+\`\`\`
+
+In the SDK:
+
+\`\`\`typescript
+import { themes } from '@calculo/config';
+
+const calculator = new Calculo('key');
+await calculator.createCalculator({
+  type: 'scientific',
+  theme: themes.ocean,
+});
+\`\`\`
+
+## Custom Themes
+
+Each theme is defined by a \`ThemeConfig\` object:
 
 \`\`\`typescript
 interface ThemeConfig {
   mode: string;
-  primaryColor: string;   // Accent color for buttons and highlights
-  backgroundColor: string; // Background color
-  textColor: string;       // Foreground text color
-  fontFamily: string;      // Font stack
-  borderRadius: number;    // Border radius in px
-  spacing: number;         // Grid spacing in px
+  primaryColor: string;
+  backgroundColor: string;
+  textColor: string;
+  fontFamily: string;
+  borderRadius: number;
+  spacing: number;
 }
 \`\`\`
 
-Use themes via the Theme panel in the interactive demo, or set them in your embed code with \`data-theme="cyberpunk"\`.`,
+Override any value when creating a calculator:
+
+\`\`\`typescript
+const config = {
+  type: 'scientific',
+  theme: {
+    mode: 'custom',
+    primaryColor: '#10b981',
+    backgroundColor: '#0a0a0b',
+    textColor: '#fafafa',
+    fontFamily: 'Inter, system-ui, sans-serif',
+    borderRadius: 12,
+    spacing: 6,
   },
-  {
-    id: 'expressions',
-    section: 'Core Concepts',
-    title: 'Expressions',
-    keywords: 'expression evaluate math syntax operators functions',
-    content: `Calculo supports a rich expression syntax:
-
-**Arithmetic:** \`+\`, \`-\`, \`*\`, \`/\`, \`^\` (power), \`%\` (modulo)
-**Trigonometry:** \`sin()\`, \`cos()\`, \`tan()\`, \`asin()\`, \`acos()\`, \`atan()\`
-**Hyperbolic:** \`sinh()\`, \`cosh()\`, \`tanh()\`
-**Logarithms:** \`log()\` (base 10), \`ln()\` (natural), \`log2()\`
-**Numeric:** \`abs()\`, \`floor()\`, \`ceil()\`, \`round()\`, \`sqrt()\`, \`cbrt()\`, \`exp()\`
-**Statistics:** \`min()\`, \`max()\`, \`mean()\`, \`median()\`, \`stddev()\`, \`variance()\`
-**Combinatorics:** \`nPr()\`, \`nCr()\`, \`factorial()\`
-**Constants:** \`pi\` (π), \`e\`, \`phi\`, \`c\`, \`h\`, \`G\`, \`R\`
-
-**Angle modes:** Use \`DEG\`, \`RAD\`, or \`GRAD\` for trigonometric functions.`,
-  },
-  {
-    id: 'calculator-types',
-    section: 'Core Concepts',
-    title: 'Calculator Types',
-    keywords: 'basic scientific graphing financial programming custom calculator type',
-    content: `Six calculator types are available, each with a pre-built layout:
-
-**Basic** — Arithmetic operations, percentages, memory functions (M+, M-, MR, MC). Perfect for simple calculations.
-
-**Scientific** — Trigonometric, logarithmic, exponential functions. Shift key for inverse functions. Constants library. Angle mode (DEG/RAD/GRAD). Powers and roots. Factorials, permutations, combinations.
-
-**Graphing** — Plot cartesian, parametric, and polar functions. Adjustable window bounds. Trace and zoom features.
-
-**Financial** — TVM (Time Value of Money), amortization schedules, ROI calculations, payment formulas.
-
-**Programming** — Hexadecimal, binary, octal conversion. Bitwise operators (AND, OR, XOR, NOT, shift).
-
-**Custom** — Full JSON control over every button, layout, and behavior. Define your own variables, functions, and display settings.`,
-  },
-  {
-    id: 'scientific-mode',
-    section: 'Guides',
-    title: 'Scientific Mode',
-    keywords: 'scientific mode trig log functions shift alpha constants',
-    content: `The scientific calculator includes:
-
-**Shift Key** — Tap to access inverse functions (\`sin⁻¹\`, \`cos⁻¹\`, \`tan⁻¹\`), powers (\`x²\`, \`x³\`, \`ʸ√x\`), and alternate forms (\`10ˣ\`, \`eˣ\`, \`∛\`).
-
-**Alpha Key** — Tap to insert variable names (A-F, M, X, Y, Z) into expressions.
-
-**Angle Mode** — Toggle between DEG (degrees), RAD (radians), and GRAD (gradians) using the MODE button or β (beta shift).
-
-**Memory Operations:**
-- \`M+\` — Add current result to memory
-- \`M-\` — Subtract current result from memory
-- \`MR\` — Recall memory value into expression
-- \`MC\` — Clear memory
-
-The \`M\` indicator appears in the status bar when memory contains a value. The \`S\` and \`A\` indicators show when Shift or Alpha are active.`,
+};
+\`\`\``,
   },
   {
     id: 'graphing',
     section: 'Guides',
-    title: 'Graphing',
-    keywords: 'graph plot function cartesian parametric polar',
-    content: `The graphing calculator lets you plot multiple functions simultaneously.
+    title: 'Graphing Guide',
+    keywords: 'graph plot function cartesian parametric polar svg',
+    content: `# Graphing Guide
 
-**Functions:** Enter expressions using \`y=\` notation. Use \`x\` as the independent variable.
+The graphing calculator renders 2D function plots as SVG directly in the browser.
+
+## Getting Started
+
+Switch to **Graphing** mode. Enter an expression using \`x\` as the variable. Press = to plot.
+
+### Example Functions
+
+| Expression | Description |
+|------------|-------------|
+| \`sin(x)\` | Sine wave |
+| \`cos(x)\` | Cosine wave |
+| \`x^2\` | Parabola |
+| \`sqrt(x)\` | Square root curve |
+| \`tan(x)\` | Tangent |
+| \`e^(-x^2)\` | Bell curve |
+| \`sin(x) + cos(x)\` | Combined wave |
+| \`x^3 - 3*x\` | Cubic |
+
+## Multiple Functions
+
+Add up to 6 functions simultaneously. Each function gets a unique color. Toggle colors using the color picker.
+
+## Graph Display
+
+- **Grid**: Axis lines with tick marks every 1 unit
+- **Range**: x: [-10, 10], y: [-10, 10]
+- **Resolution**: 400 sample points per function
+- **SVG rendering**: Crisp, scalable, theme-aware
+
+## API Graphing
 
 \`\`\`typescript
 const graphData = await calculo.render({
@@ -230,86 +462,254 @@ const graphData = await calculo.render({
 });
 \`\`\`
 
-**Graph types:** Cartesian (\`y=f(x)\`), Parametric (\`x=f(t), y=g(t)\`), Polar (\`r=f(θ)\`).
-
-**Controls:** WINDOW → Adjust viewport bounds. ZOOM → Zoom in/out. TRACE → Follow curve with cursor. GRAPH → Render all active plots.`,
+> **Note**: The graph renders in the calculator display area. Resize the calculator for a larger graph view.
+`,
   },
   {
-    id: 'custom-buttons',
+    id: 'scientific-mode',
     section: 'Guides',
-    title: 'Custom Buttons',
-    keywords: 'custom buttons layout json configure override',
-    content: `Override every button in the calculator via JSON config:
+    title: 'Scientific Mode Guide',
+    keywords: 'scientific mode trig log shift second alpha constants memory',
+    content: `# Scientific Mode Guide
 
-\`\`\`typescript
-const calculator = new Calculo('cal_key');
-await calculator.createCalculator({
-  type: 'custom',
-  buttons: [
-    {
-      id: 'my-btn',
-      label: 'GDP',
-      value: 'gdp(2024)',
-      type: 'custom',
-      position: { row: 0, col: 0, width: 2 },
-    },
-  ],
-});
+The scientific calculator provides professional-grade mathematical functions.
+
+## Key Features
+
+### 2nd (Shift) Key
+
+Tap the **2nd** button to access secondary functions. The green "2nd" indicator appears when active.
+
+| Button | Normal | Shifted |
+|--------|--------|---------|
+| sin | \`sin(\` | \`asin(\` |
+| cos | \`cos(\` | \`acos(\` |
+| tan | \`tan(\` | \`atan(\` |
+| log | \`log(\` | \`10**(\` |
+| ln | \`ln(\` | \`e**(\` |
+
+### Angle Mode
+
+Tap **DEG** to cycle between DEG → RAD → GRAD. The current mode displays in the status bar.
+
+### Memory Operations
+
+| Button | Action |
+|--------|--------|
+| M+ | Add current result to memory |
+| M- | Subtract current result from memory |
+| MR | Recall memory into expression |
+| MC | Clear memory |
+
+The **M** indicator appears when memory contains a value.
+
+### Constants
+
+Use \`π\` (pi) and the expression \`e\` for Euler's number.
+
+## Example Expressions
+
+\`\`\`
+sin(45)        → 0.7071 (in DEG mode)
+cos(pi)        → -1
+log(100)       → 2
+ln(e^2)        → 2
+2^10           → 1024
+sqrt(144)      → 12
+5!             → 120
+π              → 3.14159...
 \`\`\`
 
-Each button supports: \`id\`, \`label\`, \`value\`, \`type\`, \`size\`, \`shape\`, \`color\`, \`icon\`, \`position\`, \`action\`.
-
-Button types: \`number\`, \`operator\`, \`function\`, \`memory\`, \`action\`, \`custom\`.
-
-Sizes: \`sm\`, \`md\`, \`lg\`, \`xl\`. Shapes: \`square\`, \`rounded\`, \`pill\`, \`circle\`.`,
+> **Pro tip**: Use the ALPHA key to insert variable names (A-Z) for reusable calculations.
+`,
   },
   {
     id: 'react-sdk',
-    section: 'SDKs & Libraries',
+    section: 'SDKs',
     title: 'React SDK',
-    keywords: 'react hook component sdk calculator',
-    content: `The React SDK provides first-class components with full type safety:
+    keywords: 'react hook component sdk usecalculo',
+    content: `# React SDK
 
-\`\`\`typescript
-import { Calculator, useCalculo } from '@calculo/react';
+First-class React components with full type safety.
+
+## Installation
+
+\`\`\`bash
+npm install @calculo/react
+\`\`\`
+
+## Calculator Component
+
+\`\`\`tsx
+import { Calculator } from '@calculo/react';
 
 export function Demo() {
-  const { evaluate } = useCalculo('cal_key');
-
   return (
     <Calculator
       type="scientific"
-      variables={[
-        { name: 'x', value: 42 },
-      ]}
-      theme={{
-        mode: 'dark',
-        primaryColor: '#10b981',
-      }}
+      theme={{ mode: 'dark', primaryColor: '#10b981' }}
       graph={true}
     />
   );
 }
 \`\`\`
 
-Props match the CalculatorConfig interface. Use \`useCalculo()\` hook for direct expression evaluation.`,
+## useCalculo Hook
+
+\`\`\`tsx
+import { useCalculo } from '@calculo/react';
+
+function EvalDemo() {
+  const { evaluate, result, error } = useCalculo();
+
+  const handleClick = async () => {
+    await evaluate({ expression: 'sin(pi/2)' });
+  };
+
+  return (
+    <div>
+      <button onClick={handleClick}>Evaluate</button>
+      {result && <p>Result: {result}</p>}
+      {error && <p>Error: {error}</p>}
+    </div>
+  );
+}
+\`\`\`
+
+## Props
+
+| Prop | Type | Default | Description |
+|------|------|---------|-------------|
+| \`type\` | string | \`basic\` | Calculator type |
+| \`theme\` | object | \`dark\` | Theme configuration |
+| \`graph\` | bool | \`false\` | Enable graphing |
+| \`history\` | bool | \`true\` | Enable history |
+| \`variables\` | array | \`[]\` | Variable definitions |
+| \`precision\` | number | \`12\` | Decimal precision |
+
+## TypeScript
+
+All components are fully typed. Import types from \`@calculo/shared\`:
+
+\`\`\`typescript
+import type { CalculatorConfig, ThemeConfig } from '@calculo/shared';
+\`\`\``,
+  },
+  {
+    id: 'api-reference',
+    section: 'API',
+    title: 'API Reference',
+    keywords: 'api rest endpoints evaluate render calculators reference',
+    content: `# API Reference
+
+All API endpoints require authentication via Bearer token. Base URL: \`https://api.calculo.dev\`
+
+## Evaluate
+
+**POST** \`/v1/evaluate\`
+
+Evaluate a mathematical expression.
+
+\`\`\`bash
+curl https://api.calculo.dev/v1/evaluate \\
+  -H "Authorization: Bearer cal_live_key" \\
+  -H "Content-Type: application/json" \\
+  -d '{"expression": "sin(pi/2) + 2^8"}'
+\`\`\`
+
+**Request body:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| \`expression\` | string | yes | Mathematical expression |
+| \`variables\` | object | no | Variable values |
+| \`precision\` | number | no | Decimal precision (default: 12) |
+| \`angleMode\` | string | no | deg, rad, or grad (default: rad) |
+
+**Response:**
+
+\`\`\`json
+{
+  "result": 256.5,
+  "error": null
+}
+\`\`\`
+
+## Render Graph
+
+**POST** \`/v1/render\`
+
+Generate graph data from mathematical expressions.
+
+\`\`\`bash
+curl https://api.calculo.dev/v1/render \\
+  -H "Authorization: Bearer cal_live_key" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "expressions": [
+      {"expression": "sin(x)", "color": "#3b82f6"}
+    ],
+    "bounds": {"xMin": -10, "xMax": 10, "yMin": -2, "yMax": 2}
+  }'
+\`\`\`
+
+## Create Calculator
+
+**POST** \`/v1/calculators\`
+
+Save a calculator configuration.
+
+\`\`\`bash
+curl https://api.calculo.dev/v1/calculators \\
+  -H "Authorization: Bearer cal_live_key" \\
+  -H "Content-Type: application/json" \\
+  -d '{"type": "scientific", "theme": {"mode": "dark"}}'
+\`\`\`
+
+## Get Calculator
+
+**GET** \`/v1/calculators/:id\`
+
+Retrieve a saved calculator configuration.
+
+## Delete Calculator
+
+**DELETE** \`/v1/calculators/:id\`
+
+Delete a calculator configuration.
+
+## Error Codes
+
+| Code | Status | Description |
+|------|--------|-------------|
+| \`PARSE_ERROR\` | 400 | Expression could not be parsed |
+| \`EVALUATION_ERROR\` | 400 | Error during evaluation |
+| \`VALIDATION_ERROR\` | 422 | Invalid request body |
+| \`UNAUTHORIZED\` | 401 | Invalid or missing API key |
+| \`RATE_LIMIT\` | 429 | Rate limit exceeded |
+
+## Rate Limits
+
+| Plan | Evaluations/month |
+|------|------------------|
+| Free | 1,000 |
+| Beginner | 10,000 |
+| Pro | 100,000 |
+
+Rate limits reset monthly.`,
   },
   {
     id: 'embed-locking',
     section: 'Guides',
     title: 'Embed Locking & Configuration',
-    keywords: 'lock freeze restrict embed config export settings',
-    content: `When embedding calculators in your product, you can lock various aspects of the interface to match your design requirements.
+    keywords: 'lock freeze restrict embed config export settings customization',
+    content: `# Embed Locking & Configuration
 
-**Lock Attributes:**
+When embedding calculators in your product, you can lock various aspects to maintain brand consistency and UX control.
 
-| Attribute | Effect |
-|-----------|--------|
-| \`data-lock-theme="true"\` | Hides the Theme button, prevents theme switching |
-| \`data-lock-size="true"\` | Hides size presets and resize handle, fixes dimensions |
-| \`data-lock-mode="true"\` | Disables mode switching (Basic/Scientific/Graphing) |
+## Lock Attributes
 
-**Full Lock Example:**
+Use HTML data attributes to restrict user changes:
 
 \`\`\`html
 <div class="calculo-calculator"
@@ -324,11 +724,17 @@ Props match the CalculatorConfig interface. Use \`useCalculo()\` hook for direct
 <script src="https://cdn.calculo.dev/widget.js"></script>
 \`\`\`
 
-**Exporting Configuration:**
+### What Each Lock Does
 
-Use the Config panel in the interactive calculator demo to export the current calculator state as JSON. This includes mode, theme, dimensions, and lock settings — perfect for reproducing the exact setup in your application.
+| Attribute | Effect |
+|-----------|--------|
+| \`data-lock-theme="true"\` | Hides the Theme button entirely |
+| \`data-lock-size="true"\` | Removes the resize handle, fixes dimensions |
+| \`data-lock-mode="true"\` | Disables mode switching |
 
-The exported JSON follows the \`CalculatorConfig\` interface:
+## Config Export
+
+Use the **Config** panel in the interactive demo to export the current calculator state as JSON:
 
 \`\`\`json
 {
@@ -342,7 +748,7 @@ The exported JSON follows the \`CalculatorConfig\` interface:
 }
 \`\`\`
 
-**Programmatic Configuration:**
+## Programmatic Configuration
 
 \`\`\`typescript
 import { Calculo } from '@calculo/sdk';
@@ -353,7 +759,6 @@ const config = {
   width: 400,
   height: 600,
   history: true,
-  memory: true,
   precision: 12,
   angleMode: 'rad' as const,
 };
@@ -362,83 +767,92 @@ const calc = await calculo.createCalculator(config);
 console.log(calc.id); // "calc_abc123"
 \`\`\`
 
-This saves the configuration server-side and generates a unique ID. Use this ID in your embed code to load the exact same calculator anywhere.`,
+This saves the configuration server-side and generates a unique calculator ID.
+
+> **Best Practice**: Lock theme and size in production embeds. Let users interact with the calculator, not the configuration.
+`,
   },
   {
-    id: 'api-reference',
-    section: 'Platform',
-    title: 'API Reference',
-    keywords: 'api rest endpoints evaluate render calculators reference',
-    content: `**POST** \`/v1/evaluate\`
+    id: 'sdk-integration',
+    section: 'SDKs',
+    title: 'SDK Integration',
+    keywords: 'sdk typescript javascript integration programmatic',
+    content: `# SDK Integration
 
-Evaluate a mathematical expression.
+## TypeScript / JavaScript SDK
 
-\`\`\`json
-{
-  "expression": "sin(pi/2) + 2^8",
-  "variables": { "x": 42 },
-  "precision": 12,
-  "angleMode": "rad"
-}
+\`\`\`bash
+npm install @calculo/sdk
 \`\`\`
 
-**POST** \`/v1/render\`
+### Basic Usage
 
-Generate graph data from mathematical expressions.
+\`\`\`typescript
+import { Calculo } from '@calculo/sdk';
 
-\`\`\`json
-{
-  "expressions": [
-    { "expression": "sin(x)", "color": "#3b82f6" },
-    { "expression": "cos(x)", "color": "#10b981" }
-  ],
-  "bounds": { "xMin": -10, "xMax": 10, "yMin": -2, "yMax": 2 }
-}
+const calculo = new Calculo('cal_live_key');
+
+// Evaluate an expression
+const { result } = await calculo.evaluate({
+  expression: 'sin(pi/4)^2 + cos(pi/4)^2'
+});
+
+// Render a graph
+const graph = await calculo.render({
+  expressions: [
+    { expression: 'sin(x)', color: '#3b82f6' }
+  ]
+});
+
+// Create a calculator config
+const calc = await calculo.createCalculator({
+  type: 'scientific',
+  theme: { mode: 'ocean' }
+});
 \`\`\`
 
-**POST** \`/v1/calculators\`
+### Client-Side Evaluation
 
-Create a new calculator configuration.
+The SDK uses the local calculator engine by default. No network requests are made for evaluation — perfect for interactive demos and offline-capable applications.
 
-\`\`\`json
-{
-  "type": "scientific",
-  "theme": { "mode": "dark" },
-  "precision": 12,
-  "graph": true,
-  "history": true
-}
+### Server-Side Evaluation
+
+Use the REST API for server-side evaluation with the same SDK:
+
+\`\`\`typescript
+const result = await calculo.api.evaluate({
+  expression: '2^100',
+  precision: 50,
+});
 \`\`\`
 
-**GET** \`/v1/calculators/:id\`
+## Framework SDKs
 
-Retrieve a saved calculator configuration.
-
-**DELETE** \`/v1/calculators/:id\`
-
-Delete a calculator configuration.
-
-**GET** \`/v1/analytics\`
-
-Get usage analytics (requires admin key).
-
-**GET** \`/v1/usage\`
-
-Get usage statistics for your project.`,
+| SDK | Package | Status |
+|-----|---------|--------|
+| React | \`@calculo/react\` | ✅ Available |
+| Vue | \`@calculo/vue\` | ✅ Available |
+| Angular | \`@calculo/angular\` | ✅ Available |
+| Svelte | \`@calculo/svelte\` | ✅ Available |
+| Web Component | \`@calculo/embed\` | ✅ Available |
+| Python | \`calculo-sdk-python\` | 🔜 Coming soon |
+| Go | \`calculo-sdk-go\` | 🔜 Coming soon |
+| curl | REST API | ✅ Available |
+`,
   },
 ];
 
-const sections = Array.from(new Set(allDocs.map(d => d.section)));
+const sections = Array.from(new Set(pages.map(d => d.section)));
 
 export function DocsPage() {
   const [query, setQuery] = useState('');
-  const [activeId, setActiveId] = useState('installation');
+  const [activeId, setActiveId] = useState('overview');
   const searchRef = useRef<HTMLInputElement>(null);
 
   const filtered = useMemo(() => {
-    if (!query.trim()) return allDocs;
+    if (!query.trim()) return pages;
     const q = query.toLowerCase();
-    return allDocs.filter(d =>
+    return pages.filter(d =>
       d.title.toLowerCase().includes(q) ||
       d.keywords.toLowerCase().includes(q) ||
       d.content.toLowerCase().includes(q)
@@ -450,74 +864,55 @@ export function DocsPage() {
   }, [filtered, activeId]);
 
   useEffect(() => {
-    if (activeDoc && filtered.find(d => d.id === activeId) === undefined) {
+    if (filtered.find(d => d.id === activeId) === undefined) {
       setActiveId(filtered[0]?.id ?? '');
     }
   }, [filtered, activeId]);
 
   useEffect(() => {
-    const handleKey = (e: KeyboardEvent) => {
+    const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
         searchRef.current?.focus();
       }
     };
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
   }, []);
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
-      <div className="grid lg:grid-cols-[280px_1fr] gap-12">
+      <div className="grid lg:grid-cols-[280px_1fr] xl:grid-cols-[280px_1fr_200px] gap-12">
         <aside className="space-y-6">
           <div className="relative">
-            <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500 pointer-events-none"
-              viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="M21 21l-4.35-4.35" />
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-zinc-500 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
             </svg>
             <input
               ref={searchRef}
-              type="text"
-              value={query}
-              onChange={e => setQuery(e.target.value)}
+              type="text" value={query} onChange={e => setQuery(e.target.value)}
               placeholder="Search docs..."
-              className="w-full h-9 pl-9 pr-3 rounded-lg border border-zinc-800 bg-zinc-900 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-600"
+              className="w-full h-9 pl-9 pr-8 rounded-lg border border-zinc-800 bg-zinc-900 text-sm text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-600"
             />
-            <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-zinc-600 bg-zinc-800 px-1.5 py-0.5 rounded hidden sm:inline">
-              ⌘K
-            </kbd>
+            <kbd className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10px] text-zinc-600 bg-zinc-800 px-1.5 py-0.5 rounded hidden sm:inline">⌘K</kbd>
           </div>
 
-          {filtered.length === 0 && (
-            <div className="text-sm text-zinc-500 text-center py-8">
-              No results for "{query}"
-            </div>
-          )}
+          {filtered.length === 0 && <div className="text-sm text-zinc-500 text-center py-8">No results for "{query}"</div>}
 
           {sections.map(section => {
             const items = filtered.filter(d => d.section === section);
             if (items.length === 0) return null;
             return (
               <div key={section}>
-                <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">
-                  {section}
-                </h3>
+                <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider mb-2">{section}</h3>
                 <ul className="space-y-1">
-                  {items.map((item) => (
+                  {items.map(item => (
                     <li key={item.id}>
-                      <button
-                        onClick={() => setActiveId(item.id)}
+                      <button onClick={() => setActiveId(item.id)}
                         className={`text-sm w-full text-left px-3 py-1.5 rounded-lg transition-colors ${
-                          activeId === item.id
-                            ? 'bg-zinc-800 text-zinc-100 font-medium'
-                            : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
+                          activeId === item.id ? 'bg-zinc-800 text-zinc-100 font-medium' : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'
                         }`}
-                      >
-                        {item.title}
-                      </button>
+                      >{item.title}</button>
                     </li>
                   ))}
                 </ul>
@@ -529,16 +924,43 @@ export function DocsPage() {
         <div className="min-w-0">
           {activeDoc && (
             <article>
-              <h1 className="text-3xl font-bold mb-2">{activeDoc.title}</h1>
-              <span className="text-xs text-zinc-600 uppercase tracking-wider">{activeDoc.section}</span>
-              <div className="mt-8 prose prose-invert max-w-none">
-                <pre className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 overflow-x-auto text-sm font-mono text-zinc-200 leading-relaxed whitespace-pre-wrap">
-                  {activeDoc.content}
-                </pre>
+              <div className="max-w-none">
+                <Markdown content={activeDoc.content} />
+              </div>
+              <div className="mt-16 pt-8 border-t border-zinc-800 flex items-center justify-between text-sm">
+                <span className="text-zinc-600">Section: {activeDoc.section}</span>
+                <a href={`https://github.com/thepc101/calculo/edit/main/apps/web/src/pages/docs.tsx`}
+                  target="_blank" rel="noopener noreferrer"
+                  className="text-zinc-500 hover:text-zinc-300 transition-colors inline-flex items-center gap-1.5"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+                  </svg>
+                  Edit this page
+                </a>
               </div>
             </article>
           )}
         </div>
+
+        {activeDoc && (
+          <aside className="hidden xl:block space-y-3">
+            <h4 className="text-[10px] uppercase tracking-wider text-zinc-600 font-semibold">On this page</h4>
+            <div className="space-y-1.5 text-sm text-zinc-500">
+              {activeDoc.content.split('\n').filter(l => l.startsWith('## ')).map((l, i) => {
+                const title = l.replace(/^##\s+/, '');
+                return (
+                  <button key={i} onClick={() => {
+                    const el = document.getElementById(title.toLowerCase().replace(/\s+/g, '-'));
+                    el?.scrollIntoView({ behavior: 'smooth' });
+                  }} className="block hover:text-zinc-300 transition-colors w-full text-left"
+                  >{title}</button>
+                );
+              })}
+            </div>
+          </aside>
+        )}
       </div>
     </div>
   );

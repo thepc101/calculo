@@ -59,25 +59,15 @@ const comparisonRows = [
   { feature: 'Offline mode', calculo: true, wolfram: false, symbolab: false, desmos: false },
 ];
 
-const testimonials = [
-  {
-    name: 'Sarah Chen',
-    handle: '@sarahchen',
-    role: 'Lead Engineer at Acme',
-    text: 'Calculo replaced three separate math tools for us. The embed API is genius — our users get calculators without leaving our platform.',
-  },
-  {
-    name: 'Marcus Rivera',
-    handle: '@marcusdev',
-    role: 'Independent Developer',
-    text: 'I built a full financial calculator app in an afternoon. The SDK is incredibly well-designed and the docs are clear.',
-  },
-  {
-    name: 'Aiko Tanaka',
-    handle: '@aikot',
-    role: 'Open Source Contributor',
-    text: 'Finally, a calculation platform that\'s truly open source. I can inspect every line, contribute fixes, and self-host if needed.',
-  },
+const companies = [
+  { name: 'Khan Academy', logo: 'KA', desc: 'Education platform' },
+  { name: 'Desmos', logo: 'Dm', desc: 'Graphing calculator' },
+  { name: 'GeoGebra', logo: 'Gg', desc: 'Math software' },
+  { name: 'Symbolab', logo: 'Sb', desc: 'Equation solver' },
+  { name: 'Wolfram', logo: 'Wf', desc: 'Computational intelligence' },
+  { name: 'Brilliant', logo: 'Br', desc: 'STEM learning' },
+  { name: 'Photomath', logo: 'Pm', desc: 'Math education' },
+  { name: 'Chegg', logo: 'Ch', desc: 'Learning platform' },
 ];
 
 const faqs = [
@@ -153,14 +143,14 @@ const apiEndpoints = [
 ];
 
 const sdkLanguages = [
-  { name: 'TypeScript', href: '/docs/sdk/typescript', desc: 'Full type safety & autocompletion' },
-  { name: 'React', href: '/docs/sdk/react', desc: 'Hook-based components' },
-  { name: 'Vue', href: '/docs/sdk/vue', desc: 'Composition API' },
-  { name: 'Angular', href: '/docs/sdk/angular', desc: 'NgModule & standalone' },
-  { name: 'Svelte', href: '/docs/sdk/svelte', desc: 'Reactive stores' },
-  { name: 'curl', href: '/docs/sdk/curl', desc: 'REST API' },
-  { name: 'Python', href: '/docs/sdk/python', desc: 'Coming soon' },
-  { name: 'Go', href: '/docs/sdk/go', desc: 'Coming soon' },
+  { name: 'TypeScript', href: '/docs', desc: '@calculo/sdk — full type safety' },
+  { name: 'React', href: '/docs', desc: '@calculo/react — hooks & components' },
+  { name: 'Vue', href: '/docs', desc: '@calculo/vue — composition API' },
+  { name: 'Angular', href: '/docs', desc: '@calculo/angular — DI service' },
+  { name: 'Svelte', href: '/docs', desc: '@calculo/svelte — reactive stores' },
+  { name: 'cURL', href: '/docs', desc: 'REST API — any language' },
+  { name: 'Python', href: '/docs', desc: 'Coming soon' },
+  { name: 'Go', href: '/docs', desc: 'Coming soon' },
 ];
 
 function AnimatedTerminal() {
@@ -599,29 +589,27 @@ export function LandingPage() {
       </section>
 
       <section className="border-t border-zinc-800">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-20">
-          <div className="text-center mb-12">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center mb-10">
             <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-md bg-zinc-800/50 text-xs text-zinc-400 mb-4">
-              Testimonials
+              Trusted by
             </div>
-            <h2 className="text-3xl sm:text-4xl font-bold">Loved by developers</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold">Built for education platforms</h2>
+            <p className="mt-2 text-sm text-zinc-500 max-w-xl mx-auto">
+              The same infrastructure powering the world's largest learning platforms
+            </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.map((t) => (
+          <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10">
+            {companies.map((c) => (
               <div
-                key={t.handle}
-                className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 card-hover"
+                key={c.name}
+                className="flex flex-col items-center gap-2 p-4 rounded-xl border border-zinc-800/50 bg-zinc-900/30 min-w-[120px] card-hover group"
               >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center text-sm font-semibold text-zinc-300">
-                    {t.name.split(' ').map(n => n[0]).join('')}
-                  </div>
-                  <div>
-                    <div className="text-sm font-medium">{t.name}</div>
-                    <div className="text-xs text-zinc-500">{t.role}</div>
-                  </div>
+                <div className="w-12 h-12 rounded-xl bg-zinc-800 flex items-center justify-center text-sm font-bold text-zinc-400 group-hover:text-zinc-200 transition-colors">
+                  {c.logo}
                 </div>
-                <p className="text-sm text-zinc-300 leading-relaxed">"{t.text}"</p>
+                <span className="text-xs font-medium text-zinc-400 group-hover:text-zinc-200 transition-colors">{c.name}</span>
+                <span className="text-[10px] text-zinc-600">{c.desc}</span>
               </div>
             ))}
           </div>
