@@ -37,6 +37,7 @@ Build, embed, and scale calculators with one API. From simple arithmetic to comp
 ## Quick Start — Embed
 
 \`\`\`html
+<script>window.CALCULO_API_KEY = 'demo';</script>
 <script src="${SITE}/embed.js"></script>
 <div data-calculator="demo_basic"></div>
 \`\`\`
@@ -97,11 +98,12 @@ npm install @calculo/react
 Add the script and a div to your HTML:
 
 \`\`\`html
+<script>window.CALCULO_API_KEY = 'demo';</script>
 <script src="${SITE}/embed.js"></script>
 <div data-calculator="demo_basic"></div>
 \`\`\`
 
-> **Note**: The embed widget is the simplest way to add a calculator to any website. No build step required.
+> **Note**: The embed widget is the simplest way to add a calculator to any website. No build step required. Set \`CALCULO_API_KEY\` to \`'demo'\` for demo configs, or your \`calc_live_*\` key for custom calculators.
 
 ## Requirements
 
@@ -255,7 +257,7 @@ Toggle with the MODE button in scientific mode. Default is DEG.`,
     id: 'embedding',
     section: 'Embedding',
     title: 'Embedding Calculators',
-    keywords: 'embed widget html integrate website',
+    keywords: 'embed widget html integrate website config theme position floating fixed',
     content: `# Embedding Calculators
 
 Embed a fully interactive calculator into any website with two lines of HTML.
@@ -263,9 +265,12 @@ Embed a fully interactive calculator into any website with two lines of HTML.
 ## Basic Embed
 
 \`\`\`html
+<script>window.CALCULO_API_KEY = 'demo';</script>
 <script src="${SITE}/embed.js"></script>
 <div data-calculator="demo_basic"></div>
 \`\`\`
+
+> **Note**: Set \`CALCULO_API_KEY\` to \`'demo'\` for demo configs, or your \`calc_live_*\` key for custom calculators.
 
 ## Available Demo IDs
 
@@ -276,20 +281,69 @@ Embed a fully interactive calculator into any website with two lines of HTML.
 | \`demo_light\` | Scientific | Light |
 | \`demo_cyberpunk\` | Scientific | Dark |
 
+## Configuration Attributes
+
+Configure the embed via \`data-*\` attributes on the container div:
+
+| Attribute | Description | Default | Example |
+|-----------|-------------|---------|---------|
+| \`data-calculator\` | Calculator ID (required) | — | \`demo_basic\` |
+| \`data-theme\` | Theme override | from config | \`cyberpunk\`, \`ocean\`, \`light\` |
+| \`data-type\` | Calculator type override | from config | \`basic\`, \`scientific\` |
+| \`data-primary\` | Primary color override | from config | \`#ff0000\` |
+| \`data-width\` | Widget width | \`340px\` | \`400px\`, \`100%\` |
+| \`data-height\` | Widget height | auto | \`500px\` |
+| \`data-position\` | Position mode | \`inline\` | \`inline\`, \`floating\`, \`fixed\` |
+| \`data-fixed-bottom\` | Fixed bottom offset | \`20px\` | \`10px\` |
+| \`data-fixed-right\` | Fixed right offset | \`20px\` | \`10px\` |
+
+## Theme Override
+
+\`\`\`html
+<div data-calculator="demo_scientific"
+  data-theme="cyberpunk"
+  data-primary="#f0abfc">
+</div>
+\`\`\`
+
+## Fixed/Floating Position
+
+Pin the calculator to the bottom-right corner:
+
+\`\`\`html
+<div data-calculator="demo_basic"
+  data-position="fixed"
+  data-fixed-bottom="20px"
+  data-fixed-right="20px">
+</div>
+\`\`\`
+
+## Custom Size
+
+\`\`\`html
+<div data-calculator="demo_scientific"
+  data-width="400px"
+  data-height="600px">
+</div>
+\`\`\`
+
 ## How It Works
 
 1. \`embed.js\` scans the page for \`[data-calculator]\` elements
-2. Fetches the calculator config from \`${SITE}/api/embed/{id}\`
-3. Dynamically imports \`calculator-runtime.js\`
-4. Renders the interactive calculator widget inside the div
+2. Reads configuration from \`data-*\` attributes
+3. Fetches the calculator config from \`${SITE}/api/embed/{id}\`
+4. Applies theme/type/color overrides from attributes
+5. Dynamically imports \`calculator-runtime.js\`
+6. Renders the interactive calculator widget inside the div
 
 ## Custom Calculator Embed
 
 Create a calculator via the API or dashboard, then embed it by ID:
 
 \`\`\`html
+<script>window.CALCULO_API_KEY = 'calc_live_your_key';</script>
 <script src="${SITE}/embed.js"></script>
-<div data-calculator="calc_abc123"></div>
+<div data-calculator="calc_abc123" data-theme="ocean"></div>
 \`\`\`
 
 ## React Embed
@@ -311,7 +365,9 @@ export function Demo() {
 
 - Use \`demo_basic\` for simple arithmetic, \`demo_scientific\` for advanced math
 - The calculator auto-resizes to fit its container
-- Supports dynamic insertion — elements added after page load are automatically detected`,
+- Supports dynamic insertion — elements added after page load are automatically detected
+- Use \`data-position="fixed"\` for always-visible calculators
+- Lock theme and size in production to prevent user changes`,
   },
   {
     id: 'themes',
@@ -724,9 +780,12 @@ export function App() {
 ## Embed (No Build Step)
 
 \`\`\`html
+<script>window.CALCULO_API_KEY = 'demo';</script>
 <script src="${SITE}/embed.js"></script>
 <div data-calculator="demo_basic"></div>
-\`\`\``,
+\`\`\`
+
+See [Embedding Calculators](#embedding) for configuration options (theme, position, size).`,
   },
 ];
 

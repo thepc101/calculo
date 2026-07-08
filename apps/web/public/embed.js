@@ -1,13 +1,21 @@
 /**
- * Calculo Embed Loader v2.0
+ * Calculo Embed Loader v3.0
  *
- * REQUIREMENT: The embedding page must set CALCULO_API_KEY before loading this script.
- *
- *   <script>window.CALCULO_API_KEY = 'calc_live_your_key_here';</script>
+ * SETUP:
+ *   <script>window.CALCULO_API_KEY = 'calc_live_your_key';</script>  <!-- or 'demo' -->
  *   <script src="https://calculo-fawn.vercel.app/embed.js"></script>
  *   <div data-calculator="demo_basic"></div>
  *
- * The key is validated against the API on load. If missing or invalid, embeds won't render.
+ * CONFIGURATION (data-* attributes on the container div):
+ *   data-calculator  — calculator ID (required): "demo_basic", "demo_scientific", "calc_xxx"
+ *   data-theme       — theme override: "dark", "light", "oled", "cyberpunk", "ocean", "forest", etc.
+ *   data-type        — calculator type override: "basic", "scientific"
+ *   data-width       — widget width (default: "340px")
+ *   data-height      — widget height (default: auto)
+ *   data-primary     — primary color override: "#ff0000", "rgb(255,0,0)", etc.
+ *   data-position    — "inline" (default), "floating", "fixed"
+ *   data-fixed-bottom — fixed position bottom offset (e.g. "20px")
+ *   data-fixed-right  — fixed position right offset (e.g. "20px")
  */
 (function () {
   'use strict';
@@ -32,6 +40,22 @@
     return runtimePromise;
   }
 
+  function readConfig(el) {
+    var id = el.getAttribute('data-calculator');
+    if (!id) return null;
+    return {
+      id: id,
+      theme: el.getAttribute('data-theme') || undefined,
+      type: el.getAttribute('data-type') || undefined,
+      width: el.getAttribute('data-width') || undefined,
+      height: el.getAttribute('data-height') || undefined,
+      primary: el.getAttribute('data-primary') || undefined,
+      position: el.getAttribute('data-position') || undefined,
+      fixedBottom: el.getAttribute('data-fixed-bottom') || undefined,
+      fixedRight: el.getAttribute('data-fixed-right') || undefined,
+    };
+  }
+
   async function validateKey() {
     if (!API_KEY) {
       console.error('[calculo] CALCULO_API_KEY is not set. Embeds will not render.');
@@ -40,14 +64,11 @@
       console.error('[calculo] Or for demo configs, use: window.CALCULO_API_KEY = "demo";');
       return false;
     }
-    // Demo configs don't need a real API key
     if (API_KEY === 'demo') return true;
     try {
       var res = await fetch(BASE + '/api/embed/validate?key=' + encodeURIComponent(API_KEY));
       var data = await res.json();
-      if (data.valid) {
-        return true;
-      }
+      if (data.valid) return true;
       console.error('[calculo] Invalid API key. Embeds will not render.');
       return false;
     } catch (e) {
@@ -81,24 +102,53 @@
     }
     if (!keyValid) return;
 
-    var id = el.getAttribute('data-calculator');
-    if (!id || instances.has(id)) return;
+    var cfg = readConfig(el);
+    if (!cfg || !cfg.id) return;
+    if (instances.has(cfg.id)) return;
 
     el.setAttribute('data-calculo-loading', '');
 
+    // Apply position styling
+    if (cfg.position === 'floating' || cfg.position === 'fixed') {
+      el.style.position = 'fixed';
+      el.style.bottom = cfg.fixedBottom || '20px';
+      el.style.right = cfg.fixedRight || '20px';
+      el.style.zIndex = '99999';
+      el.style.maxWidth = cfg.width || '340px';
+    } else if (cfg.width) {
+      el.style.width = cfg.width;
+    }
+    if (cfg.height) {
+      el.style.height = cfg.height;
+    }
+
     try {
-      var res = await fetch(BASE + '/api/embed/' + encodeURIComponent(id) + '?key=' + encodeURIComponent(API_KEY));
+      var res = await fetch(BASE + '/api/embed/' + encodeURIComponent(cfg.id) + '?key=' + encodeURIComponent(API_KEY));
       if (!res.ok) throw new Error('Failed to load calculator: ' + res.status);
       var config = await res.json();
-
       if (config.error) throw new Error(config.error.message);
+
+      // Apply overrides from data-* attributes
+      if (cfg.theme) {
+        config.theme = config.theme || {};
+        config.theme.mode = cfg.theme;
+      }
+      if (cfg.type) {
+        config.type = cfg.type;
+      }
+      if (cfg.primary) {
+        config.theme = config.theme || {};
+        config.theme.primaryColor = cfg.primary;
+      }
+      config._embedWidth = cfg.width;
+      config._embedHeight = cfg.height;
 
       var runtime = await loadRuntime();
       var mountFn = runtime.mountCalculator || runtime.default;
       if (typeof mountFn !== 'function') throw new Error('Invalid runtime');
 
       var cleanup = mountFn(el, config);
-      instances.set(id, { el: el, config: config, cleanup: cleanup });
+      instances.set(cfg.id, { el: el, config: config, cleanup: cleanup });
       el.removeAttribute('data-calculo-loading');
     } catch (err) {
       el.removeAttribute('data-calculo-loading');

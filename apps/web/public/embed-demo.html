@@ -4,48 +4,114 @@
 <meta charset="UTF-8">
 <title>Calculo Embed Demo</title>
 <style>
-  body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; background: #111; color: #eee; }
+  body { font-family: system-ui, -apple-system, sans-serif; max-width: 900px; margin: 40px auto; padding: 0 20px; background: #111; color: #eee; }
   h1 { font-size: 24px; }
   h2 { font-size: 18px; color: #aaa; margin-top: 32px; border-bottom: 1px solid #333; padding-bottom: 8px; }
-  pre { background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 16px; overflow-x: auto; font-size: 14px; line-height: 1.5; }
+  pre { background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 16px; overflow-x: auto; font-size: 13px; line-height: 1.5; }
+  code { color: #8cf; }
   a { color: #6af; }
-  #calculator { margin: 20px auto; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 20px 0; }
+  .grid > div { border: 1px solid #333; border-radius: 8px; padding: 16px; }
+  .grid h3 { font-size: 14px; color: #888; margin-bottom: 12px; }
   #status { color: #888; margin: 10px 0; }
 </style>
 </head>
 <body>
 
 <h1>Calculo Embed Demo</h1>
-<p>Calculator widget embedded via <code>embed.js</code>.</p>
+<p>Calculator widgets embedded via <code>embed.js</code> with <code>data-*</code> configuration attributes.</p>
 
-<h2>Live Calculator</h2>
-<div id="status">Loading...</div>
-<div id="calculator" data-calculator="demo_basic"></div>
+<h2>Examples</h2>
+<div class="grid">
+  <div>
+    <h3>Basic (Dark)</h3>
+    <div data-calculator="demo_basic"></div>
+  </div>
+  <div>
+    <h3>Scientific (Cyberpunk)</h3>
+    <div data-calculator="demo_scientific" data-theme="cyberpunk" data-primary="#f0abfc"></div>
+  </div>
+  <div>
+    <h3>Light Theme</h3>
+    <div data-calculator="demo_scientific" data-theme="light"></div>
+  </div>
+  <div>
+    <h3>Custom Width (400px)</h3>
+    <div data-calculator="demo_scientific" data-width="400px" data-theme="ocean"></div>
+  </div>
+</div>
 
-<h2>Copy &amp; Paste</h2>
-<p>W3Schools Tryit Editor — paste this HTML and click Run:</p>
-<pre><code>&lt;script src="https://calculo-fawn.vercel.app/embed.js"&gt;&lt;/script&gt;
+<h2>Code Examples</h2>
+
+<h3>Basic Embed</h3>
+<pre><code>&lt;script&gt;window.CALCULO_API_KEY = 'demo';&lt;/script&gt;
+&lt;script src="https://calculo-fawn.vercel.app/embed.js"&gt;&lt;/script&gt;
 &lt;div data-calculator="demo_basic"&gt;&lt;/div&gt;</code></pre>
 
-<h2>Custom Theme</h2>
-<pre><code>&lt;script src="https://calculo-fawn.vercel.app/embed.js"&gt;&lt;/script&gt;
-&lt;div data-calculator="demo_scientific"&gt;&lt;/div&gt;</code></pre>
+<h3>With Theme Override</h3>
+<pre><code>&lt;div data-calculator="demo_scientific"
+  data-theme="cyberpunk"
+  data-primary="#f0abfc"&gt;
+&lt;/div&gt;</code></pre>
 
-<script>
-// Set demo API key (required by embed.js)
-window.CALCULO_API_KEY = 'demo';
+<h3>Fixed Position (Bottom-Right)</h3>
+<pre><code>&lt;div data-calculator="demo_basic"
+  data-position="fixed"
+  data-fixed-bottom="20px"
+  data-fixed-right="20px"&gt;
+&lt;/div&gt;</code></pre>
 
-// Load embed.js
-var script = document.createElement('script');
-script.src = 'https://calculo-fawn.vercel.app/embed.js';
-script.onload = function() {
-  document.getElementById('status').innerHTML = 'Calculator loaded! Try the buttons below.';
-};
-script.onerror = function() {
-  document.getElementById('status').innerHTML = 'Failed to load embed.js';
-};
-document.head.appendChild(script);
-</script>
+<h3>Custom Size</h3>
+<pre><code>&lt;div data-calculator="demo_scientific"
+  data-width="400px"
+  data-height="600px"
+  data-theme="ocean"&gt;
+&lt;/div&gt;</code></pre>
+
+<h2>All Configuration Attributes</h2>
+<table style="width:100%; font-size:14px; border-collapse:collapse;">
+  <tr style="border-bottom:1px solid #333;">
+    <td style="padding:8px; color:#888;">data-calculator</td>
+    <td style="padding:8px;">Calculator ID (required)</td>
+  </tr>
+  <tr style="border-bottom:1px solid #333;">
+    <td style="padding:8px; color:#888;">data-theme</td>
+    <td style="padding:8px;">Theme: dark, light, oled, cyberpunk, ocean, forest, sunset, aurora, monochrome, coffee, retro, glass, neumorphism, minimal, corporate, high-contrast</td>
+  </tr>
+  <tr style="border-bottom:1px solid #333;">
+    <td style="padding:8px; color:#888;">data-type</td>
+    <td style="padding:8px;">Calculator type: basic, scientific</td>
+  </tr>
+  <tr style="border-bottom:1px solid #333;">
+    <td style="padding:8px; color:#888;">data-primary</td>
+    <td style="padding:8px;">Primary color override: #ff0000, rgb(255,0,0), etc.</td>
+  </tr>
+  <tr style="border-bottom:1px solid #333;">
+    <td style="padding:8px; color:#888;">data-width</td>
+    <td style="padding:8px;">Widget width (default: 340px)</td>
+  </tr>
+  <tr style="border-bottom:1px solid #333;">
+    <td style="padding:8px; color:#888;">data-height</td>
+    <td style="padding:8px;">Widget height (default: auto)</td>
+  </tr>
+  <tr style="border-bottom:1px solid #333;">
+    <td style="padding:8px; color:#888;">data-position</td>
+    <td style="padding:8px;">Position: inline (default), floating, fixed</td>
+  </tr>
+  <tr style="border-bottom:1px solid #333;">
+    <td style="padding:8px; color:#888;">data-fixed-bottom</td>
+    <td style="padding:8px;">Fixed bottom offset (e.g. 20px)</td>
+  </tr>
+  <tr>
+    <td style="padding:8px; color:#888;">data-fixed-right</td>
+    <td style="padding:8px;">Fixed right offset (e.g. 20px)</td>
+  </tr>
+</table>
+
+<h2>Setup</h2>
+<p>Before loading <code>embed.js</code>, set your API key:</p>
+<pre><code>&lt;script&gt;window.CALCULO_API_KEY = 'demo';&lt;/script&gt;</code></pre>
+<p>Use <code>'demo'</code> for demo configs, or your <code>calc_live_*</code> key for custom calculators.</p>
 
 </body>
 </html>

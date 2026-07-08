@@ -89,7 +89,9 @@ var mountCalculator;
     var memory = null;
 
     container.innerHTML = '';
-    container.style.cssText = 'font-family:system-ui,-apple-system,sans-serif;color:' + theme.text + ';background:' + theme.bg + ';border-radius:12px;overflow:hidden;width:340px;box-sizing:border-box;';
+    var w = config._embedWidth || '340px';
+    var h = config._embedHeight || '';
+    container.style.cssText = 'font-family:system-ui,-apple-system,sans-serif;color:' + theme.text + ';background:' + theme.bg + ';border-radius:12px;overflow:hidden;width:' + w + ';box-sizing:border-box;' + (h ? 'height:' + h + ';' : '');
 
     var wrapper = el('div', { style: { display: 'flex', flexDirection: 'column' } });
 

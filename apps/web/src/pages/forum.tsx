@@ -120,17 +120,24 @@ function PostList({ onSelect }: { onSelect: (id: string) => void }) {
 function PostDetail({ postId, onBack }: { postId: string; onBack: () => void }) {
   const [post, setPost] = useState<(ForumPost & { comments: ForumComment[] }) | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [commentText, setCommentText] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState('');
+  const [commentError, setCommentError] = useState('');
 
   const token = localStorage.getItem('calculo_token');
 
   const load = useCallback(() => {
     fetch(`/api/forum/${postId}`)
       .then(r => r.json())
-      .then(d => setPost(d.post))
-      .catch(() => {})
+      .then(d => {
+        if (d.error) {
+          setError(d.error.message || 'Failed to load post');
+        } else {
+          setPost(d.post);
+        }
+      })
+      .catch(() => setError('Network error'))
       .finally(() => setLoading(false));
   }, [postId]);
 
@@ -139,7 +146,7 @@ function PostDetail({ postId, onBack }: { postId: string; onBack: () => void }) 
   const addComment = async () => {
     if (!commentText.trim() || !token) return;
     setSubmitting(true);
-    setError('');
+    setCommentError('');
     try {
       const res = await fetch(`/api/forum/${postId}/comments`, {
         method: 'POST',
@@ -151,16 +158,22 @@ function PostDetail({ postId, onBack }: { postId: string; onBack: () => void }) 
         setPost(p => p ? { ...p, comments: [data.comment, ...p.comments] } : p);
         setCommentText('');
       } else {
-        setError(data.error?.message ?? 'Failed to post comment');
+        setCommentError(data.error?.message ?? 'Failed to post comment');
       }
     } catch {
-      setError('Network error');
+      setCommentError('Network error');
     } finally {
       setSubmitting(false);
     }
   };
 
   if (loading) return <div className="text-sm text-zinc-500 py-8">Loading...</div>;
+  if (error) return (
+    <div>
+      <button onClick={onBack} className="text-sm text-zinc-400 hover:text-zinc-100 mb-4 transition-colors">&larr; Back to forum</button>
+      <div className="text-sm text-red-400 py-8">{error}</div>
+    </div>
+  );
   if (!post) return <div className="text-sm text-zinc-500 py-8">Post not found.</div>;
 
   return (
@@ -211,7 +224,7 @@ function PostDetail({ postId, onBack }: { postId: string; onBack: () => void }) 
             rows={3}
             className="w-full bg-zinc-800/50 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500 resize-none"
           />
-          {error && <div className="text-xs text-red-400 mt-2">{error}</div>}
+          {commentError && <div className="text-xs text-red-400 mt-2">{commentError}</div>}
           <div className="flex justify-end mt-2">
             <button
               onClick={addComment}

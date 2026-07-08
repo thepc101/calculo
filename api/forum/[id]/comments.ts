@@ -93,7 +93,6 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Unknown error';
     const setup = isSetupError(msg);
-    const setup = isSetupError(msg);
     if (setup) {
       return jsonResponse(res, {
         error: {
