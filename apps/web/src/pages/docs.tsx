@@ -255,53 +255,42 @@ Toggle with the MODE button in scientific mode. Default is DEG.`,
     id: 'embedding',
     section: 'Embedding',
     title: 'Embedding Calculators',
-    keywords: 'embed widget html iframe integrate website',
+    keywords: 'embed widget html integrate website',
     content: `# Embedding Calculators
 
-Embed a fully interactive calculator into any website with a single HTML element.
+Embed a fully interactive calculator into any website with two lines of HTML.
 
 ## Basic Embed
 
 \`\`\`html
-<div class="calculo-calculator"
-  data-mode="scientific"
-  data-theme="dark"
-  data-width="340"
-  data-height="500"
-></div>
-<script src="https://cdn.calculo.dev/widget.js"></script>
+<script src="${SITE}/embed.js"></script>
+<div data-calculator="demo_basic"></div>
 \`\`\`
 
-## Configuration Options
+## Available Demo IDs
 
-| Attribute | Type | Default | Description |
-|-----------|------|---------|-------------|
-| \`data-mode\` | string | \`basic\` | Calculator mode: \`basic\`, \`scientific\` |
-| \`data-theme\` | string | \`dark\` | Theme name. See [Themes](#themes) for all options |
-| \`data-width\` | number | \`340\` | Width in pixels |
-| \`data-height\` | number | \`500\` | Height in pixels |
-| \`data-lock-theme\` | bool | \`false\` | Disable theme switching |
-| \`data-lock-size\` | bool | \`false\` | Disable resizing |
-| \`data-lock-mode\` | bool | \`false\` | Disable mode switching |
+| ID | Mode | Theme |
+|----|------|-------|
+| \`demo_basic\` | Basic | Dark |
+| \`demo_scientific\` | Scientific | Dark |
+| \`demo_light\` | Scientific | Light |
+| \`demo_cyberpunk\` | Scientific | Dark |
 
-## Locking the Interface
+## How It Works
 
-When embedding in your product, use lock attributes to create a branded, fixed calculator:
+1. \`embed.js\` scans the page for \`[data-calculator]\` elements
+2. Fetches the calculator config from \`${SITE}/api/embed/{id}\`
+3. Dynamically imports \`calculator-runtime.js\`
+4. Renders the interactive calculator widget inside the div
+
+## Custom Calculator Embed
+
+Create a calculator via the API or dashboard, then embed it by ID:
 
 \`\`\`html
-<div class="calculo-calculator"
-  data-mode="scientific"
-  data-theme="corporate"
-  data-width="400"
-  data-height="600"
-  data-lock-theme="true"
-  data-lock-size="true"
-  data-lock-mode="true"
-></div>
-<script src="https://cdn.calculo.dev/widget.js"></script>
+<script src="${SITE}/embed.js"></script>
+<div data-calculator="calc_abc123"></div>
 \`\`\`
-
-Locked calculators hide the Theme button, size controls, and mode switcher — users get the full calculation experience without being able to change the appearance.
 
 ## React Embed
 
@@ -313,18 +302,16 @@ export function Demo() {
     <Calculator
       type="scientific"
       theme={{ mode: 'dark' }}
-      graph={true}
     />
   );
 }
 \`\`\`
 
-## Embed Best Practices
+## Best Practices
 
-- Lock theme and size for production embeds to maintain brand consistency
-- Use \`scientific\` mode for advanced calculations, \`basic\` for simple arithmetic
-- Set explicit width and height to prevent layout shift
-- Always include the widget.js script immediately after the calculator element`,
+- Use \`demo_basic\` for simple arithmetic, \`demo_scientific\` for advanced math
+- The calculator auto-resizes to fit its container
+- Supports dynamic insertion — elements added after page load are automatically detected`,
   },
   {
     id: 'themes',
@@ -415,14 +402,14 @@ const config = {
     id: 'graphing',
     section: 'Guides',
     title: 'Graphing Guide',
-    keywords: 'graph plot function cartesian parametric polar svg',
+    keywords: 'graph plot function svg',
     content: `# Graphing Guide
 
-The graphing calculator renders 2D function plots as SVG directly in the browser.
+The graphing feature is a toggleable panel available inside any calculator.
 
 ## Getting Started
 
-Switch to **Graphing** mode. Enter an expression using \`x\` as the variable. Press = to plot.
+Click the **f(x)** button in the calculator header to show/hide the graph panel.
 
 ### Example Functions
 
@@ -443,25 +430,14 @@ Add up to 6 functions simultaneously. Each function gets a unique color. Toggle 
 
 ## Graph Display
 
-- **Grid**: Axis lines with tick marks every 1 unit
+- **Grid**: Axis lines with tick marks
 - **Range**: x: [-10, 10], y: [-10, 10]
 - **Resolution**: 400 sample points per function
 - **SVG rendering**: Crisp, scalable, theme-aware
 
-## API Graphing
+## Adding Functions
 
-\`\`\`typescript
-const graphData = await calculo.render({
-  expressions: [
-    { expression: 'sin(x)', color: '#3b82f6' },
-    { expression: 'cos(x)', color: '#10b981' },
-  ],
-  bounds: { xMin: -10, xMax: 10, yMin: -2, yMax: 2 },
-});
-\`\`\`
-
-> **Note**: The graph renders in the calculator display area. Resize the calculator for a larger graph view.
-`,
+Type an expression in the f(x) input field and press Enter or click away to plot. Click **+ add expression** to add more functions.`,
   },
   {
     id: 'scientific-mode',
@@ -518,7 +494,7 @@ sqrt(144)      → 12
 π              → 3.14159...
 \`\`\`
 
-> **Pro tip**: Use the ALPHA key to insert variable names (A-Z) for reusable calculations.
+> **Pro tip**: Use the **f(x)** button to toggle the graphing panel and plot functions visually.
 `,
   },
   {
@@ -546,7 +522,6 @@ export function Demo() {
     <Calculator
       type="scientific"
       theme={{ mode: 'dark', primaryColor: '#10b981' }}
-      graph={true}
     />
   );
 }
@@ -578,11 +553,9 @@ function EvalDemo() {
 
 | Prop | Type | Default | Description |
 |------|------|---------|-------------|
-| \`type\` | string | \`basic\` | Calculator type |
+| \`type\` | string | \`basic\` | Calculator type: \`basic\`, \`scientific\` |
 | \`theme\` | object | \`dark\` | Theme configuration |
-| \`graph\` | bool | \`false\` | Enable graphing |
 | \`history\` | bool | \`true\` | Enable history |
-| \`variables\` | array | \`[]\` | Variable definitions |
 | \`precision\` | number | \`12\` | Decimal precision |
 
 ## TypeScript
@@ -597,104 +570,69 @@ import type { CalculatorConfig, ThemeConfig } from '@calculo/shared';
     id: 'api-reference',
     section: 'API',
     title: 'API Reference',
-    keywords: 'api rest endpoints evaluate render calculators reference',
+    keywords: 'api rest endpoints evaluate calculators reference',
     content: `# API Reference
 
-All API endpoints require authentication via Bearer token. Base URL: \`https://api.calculo.dev\`
+Base URL: \`${SITE}\`
 
-## Evaluate
+## Evaluate (No Auth Required)
 
-**POST** \`/v1/evaluate\`
+Evaluate a mathematical expression. No API key needed.
 
-Evaluate a mathematical expression.
+**GET** \`/api/embed/evaluate?expr={expression}&angle={deg|rad}\`
 
 \`\`\`bash
-curl https://api.calculo.dev/v1/evaluate \\
-  -H "Authorization: Bearer cal_live_key" \\
+curl "${SITE}/api/embed/evaluate?expr=sin(45)%2Bcos(30)&angle=deg"
+# → {"result":1.5731,"expression":"sin(45)+cos(30)","angle":"deg"}
+\`\`\`
+
+**POST** \`/api/embed/evaluate\`
+
+\`\`\`bash
+curl -X POST "${SITE}/api/embed/evaluate" \\
   -H "Content-Type: application/json" \\
-  -d '{"expression": "sin(pi/2) + 2^8"}'
+  -d '{"expr": "2^10 + sqrt(144)", "angle": "deg"}'
+# → {"result":1036,"expression":"2^10 + sqrt(144)","angle":"deg"}
 \`\`\`
 
-**Request body:**
+### Supported Functions
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| \`expression\` | string | yes | Mathematical expression |
-| \`variables\` | object | no | Variable values |
-| \`precision\` | number | no | Decimal precision (default: 12) |
-| \`angleMode\` | string | no | deg, rad, or grad (default: rad) |
+sin, cos, tan, asin, acos, atan, sinh, cosh, tanh, sqrt, cbrt, abs, ceil, floor, round, log (base 10), ln (natural), log2, exp, sign, pow, min, max, mod, pi, e
 
-**Response:**
+## Get Embed Config (No Auth)
 
-\`\`\`json
-{
-  "result": 256.5,
-  "error": null
-}
-\`\`\`
+Fetch a calculator's embed configuration.
 
-## Render Graph
-
-**POST** \`/v1/render\`
-
-Generate graph data from mathematical expressions.
+**GET** \`${SITE}/api/embed/{id}\`
 
 \`\`\`bash
-curl https://api.calculo.dev/v1/render \\
-  -H "Authorization: Bearer cal_live_key" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "expressions": [
-      {"expression": "sin(x)", "color": "#3b82f6"}
-    ],
-    "bounds": {"xMin": -10, "xMax": 10, "yMin": -2, "yMax": 2}
-  }'
+curl "${SITE}/api/embed/demo_basic"
+# → {"id":"demo_basic","type":"basic","theme":{...}}
 \`\`\`
 
-## Create Calculator
+## Create Calculator (Auth Required)
 
-**POST** \`/v1/calculators\`
-
-Save a calculator configuration.
+**POST** \`/api/calculators\`
 
 \`\`\`bash
-curl https://api.calculo.dev/v1/calculators \\
-  -H "Authorization: Bearer cal_live_key" \\
+curl -X POST "${SITE}/api/calculators" \\
+  -H "Authorization: Bearer calc_live_key" \\
   -H "Content-Type: application/json" \\
   -d '{"type": "scientific", "theme": {"mode": "dark"}}'
 \`\`\`
 
-## Get Calculator
+## Delete Calculator (Auth Required)
 
-**GET** \`/v1/calculators/:id\`
-
-Retrieve a saved calculator configuration.
-
-## Delete Calculator
-
-**DELETE** \`/v1/calculators/:id\`
-
-Delete a calculator configuration.
+**DELETE** \`/api/calculators/:id\`
 
 ## Error Codes
 
 | Code | Status | Description |
 |------|--------|-------------|
-| \`PARSE_ERROR\` | 400 | Expression could not be parsed |
-| \`EVALUATION_ERROR\` | 400 | Error during evaluation |
-| \`VALIDATION_ERROR\` | 422 | Invalid request body |
+| \`VALIDATION_ERROR\` | 422 | Missing or invalid parameters |
+| \`EVALUATION_ERROR\` | 422 | Expression evaluation failed |
 | \`UNAUTHORIZED\` | 401 | Invalid or missing API key |
-| \`RATE_LIMIT\` | 429 | Rate limit exceeded |
-
-## Rate Limits
-
-| Plan | Evaluations/month |
-|------|------------------|
-| Free | 1,000 |
-| Beginner | 10,000 |
-| Pro | 100,000 |
-
-Rate limits reset monthly.`,
+| \`RATE_LIMIT\` | 429 | Too many requests |`,
   },
   {
     id: 'embed-locking',
@@ -703,48 +641,19 @@ Rate limits reset monthly.`,
     keywords: 'lock freeze restrict embed config export settings customization',
     content: `# Embed Locking & Configuration
 
-When embedding calculators in your product, you can lock various aspects to maintain brand consistency and UX control.
+The draggable calculator wrapper provides lock controls via the **⋮** (three-dot) dropdown menu.
 
-## Lock Attributes
+## Available Locks
 
-Use HTML data attributes to restrict user changes:
-
-\`\`\`html
-<div class="calculo-calculator"
-  data-mode="scientific"
-  data-theme="corporate"
-  data-width="400"
-  data-height="600"
-  data-lock-theme="true"
-  data-lock-size="true"
-  data-lock-mode="true"
-></div>
-<script src="https://cdn.calculo.dev/widget.js"></script>
-\`\`\`
-
-### What Each Lock Does
-
-| Attribute | Effect |
-|-----------|--------|
-| \`data-lock-theme="true"\` | Hides the Theme button entirely |
-| \`data-lock-size="true"\` | Removes the resize handle, fixes dimensions |
-| \`data-lock-mode="true"\` | Disables mode switching |
+| Lock | Effect |
+|------|--------|
+| **Lock Theme** | Prevents theme changes, hides the theme panel |
+| **Lock Size** | Removes the resize handle, fixes dimensions |
+| **Lock Mode** | Disables mode switching (basic ↔ scientific) |
 
 ## Config Export
 
-Use the **Config** panel in the interactive demo to export the current calculator state as JSON:
-
-\`\`\`json
-{
-  "mode": "scientific",
-  "theme": "dark",
-  "width": 400,
-  "height": 600,
-  "lockTheme": true,
-  "lockSize": true,
-  "lockMode": false
-}
-\`\`\`
+Use the **Config** tab in the ⋮ dropdown to export the current calculator state as JSON.
 
 ## Programmatic Configuration
 
@@ -754,18 +663,13 @@ import { Calculo } from '@calculo/sdk';
 const config = {
   type: 'scientific' as const,
   theme: { mode: 'dark', primaryColor: '#6366f1' },
-  width: 400,
-  height: 600,
-  history: true,
-  precision: 12,
-  angleMode: 'rad' as const,
 };
 
 const calc = await calculo.createCalculator(config);
 console.log(calc.id); // "calc_abc123"
 \`\`\`
 
-This saves the configuration server-side and generates a unique calculator ID.
+This saves the configuration server-side and generates a unique calculator ID (requires API key).
 
 > **Best Practice**: Lock theme and size in production embeds. Let users interact with the calculator, not the configuration.
 `,
@@ -788,55 +692,41 @@ npm install @calculo/sdk
 \`\`\`typescript
 import { Calculo } from '@calculo/sdk';
 
-const calculo = new Calculo('cal_live_key');
+const calculo = new Calculo(); // no API key needed for client-side eval
 
 // Evaluate an expression
 const { result } = await calculo.evaluate({
   expression: 'sin(pi/4)^2 + cos(pi/4)^2'
 });
-
-// Render a graph
-const graph = await calculo.render({
-  expressions: [
-    { expression: 'sin(x)', color: '#3b82f6' }
-  ]
-});
-
-// Create a calculator config
-const calc = await calculo.createCalculator({
-  type: 'scientific',
-  theme: { mode: 'ocean' }
-});
 \`\`\`
 
-### Client-Side Evaluation
-
-The SDK uses the local calculator engine by default. No network requests are made for evaluation — perfect for interactive demos and offline-capable applications.
-
-### Server-Side Evaluation
-
-Use the REST API for server-side evaluation with the same SDK:
-
-\`\`\`typescript
-const result = await calculo.api.evaluate({
-  expression: '2^100',
-  precision: 50,
-});
-\`\`\`
+The SDK evaluates expressions client-side by default. No network requests, no API key needed.
 
 ## Framework SDKs
 
-| SDK | Package | Status |
-|-----|---------|--------|
-| React | \`@calculo/react\` | ✅ Available |
-| Vue | \`@calculo/vue\` | ✅ Available |
-| Angular | \`@calculo/angular\` | ✅ Available |
-| Svelte | \`@calculo/svelte\` | ✅ Available |
-| Web Component | \`@calculo/embed\` | ✅ Available |
-| Python | \`calculo-sdk-python\` | 🔜 Coming soon |
-| Go | \`calculo-sdk-go\` | 🔜 Coming soon |
-| curl | REST API | ✅ Available |
-`,
+| SDK | Package | Install |
+|-----|---------|---------|
+| React | \`@calculo/react\` | \`npm install @calculo/react\` |
+| Vue | \`@calculo/vue\` | \`npm install @calculo/vue\` |
+| Angular | \`@calculo/angular\` | \`npm install @calculo/angular\` |
+| Svelte | \`@calculo/svelte\` | \`npm install @calculo/svelte\` |
+
+### React Example
+
+\`\`\`tsx
+import { Calculator } from '@calculo/react';
+
+export function App() {
+  return <Calculator type="scientific" theme={{ mode: 'dark' }} />;
+}
+\`\`\`
+
+## Embed (No Build Step)
+
+\`\`\`html
+<script src="${SITE}/embed.js"></script>
+<div data-calculator="demo_basic"></div>
+\`\`\``,
   },
 ];
 
