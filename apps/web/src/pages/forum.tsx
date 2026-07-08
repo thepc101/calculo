@@ -44,21 +44,47 @@ function Avatar({ url, name }: { url: string | null; name: string | null }) {
   );
 }
 
+function useToken() {
+  const [token, setToken] = useState<string | null>(() => {
+    if (typeof window === 'undefined') return null;
+    return localStorage.getItem('calculo_token');
+  });
+  useEffect(() => {
+    const handler = () => setToken(localStorage.getItem('calculo_token'));
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  }, []);
+  return token;
+}
+
 // ── Post List ───────────────────────────────────────────────
 
 function PostList({ onSelect }: { onSelect: (id: string) => void }) {
   const [posts, setPosts] = useState<ForumPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dbError, setDbError] = useState(false);
 
   useEffect(() => {
     fetch('/api/forum')
       .then(r => r.json())
-      .then(d => setPosts(d.posts ?? []))
-      .catch(() => {})
+      .then(d => {
+        if (d.error?.code === 'SETUP_REQUIRED') {
+          setDbError(true);
+        } else {
+          setPosts(d.posts ?? []);
+        }
+      })
+      .catch(() => setDbError(true))
       .finally(() => setLoading(false));
   }, []);
 
   if (loading) return <div className="text-sm text-zinc-500 py-8">Loading...</div>;
+  if (dbError) return (
+    <div className="text-center py-12">
+      <div className="text-sm text-zinc-400 mb-2">Forum is not available yet.</div>
+      <div className="text-xs text-zinc-600">The database needs to be configured. Run the migration SQL from <code>api/_lib/migration.sql</code> in your Neon console.</div>
+    </div>
+  );
   if (posts.length === 0) return <div className="text-sm text-zinc-500 py-8">No posts yet. Be the first to start a discussion.</div>;
 
   return (
@@ -139,7 +165,7 @@ function PostDetail({ postId, onBack }: { postId: string; onBack: () => void }) 
 
   return (
     <div>
-      <button onClick={onBack} className="text-sm text-zinc-400 hover:text-zinc-100 mb-4 transition-colors">← Back to forum</button>
+      <button onClick={onBack} className="text-sm text-zinc-400 hover:text-zinc-100 mb-4 transition-colors">&larr; Back to forum</button>
 
       <div className="p-5 rounded-xl border border-zinc-800 bg-zinc-900/50 mb-6">
         <div className="flex items-start gap-3">
@@ -275,7 +301,7 @@ function NewPostForm({ onCreated }: { onCreated: (id: string) => void }) {
 export function ForumPage() {
   const [view, setView] = useState<'list' | 'new' | 'detail'>('list');
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
-  const token = typeof window !== 'undefined' ? localStorage.getItem('calculo_token') : null;
+  const token = useToken();
 
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-16">

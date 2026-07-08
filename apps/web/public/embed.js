@@ -1,8 +1,13 @@
 /**
- * Calculo Embed Loader v1.0
- * Tiny loader that fetches calculator config and dynamically imports the runtime.
- * Usage: <script src="https://calculo-fawn.vercel.app/embed.js"></script>
- *        <div data-calculator="calc_abc123"></div>
+ * Calculo Embed Loader v2.0
+ *
+ * REQUIREMENT: The embedding page must set CALCULO_API_KEY before loading this script.
+ *
+ *   <script>window.CALCULO_API_KEY = 'calc_live_your_key_here';</script>
+ *   <script src="https://calculo-fawn.vercel.app/embed.js"></script>
+ *   <div data-calculator="demo_basic"></div>
+ *
+ * The key is validated against the API on load. If missing or invalid, embeds won't render.
  */
 (function () {
   'use strict';
@@ -11,6 +16,11 @@
     var s = document.currentScript;
     return s ? s.src.replace(/\/embed\.js.*$/, '') : 'https://calculo-fawn.vercel.app';
   })();
+
+  var API_KEY = window.CALCULO_API_KEY || null;
+  var keyValidated = false;
+  var keyValid = false;
+  var pendingMounts = [];
 
   var runtimePromise = null;
   var instances = new Map();
@@ -22,16 +32,63 @@
     return runtimePromise;
   }
 
+  async function validateKey() {
+    if (!API_KEY) {
+      console.error('[calculo] CALCULO_API_KEY is not set. Embeds will not render.');
+      console.error('[calculo] Add this before embed.js:');
+      console.error('[calculo]   <script>window.CALCULO_API_KEY = "calc_live_your_key";<\/script>');
+      return false;
+    }
+    try {
+      var res = await fetch(BASE + '/api/embed/validate?key=' + encodeURIComponent(API_KEY));
+      var data = await res.json();
+      if (data.valid) {
+        return true;
+      }
+      console.error('[calculo] Invalid API key. Embeds will not render.');
+      return false;
+    } catch (e) {
+      console.error('[calculo] Could not validate API key:', e.message);
+      return false;
+    }
+  }
+
+  async function init() {
+    keyValid = await validateKey();
+    keyValidated = true;
+
+    if (!keyValid) {
+      var els = document.querySelectorAll('[data-calculator]');
+      for (var i = 0; i < els.length; i++) {
+        els[i].setAttribute('data-calculo-error', 'Invalid or missing CALCULO_API_KEY');
+      }
+      return;
+    }
+
+    for (var i = 0; i < pendingMounts.length; i++) {
+      await mount(pendingMounts[i]);
+    }
+    pendingMounts = [];
+  }
+
   async function mount(el) {
+    if (!keyValidated) {
+      pendingMounts.push(el);
+      return;
+    }
+    if (!keyValid) return;
+
     var id = el.getAttribute('data-calculator');
     if (!id || instances.has(id)) return;
 
     el.setAttribute('data-calculo-loading', '');
 
     try {
-      var res = await fetch(BASE + '/api/embed/' + encodeURIComponent(id));
+      var res = await fetch(BASE + '/api/embed/' + encodeURIComponent(id) + '?key=' + encodeURIComponent(API_KEY));
       if (!res.ok) throw new Error('Failed to load calculator: ' + res.status);
       var config = await res.json();
+
+      if (config.error) throw new Error(config.error.message);
 
       var runtime = await loadRuntime();
       var mountFn = runtime.mountCalculator || runtime.default;
@@ -64,9 +121,9 @@
 
   // Auto-scan on load
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', scan);
+    document.addEventListener('DOMContentLoaded', function () { init().then(scan); });
   } else {
-    scan();
+    init().then(scan);
   }
 
   // Observe for dynamically added elements

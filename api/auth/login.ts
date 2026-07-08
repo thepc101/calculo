@@ -2,7 +2,7 @@
 import type { IncomingMessage, ServerResponse } from 'http';
 import { z } from 'zod';
 import { db } from '../_lib/db';
-import { users } from '../_lib/schema';
+import { users, profiles } from '../_lib/schema';
 import { eq } from 'drizzle-orm';
 import { signToken } from '../_lib/jwt';
 import { checkRateLimit } from '../_lib/rate-limit-middleware';
@@ -31,8 +31,9 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     const { email, password } = parsed.data;
 
     const rows = await db
-      .select({ id: users.id, email: users.email, passwordHash: users.passwordHash })
+      .select({ id: users.id, email: users.email, passwordHash: users.passwordHash, name: profiles.name })
       .from(users)
+      .leftJoin(profiles, eq(users.id, profiles.id))
       .where(eq(users.email, email))
       .limit(1);
 
@@ -49,7 +50,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     const accessToken = await signToken({ sub: user.id, email: user.email, type: 'access' });
 
     return jsonResponse(res, {
-      user: { id: user.id, email: user.email },
+      user: { id: user.id, email: user.email, name: user.name || user.email.split('@')[0] },
       session: { access_token: accessToken },
     });
   } catch (err: any) {

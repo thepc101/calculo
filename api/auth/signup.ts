@@ -56,7 +56,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     const accessToken = await signToken({ sub: user.id, email, type: 'access' });
 
     return jsonResponse(res, {
-      user: { id: user.id, email },
+      user: { id: user.id, email, name: displayName },
       session: { access_token: accessToken },
       message: 'Account created',
     }, 201);

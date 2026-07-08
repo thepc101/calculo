@@ -1,4 +1,5 @@
-import { Link, Outlet, useLocation } from '@tanstack/react-router';
+import { Link, Outlet, useLocation, useNavigate } from '@tanstack/react-router';
+import { useState, useEffect, useRef } from 'react';
 import { cn } from '../lib/utils';
 
 const navItems = [
@@ -14,6 +15,35 @@ const navItems = [
 
 export function Layout() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const [user, setUser] = useState<{ name?: string; email: string } | null>(null);
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('calculo_user');
+      if (raw) setUser(JSON.parse(raw));
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setShowMenu(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  const signOut = () => {
+    localStorage.removeItem('calculo_token');
+    localStorage.removeItem('calculo_user');
+    setUser(null);
+    setShowMenu(false);
+    navigate({ to: '/' });
+  };
+
+  const displayName = user?.name || user?.email?.split('@')[0] || 'Account';
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -64,18 +94,54 @@ export function Layout() {
                 </svg>
                 GitHub
               </a>
-              <Link
-                to="/login"
-                className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors"
-              >
-                Sign in
-              </Link>
-              <Link
-                to="/signup"
-                className="inline-flex items-center justify-center rounded-lg bg-zinc-100 text-zinc-900 px-4 py-2 text-sm font-medium hover:bg-zinc-200 transition-colors"
-              >
-                Get Started
-              </Link>
+
+              {user ? (
+                <div className="relative" ref={menuRef}>
+                  <button
+                    onClick={() => setShowMenu(p => !p)}
+                    className="flex items-center gap-2 text-sm text-zinc-300 hover:text-zinc-100 transition-colors px-3 py-1.5 rounded-lg hover:bg-zinc-800/60"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] font-bold text-zinc-300">
+                      {displayName[0]?.toUpperCase()}
+                    </div>
+                    <span className="hidden sm:inline">{displayName}</span>
+                    <svg className="w-3 h-3 text-zinc-500" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M3 5l3 3 3-3" />
+                    </svg>
+                  </button>
+                  {showMenu && (
+                    <div className="absolute right-0 top-full mt-1 w-48 py-1 rounded-lg border border-zinc-800 bg-zinc-900 shadow-xl z-50">
+                      <div className="px-3 py-2 border-b border-zinc-800">
+                        <p className="text-xs text-zinc-500">Signed in as</p>
+                        <p className="text-sm text-zinc-200 truncate">{user.email}</p>
+                      </div>
+                      <Link to="/dashboard" onClick={() => setShowMenu(false)}
+                        className="block px-3 py-2 text-sm text-zinc-300 hover:bg-zinc-800 transition-colors">
+                        Dashboard
+                      </Link>
+                      <button onClick={signOut}
+                        className="w-full text-left px-3 py-2 text-sm text-red-400 hover:bg-zinc-800 transition-colors">
+                        Sign out
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors"
+                  >
+                    Sign in
+                  </Link>
+                  <Link
+                    to="/signup"
+                    className="inline-flex items-center justify-center rounded-lg bg-zinc-100 text-zinc-900 px-4 py-2 text-sm font-medium hover:bg-zinc-200 transition-colors"
+                  >
+                    Get Started
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
