@@ -60,7 +60,15 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       message: 'Account created',
     }, 201);
   } catch (err: any) {
-    console.error('[signup]', err);
-    return jsonResponse(res, { error: { code: 'INTERNAL', message: err?.message ?? 'Internal error' } }, 500);
+    console.error('[signup]', err?.message, err?.stack);
+    const msg = err?.message ?? 'Internal error';
+    // Provide helpful hints for common issues
+    if (msg.includes('relation') && msg.includes('does not exist')) {
+      return jsonResponse(res, { error: { code: 'DB_ERROR', message: 'Database tables not created. Run the schema SQL in Neon SQL Editor.' } }, 500);
+    }
+    if (msg.includes('JWT_SECRET') || msg.includes('secret')) {
+      return jsonResponse(res, { error: { code: 'CONFIG_ERROR', message: 'JWT_SECRET not configured.' } }, 500);
+    }
+    return jsonResponse(res, { error: { code: 'INTERNAL', message: msg } }, 500);
   }
 }
