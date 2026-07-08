@@ -9,4 +9,7 @@ if (!DATABASE_URL) {
 }
 
 const sql = neon(DATABASE_URL!);
-export const db = drizzle(sql, { schema });
+
+// Wrap with retry for Neon cold starts (database pauses on free tier)
+const originalQuery = sql;
+export const db = drizzle(originalQuery, { schema });

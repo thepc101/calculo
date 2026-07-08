@@ -21,7 +21,7 @@ export function DraggableCalculator({
 }: DraggableCalculatorProps) {
   const [theme, setTheme] = useState<ThemeConfig>({ ...themes[defaultTheme] ?? themes.dark });
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const [size, setSize] = useState({ width: 340, height: 500 });
+  const [size, setSize] = useState({ width: 320, height: 480 });
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
   const [visible, setVisible] = useState(true);
@@ -51,7 +51,7 @@ export function DraggableCalculator({
     if (!isDragging && !isResizing) return;
     const onMove = (e: MouseEvent) => {
       if (isDragging && dragRef.current) setPosition({ x: dragRef.current.startPosX + e.clientX - dragRef.current.startX, y: dragRef.current.startPosY + e.clientY - dragRef.current.startY });
-      if (isResizing && resizeRef.current) setSize({ width: Math.max(280, resizeRef.current.startW + e.clientX - resizeRef.current.startX), height: Math.max(400, resizeRef.current.startH + e.clientY - resizeRef.current.startY) });
+      if (isResizing && resizeRef.current) setSize({ width: Math.max(260, resizeRef.current.startW + e.clientX - resizeRef.current.startX), height: Math.max(360, resizeRef.current.startH + e.clientY - resizeRef.current.startY) });
     };
     const onUp = () => { setIsDragging(false); setIsResizing(false); dragRef.current = null; resizeRef.current = null; };
     window.addEventListener('mousemove', onMove);

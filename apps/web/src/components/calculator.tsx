@@ -304,16 +304,16 @@ export function Calculator({ theme: themeProp, mode: externalMode, compact = fal
         </div>
 
         {/* ── LCD Display ── */}
-        <div className="mx-3 mb-3 rounded-2xl overflow-hidden" style={{ backgroundColor: '#0e0e10', border: '1px solid rgba(255,255,255,0.05)', boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.3)' }}>
-          <div className="px-4 pt-3 pb-2">
-            <div ref={dispRef} className="overflow-x-auto scrollbar-none font-mono text-xs leading-relaxed" style={{ color: `${T.textColor}45`, minHeight: '1.2em', whiteSpace: 'nowrap' }}>
+        <div className="mx-3 mb-2 rounded-2xl overflow-hidden" style={{ backgroundColor: '#0e0e10', border: '1px solid rgba(255,255,255,0.05)', boxShadow: 'inset 0 2px 8px rgba(0,0,0,0.3)' }}>
+          <div className="px-3 pt-2 pb-1.5">
+            <div ref={dispRef} className="overflow-x-auto scrollbar-none font-mono text-[11px] leading-relaxed" style={{ color: `${T.textColor}45`, minHeight: '1em', whiteSpace: 'nowrap' }}>
               {expr || (ans && result === '0' ? '' : '\u00A0')}
             </div>
-            <div className="font-mono font-semibold truncate leading-none text-right" style={{ fontSize: compact ? '1.25rem' : '1.85rem', letterSpacing: '-0.02em' }}>
+            <div className="font-mono font-semibold truncate leading-none text-right" style={{ fontSize: compact ? '1.1rem' : '1.65rem', letterSpacing: '-0.02em' }}>
               {result}
             </div>
           </div>
-          <div className="flex items-center justify-between px-4 py-1.5" style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.03)' }}>
+          <div className="flex items-center justify-between px-3 py-1" style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.03)' }}>
             <div className="flex items-center gap-2 text-[8px] font-mono tracking-widest uppercase" style={{ color: `${T.textColor}30` }}>
               {mode === 'scientific' && <span>{angle}</span>}
               <span>{mode === 'basic' ? 'BASIC' : 'SCI'}</span>
@@ -365,15 +365,15 @@ export function Calculator({ theme: themeProp, mode: externalMode, compact = fal
         )}
 
         {/* ── Key grid ── */}
-        <div className="flex-1 flex flex-col gap-[5px] px-3 pb-3 auto-rows-fr">
+        <div className="flex-1 flex flex-col gap-[5px] px-3 pb-3 auto-rows-fr min-h-0">
           {keys.map((row, ri) => (
-            <div key={ri} className="flex gap-[5px] flex-1">
+            <div key={ri} className="flex gap-[5px] flex-1 min-h-0">
               {row.map((k, ci) => {
                 const sl = sLabel(k);
                 const dl = dLabel(k);
                 return (
                   <button key={ci} onClick={() => act(k.action)}
-                    className={`${keyClasses(k.kind)} flex-1 text-[13px] relative overflow-hidden ${compact ? 'min-h-[34px]' : 'min-h-[42px]'}`}
+                    className={`${keyClasses(k.kind)} flex-1 text-[13px] relative overflow-hidden min-h-[30px]`}
                     style={k.kind === 'eq' ? { backgroundColor: T.primaryColor } : k.action === 'shift' && shift ? { backgroundColor: `color-mix(in srgb, ${T.primaryColor} 25%, transparent)`, color: T.primaryColor } : undefined}
                   >
                     {sl && !shift && (
