@@ -86,7 +86,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       error: {
         code: setup ? 'SETUP_REQUIRED' : 'INTERNAL_ERROR',
         message: setup
-          ? 'Forum not available yet. Run the migration SQL from api/_lib/migration.sql in your Neon console. If the database is paused, resume it at console.neon.tech.'
+          ? 'Forum not available yet. Run migration SQL in Neon console. If paused, resume at console.neon.tech. (' + msg + ')'
           : 'Internal error: ' + msg,
       },
     }, setup ? 503 : 500);
