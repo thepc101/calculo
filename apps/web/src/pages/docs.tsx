@@ -9,6 +9,8 @@ interface DocPage {
   keywords: string;
 }
 
+const SITE = 'https://calculo-fawn.vercel.app';
+
 const pages: DocPage[] = [
   {
     id: 'overview',
@@ -23,29 +25,46 @@ Build, embed, and scale calculators with one API. From simple arithmetic to comp
 
 ## Key Features
 
-- **Calculator API** — Evaluate expressions, render graphs, manage configurations
 - **Embed Widgets** — Drop interactive calculators into any website with a single div
+- **Evaluate API** — Evaluate math expressions via REST (no auth required)
 - **SDKs** — First-class TypeScript, React, Vue, Angular, and Svelte SDKs
 - **16 Themes** — Dark, light, cyberpunk, ocean, and 12 more premium themes
 - **Locking** — Lock theme, size, and mode when embedding in your product
 - **Self-hostable** — MIT-licensed, deploy on your own infrastructure
-- **Graph Engine** — Cartesian, parametric, and polar graphing
+- **Graph Panel** — Toggle interactive graphing inside any calculator
 - **60+ Functions** — Trig, hyperbolic, log, stats, combinatorics, constants
 
-## Quick Example
+## Quick Start — Embed
+
+\`\`\`html
+<script src="${SITE}/embed.js"></script>
+<div data-calculator="demo_basic"></div>
+\`\`\`
+
+## Quick Start — Evaluate API
+
+\`\`\`bash
+curl "${SITE}/api/embed/evaluate?expr=2%2B2&angle=deg"
+# → {"result":4,"expression":"2+2","angle":"deg"}
+\`\`\`
+
+## Quick Start — SDK
+
+\`\`\`bash
+npm install @calculo/sdk
+\`\`\`
 
 \`\`\`typescript
 import { Calculo } from '@calculo/sdk';
 
-const calculo = new Calculo('cal_live_key');
-
+const calculo = new Calculo();
 const { result } = await calculo.evaluate({
   expression: 'sin(pi/4)^2 + cos(pi/4)^2'
 });
 // → { result: 1 }
 \`\`\`
 
-The SDK evaluates expressions client-side by default — no server call needed. Use the REST API for server-side evaluation.
+The SDK evaluates expressions client-side by default — no API key needed. Use the REST API for server-side evaluation (also no key required).
 `,
   },
   {
@@ -75,10 +94,11 @@ npm install @calculo/react
 
 ## Embed Widget
 
-Add the script to your HTML:
+Add the script and a div to your HTML:
 
 \`\`\`html
-<script src="https://cdn.calculo.dev/widget.js"></script>
+<script src="${SITE}/embed.js"></script>
+<div data-calculator="demo_basic"></div>
 \`\`\`
 
 > **Note**: The embed widget is the simplest way to add a calculator to any website. No build step required.
@@ -96,37 +116,32 @@ Add the script to your HTML:
     keywords: 'auth api key token bearer authenticate signup key',
     content: `# Authentication
 
-Every API request requires a Bearer token.
+## API Keys (for creating/managing calculators)
 
-## Getting Your API Key
+Sign up at [${SITE}/signup](${SITE}/signup) to get an API key. Find it in your Dashboard under **API Keys**.
 
-When you sign up for calculo, an API key is automatically generated for your account. Find it in your Dashboard under **API Keys**.
+API keys are used to create and manage calculators via the API. They are \`calc_live_*\` format.
 
-## Using Your API Key
+## Evaluate API (no auth needed)
 
-Add the key to all API requests:
+The evaluate endpoint at \`/api/embed/evaluate\` does NOT require authentication — it's open for anyone to use.
 
 \`\`\`bash
-curl https://api.calculo.dev/v1/evaluate \\
-  -H "Authorization: Bearer cal_live_abc123..." \\
-  -H "Content-Type: application/json" \\
-  -d '{"expression": "2+2"}'
+curl "${SITE}/api/embed/evaluate?expr=2%5E10&angle=deg"
 \`\`\`
 
-## SDK Usage
+## SDK (no auth needed for evaluation)
 
 \`\`\`typescript
 import { Calculo } from '@calculo/sdk';
-
-const calculo = new Calculo(process.env.CALCULO_API_KEY);
+const calculo = new Calculo(); // no key needed for client-side eval
 \`\`\`
 
 ## Key Security
 
 - Never expose your API key in client-side code
 - Use environment variables for production
-- Rotate keys regularly from the Dashboard
-- Each account gets one key on signup; generate additional keys as needed`,
+- Rotate keys regularly from the Dashboard`,
   },
   {
     id: 'calculator-types',
@@ -135,11 +150,11 @@ const calculo = new Calculo(process.env.CALCULO_API_KEY);
     keywords: 'basic scientific custom types modes',
     content: `# Calculator Types
 
-Calculo supports six calculator types, each with a purpose-built layout and feature set.
+Calculo supports two calculator modes, plus a graphing panel.
 
 ## Basic
 
-Arithmetic, memory operations (M+, M-, MR, MC), parentheses, negation, percentage. Ideal for simple calculations and e-commerce price calculators.
+Arithmetic, memory operations (M+, M-, MR, MC), parentheses, negation. Ideal for simple calculations and e-commerce price calculators.
 
 ## Scientific
 
@@ -151,28 +166,11 @@ Full scientific mode with:
 - **Memory**: M+, M-, MR, MC with status indicator
 - **Secondary functions**: 2nd key for inverse trig, 10ˣ, eˣ
 
-## Graphing
-
-Interactive 2D graphing with:
-- SVG-rendered curves with configurable colors
-- Up to 6 simultaneous function plots
-- Axis labels, grid lines, tick marks
-- Real-time update on expression change
-- Window bounds: x: [-10, 10], y: [-10, 10]
-
-## Financial
-
-TVM (Time Value of Money), amortization, ROI, payment calculations.
-
-## Programming
-
-Hexadecimal, binary, octal conversion. Bitwise operators (AND, OR, XOR, NOT, shift).
-
 ## Custom
 
-Full JSON control over every button, layout, and behavior. Define your own variables, functions, and display settings.
+Full JSON control over every button, layout, and behavior.
 
-> **Pro tip**: Use the interactive demo to configure your calculator, then export the Config JSON.`,
+> **Pro tip**: Toggle the **f(x)** button in any mode to show the interactive graphing panel.`,
   },
   {
     id: 'expressions',

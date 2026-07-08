@@ -94,9 +94,10 @@ var mountCalculator;
     var wrapper = el('div', { style: { display: 'flex', flexDirection: 'column', height: '100%' } });
 
     // Header
+    var isScientific = config.type !== 'basic';
     var header = el('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px 4px' } }, [
       el('span', { style: { fontSize: '9px', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', opacity: '0.3' } }, 'calculo'),
-      el('span', { style: { fontSize: '9px', fontFamily: 'monospace', opacity: '0.35' }, id: 'calc-status' }, angleMode),
+      el('span', { style: { fontSize: '9px', fontFamily: 'monospace', opacity: '0.35' }, id: 'calc-status' }, isScientific ? angleMode : ''),
     ]);
 
     // Display
@@ -109,7 +110,7 @@ var mountCalculator;
     function updateDisplay() {
       exprEl.textContent = expression || '\u00A0';
       resultEl.textContent = result;
-      if (statusEl) statusEl.textContent = angleMode + (shiftOn ? ' · 2ND' : '');
+      if (statusEl) statusEl.textContent = isScientific ? (angleMode + (shiftOn ? ' · 2ND' : '')) : '';
     }
 
     function doEval() {
@@ -158,7 +159,15 @@ var mountCalculator;
     }
 
     // Key layout
-    var keyDefs = [
+    var BASIC_KEYS = [
+      ['AC','ctrl','clearAll',''],     ['(','ctrl','(',''],     [')','ctrl',')',''],     ['÷','op','/',''],     ['DEL','ctrl','del',''],
+      ['M+','mem','m+',''],            ['7','num','7',''],     ['8','num','8',''],     ['9','num','9',''],    ['×','op','*',''],
+      ['M−','mem','m−',''],            ['4','num','4',''],     ['5','num','5',''],     ['6','num','6',''],    ['−','op','-',''],
+      ['MR','mem','mr',''],            ['1','num','1',''],     ['2','num','2',''],     ['3','num','3',''],    ['+','op','+',''],
+      ['MC','mem','mc',''],            ['0','num','0',''],     ['.','num','.',''],     ['(−)','ctrl','neg',''],  ['＝','eq','eval',''],
+    ];
+
+    var SCI_KEYS = [
       ['2nd','ctrl','shift',''],   ['DRG','ctrl','mode',''],     ['DEL','ctrl','del',''],     ['(','ctrl','(',''],    [')','ctrl',')',''],
       ['LOG','fn','log','10ˣ'],     ['π','fn','pi','e'],          ['SIN','fn','sin','sin⁻¹'],  ['COS','fn','cos','cos⁻¹'], ['TAN','fn','tan','tan⁻¹'],
       ['x²','fn','sq','x³'],        ['^','op','^','x√'],         ['√','fn','sqrt','∛'],       ['x⁻¹','fn','inv','|x|'], ['CLR','ctrl','clearAll',''],
@@ -168,12 +177,14 @@ var mountCalculator;
       ['0','num','0',''],            ['.','num','.',''],           ['(−)','ctrl','neg',''],      ['ANS','ctrl','ans',''],  ['＝','eq','eval',''],
     ];
 
+    var keyDefs = (config.type === 'basic') ? BASIC_KEYS : SCI_KEYS;
+
     var SHIFT_MAP = { sin: 'asin', cos: 'acos', tan: 'atan', log: '10**', sq: '**3', sqrt: 'cbrt', inv: 'abs' };
     var SHIFT_DISP = { sin: 'sin⁻¹', cos: 'cos⁻¹', tan: 'tan⁻¹', log: '10ˣ', sq: 'x³', sqrt: '∛', inv: '|x|' };
 
     function handleAction(action) {
-      if (action === 'shift') { shiftOn = !shiftOn; updateDisplay(); return; }
-      if (action === 'mode') { angleMode = angleMode === 'deg' ? 'rad' : angleMode === 'rad' ? 'grad' : 'deg'; shiftOn = false; updateDisplay(); return; }
+      if (action === 'shift') { if (!isScientific) return; shiftOn = !shiftOn; updateDisplay(); return; }
+      if (action === 'mode') { if (!isScientific) return; angleMode = angleMode === 'deg' ? 'rad' : angleMode === 'rad' ? 'grad' : 'deg'; shiftOn = false; updateDisplay(); return; }
 
       var finalAction = action;
       if (shiftOn && SHIFT_MAP[action]) { finalAction = SHIFT_MAP[action]; }
