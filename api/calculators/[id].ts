@@ -11,7 +11,7 @@ import { jsonResponse, readBody } from '../_lib/http';
 
 const updateSchema = z.object({
   name: z.string().min(1).max(64).optional(),
-  type: z.enum(['basic', 'scientific', 'graphing', 'financial', 'programming', 'custom']).optional(),
+  type: z.enum(['basic', 'scientific', 'custom']).optional(),
   theme: z.any().optional(),
   buttons: z.any().optional(),
   layout: z.any().optional(),

@@ -10,7 +10,7 @@ import { jsonResponse, readBody } from '../_lib/http';
 
 const createSchema = z.object({
   name: z.string().min(1).max(64),
-  type: z.enum(['basic', 'scientific', 'graphing', 'financial', 'programming', 'custom']).default('scientific'),
+  type: z.enum(['basic', 'scientific', 'custom']).default('scientific'),
   theme: z.object({
     mode: z.string().default('dark'),
     primaryColor: z.string().default('#3b82f6'),

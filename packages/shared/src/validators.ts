@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const angleModeSchema = z.enum(['deg', 'rad', 'grad']);
-export const calculatorTypeSchema = z.enum(['basic', 'scientific', 'graphing', 'financial', 'programming', 'custom']);
+export const calculatorTypeSchema = z.enum(['basic', 'scientific', 'custom']);
 export const themeModeSchema = z.enum(['light', 'dark', 'oled', 'high-contrast', 'glass', 'neumorphism', 'minimal', 'corporate', 'custom']);
 
 export const evaluationRequestSchema = z.object({

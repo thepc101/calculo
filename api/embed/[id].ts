@@ -149,10 +149,6 @@ const DEMO_CONFIGS: Record<string, object> = {
     id: 'demo_scientific', type: 'scientific',
     theme: { mode: 'dark', primaryColor: '#8b5cf6', backgroundColor: '#0a0a0b', textColor: '#fafafa' },
   },
-  'demo_graphing': {
-    id: 'demo_graphing', type: 'scientific',
-    theme: { mode: 'dark', primaryColor: '#10b981', backgroundColor: '#0a0a0b', textColor: '#fafafa' },
-  },
   'demo_light': {
     id: 'demo_light', type: 'scientific',
     theme: { mode: 'light', primaryColor: '#2563eb', backgroundColor: '#ffffff', textColor: '#18181b' },

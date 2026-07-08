@@ -1,5 +1,5 @@
 export type AngleMode = 'deg' | 'rad' | 'grad';
-export type CalculatorType = 'basic' | 'scientific' | 'graphing' | 'financial' | 'programming' | 'custom';
+export type CalculatorType = 'basic' | 'scientific' | 'custom';
 export type ThemeMode = 'light' | 'dark' | 'oled' | 'high-contrast' | 'glass' | 'neumorphism' | 'minimal' | 'corporate' | 'cyberpunk' | 'retro' | 'coffee' | 'ocean' | 'forest' | 'sunset' | 'aurora' | 'monochrome' | 'custom';
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl';
 export type ButtonShape = 'square' | 'rounded' | 'pill' | 'circle';

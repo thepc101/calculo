@@ -34,16 +34,7 @@ const examples = [
     embedCode: `<div data-calculator="demo_light"></div>
 <script src="${SITE}/embed.js"><\/script>`,
   },
-  {
-    title: 'Graphing with Functions',
-    description: 'Graph f(x) expressions in real time. Toggle the f(x) button in the calculator above.',
-    mode: 'scientific' as const,
-    theme: 'dark' as const,
-    embedId: 'demo_graphing',
-    config: { type: 'scientific', theme: { mode: 'dark' } },
-    embedCode: `<div data-calculator="demo_graphing"></div>
-<script src="${SITE}/embed.js"><\/script>`,
-  },
+
 ];
 
 export function ExamplesPage() {
@@ -126,7 +117,7 @@ export function ExamplesPage() {
           <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
             <h3 className="text-sm font-semibold mb-3">Available Demo IDs</h3>
             <div className="space-y-2 text-sm font-mono">
-              {['demo_basic', 'demo_scientific', 'demo_graphing', 'demo_light', 'demo_cyberpunk'].map((id) => (
+              {['demo_basic', 'demo_scientific', 'demo_light', 'demo_cyberpunk'].map((id) => (
                 <div key={id} className="flex items-center justify-between py-1.5 border-b border-zinc-800/50 last:border-0">
                   <span className="text-zinc-300">{id}</span>
                   <a href={`${SITE}/embed/${id}`} target="_blank" rel="noopener noreferrer"

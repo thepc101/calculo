@@ -3,6 +3,8 @@
  * Standalone, framework-agnostic calculator for embedding.
  * Dynamically imported by embed.js — mountCalculator(element, config) → cleanup()
  */
+var mountCalculator;
+
 (function () {
   'use strict';
 
@@ -14,7 +16,8 @@
       .replace(/×/g, '*')
       .replace(/÷/g, '/')
       .replace(/−/g, '-')
-      .replace(/√\(/g, 'sqrt(');
+      .replace(/√\(/g, 'sqrt(')
+      .replace(/\^/g, '**');
     try {
       var fn = new Function(
         'angleMode',
@@ -239,22 +242,18 @@
     };
   }
 
-  function mountCalculator(element, config) {
+  mountCalculator = function(element, config) {
     return createCalculator(element, config);
   }
 
-  // Export
+  // Export for CommonJS / AMD
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = { mountCalculator: mountCalculator };
   }
+  // Export globally for script tag usage
   if (typeof window !== 'undefined') {
     window.mountCalculator = mountCalculator;
   }
-
-  // ESM export
-  if (typeof globalThis !== 'undefined') {
-    globalThis.__calculo_runtime = { mountCalculator: mountCalculator };
-  }
-
-  export { mountCalculator };
 })();
+
+export { mountCalculator };

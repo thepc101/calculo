@@ -93,13 +93,17 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Unknown error';
     const setup = isSetupError(msg);
+    const setup = isSetupError(msg);
+    if (setup) {
+      return jsonResponse(res, {
+        error: {
+          code: 'SETUP_REQUIRED',
+          message: 'Database connection issue. Check that your Vercel DATABASE_URL env var matches your Neon project. If the DB is paused, resume at console.neon.tech.',
+        },
+      }, 503);
+    }
     return jsonResponse(res, {
-      error: {
-        code: setup ? 'SETUP_REQUIRED' : 'INTERNAL_ERROR',
-        message: setup
-          ? 'Forum not available yet. Run the migration SQL from api/_lib/migration.sql in your Neon console. If the database is paused, resume it at console.neon.tech.'
-          : 'Internal error: ' + msg,
-      },
-    }, setup ? 503 : 500);
+      error: { code: 'INTERNAL_ERROR', message: 'Internal error: ' + msg },
+    }, 500);
   }
 }

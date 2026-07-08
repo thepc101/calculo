@@ -63,7 +63,7 @@ export function useCalculo(apiKey?: string) {
 }
 
 export interface CalculatorProps {
-  type?: 'basic' | 'scientific' | 'graphing' | 'financial' | 'programming' | 'custom';
+  type?: 'basic' | 'scientific' | 'custom';
   theme?: Partial<ThemeConfig>;
   graph?: boolean;
   history?: boolean;

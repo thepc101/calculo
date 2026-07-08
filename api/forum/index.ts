@@ -90,9 +90,9 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     } catch { debugTables = 'could not list tables'; }
     return jsonResponse(res, {
       error: {
-        code: setup ? 'SETUP_REQUIRED' : 'INTERNAL_ERROR',
-        message: msg + ' | visible tables: ' + debugTables,
+        code: 'SETUP_REQUIRED',
+        message: 'Database connection issue. Check that your Vercel DATABASE_URL env var matches your Neon project where migration was run. Tables in current DB: ' + debugTables,
       },
-    }, setup ? 503 : 500);
+    }, 503);
   }
 }

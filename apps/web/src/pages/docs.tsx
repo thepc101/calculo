@@ -19,7 +19,7 @@ const pages: DocPage[] = [
 
 calculo is the infrastructure layer for calculations.
 
-Build, embed, and scale calculators with one API. From simple arithmetic to complex scientific graphing — deploy in minutes, serve millions.
+Build, embed, and scale calculators with one API. From simple arithmetic to complex scientific calculations — deploy in minutes, serve millions.
 
 ## Key Features
 
@@ -132,7 +132,7 @@ const calculo = new Calculo(process.env.CALCULO_API_KEY);
     id: 'calculator-types',
     section: 'Calculators',
     title: 'Calculator Types',
-    keywords: 'basic scientific graphing financial programming custom types modes',
+    keywords: 'basic scientific custom types modes',
     content: `# Calculator Types
 
 Calculo supports six calculator types, each with a purpose-built layout and feature set.
@@ -278,7 +278,7 @@ Embed a fully interactive calculator into any website with a single HTML element
 
 | Attribute | Type | Default | Description |
 |-----------|------|---------|-------------|
-| \`data-mode\` | string | \`basic\` | Calculator mode: \`basic\`, \`scientific\`, \`graphing\` |
+| \`data-mode\` | string | \`basic\` | Calculator mode: \`basic\`, \`scientific\` |
 | \`data-theme\` | string | \`dark\` | Theme name. See [Themes](#themes) for all options |
 | \`data-width\` | number | \`340\` | Width in pixels |
 | \`data-height\` | number | \`500\` | Height in pixels |
