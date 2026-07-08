@@ -7,7 +7,24 @@ export function getHeader(req: IncomingMessage, name: string): string | undefine
   return val;
 }
 
+export function setCorsHeaders(res: ServerResponse) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+}
+
+export function handleCors(req: IncomingMessage, res: ServerResponse): boolean {
+  if (req.method === 'OPTIONS') {
+    setCorsHeaders(res);
+    res.statusCode = 204;
+    res.end();
+    return true;
+  }
+  return false;
+}
+
 export function jsonResponse(res: ServerResponse, data: unknown, status = 200) {
+  setCorsHeaders(res);
   res.setHeader('Content-Type', 'application/json');
   res.statusCode = status;
   res.end(JSON.stringify(data));
