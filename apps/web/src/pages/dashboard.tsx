@@ -1,24 +1,344 @@
 import { Link } from '@tanstack/react-router';
+import { useState, useEffect, useCallback } from 'react';
 
-const stats = [
-  { label: 'Total Evaluations', value: '0', change: '0' },
-  { label: 'Calculators', value: '0', change: '0' },
-  { label: 'Projects', value: '0', change: '0' },
-  { label: 'API Keys', value: '0', change: '0' },
-];
+const API = '';
+
+interface ApiKey {
+  id: string;
+  name: string;
+  prefix: string;
+  projectId: string | null;
+  createdAt: string;
+  lastUsedAt: string | null;
+  expiresAt: string | null;
+}
+
+interface Calculator {
+  id: string;
+  name: string;
+  type: string;
+  createdAt: string;
+  publishedAt: string | null;
+}
+
+interface UsagePoint {
+  date: string;
+  count: number;
+}
+
+function useAuth() {
+  const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const stored = localStorage.getItem('calculo_token');
+    setToken(stored);
+    setLoading(false);
+  }, []);
+
+  const authFetch = useCallback(async (url: string, init?: RequestInit) => {
+    if (!token) throw new Error('Not authenticated');
+    return fetch(url, {
+      ...init,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+        ...init?.headers,
+      },
+    });
+  }, [token]);
+
+  return { token, loading, authFetch };
+}
+
+function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
+  return (
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-5">
+      <div className="text-xs text-zinc-500 mb-1">{label}</div>
+      <div className="text-2xl font-bold">{value}</div>
+      {sub && <div className="text-xs text-zinc-600 mt-1">{sub}</div>}
+    </div>
+  );
+}
+
+function UsageChart({ data }: { data: UsagePoint[] }) {
+  if (data.length === 0) {
+    return (
+      <div className="text-sm text-zinc-500 text-center py-12">
+        No usage data yet. Start making API calls to see your usage.
+      </div>
+    );
+  }
+
+  const max = Math.max(...data.map((d) => d.count), 1);
+
+  return (
+    <div className="flex items-end gap-1 h-32">
+      {data.map((point, i) => {
+        const height = Math.max((point.count / max) * 100, 2);
+        return (
+          <div key={i} className="flex-1 flex flex-col items-center gap-1">
+            <div className="text-[10px] text-zinc-500">{point.count}</div>
+            <div
+              className="w-full bg-blue-500/60 rounded-t-sm min-h-[2px] transition-all"
+              style={{ height: `${height}%` }}
+              title={`${point.date}: ${point.count} calls`}
+            />
+            <div className="text-[10px] text-zinc-600">{point.date.slice(5)}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function ApiKeysSection({ authFetch }: { authFetch: (url: string, init?: RequestInit) => Promise<Response> }) {
+  const [keys, setKeys] = useState<ApiKey[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showCreate, setShowCreate] = useState(false);
+  const [newKeyName, setNewKeyName] = useState('');
+  const [newKeyProject, setNewKeyProject] = useState('');
+  const [createdKey, setCreatedKey] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState('');
+
+  const fetchKeys = useCallback(async () => {
+    try {
+      const res = await authFetch(`${API}/api/apikeys`);
+      const data = await res.json();
+      setKeys(data.keys ?? []);
+    } catch {
+      // API may not be available yet
+    } finally {
+      setLoading(false);
+    }
+  }, [authFetch]);
+
+  useEffect(() => { fetchKeys(); }, [fetchKeys]);
+
+  const createKey = async () => {
+    if (!newKeyName.trim()) return;
+    setCreating(true);
+    setError('');
+    try {
+      const res = await authFetch(`${API}/api/apikeys`, {
+        method: 'POST',
+        body: JSON.stringify({
+          name: newKeyName.trim(),
+          projectId: newKeyProject.trim() || 'default',
+        }),
+      });
+      const data = await res.json();
+      if (data.key) {
+        setCreatedKey(data.key);
+        setNewKeyName('');
+        setNewKeyProject('');
+        fetchKeys();
+      } else {
+        setError(data.error?.message ?? 'Failed to create key');
+      }
+    } catch {
+      setError('Failed to create key — API may not be connected yet');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const revokeKey = async (id: string) => {
+    try {
+      await authFetch(`${API}/api/apikeys/${id}`, { method: 'DELETE' });
+      setKeys((prev) => prev.filter((k) => k.id !== id));
+    } catch {
+      // ignore
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold">API Keys</h2>
+        <button
+          onClick={() => { setShowCreate(!showCreate); setCreatedKey(null); setError(''); }}
+          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors"
+        >
+          {showCreate ? 'Cancel' : '+ New Key'}
+        </button>
+      </div>
+
+      {showCreate && !createdKey && (
+        <div className="mb-4 p-4 rounded-lg border border-zinc-700 bg-zinc-800/50 space-y-3">
+          <input
+            type="text"
+            placeholder="Key name (e.g. production)"
+            value={newKeyName}
+            onChange={(e) => setNewKeyName(e.target.value)}
+            className="w-full px-3 py-2 text-sm rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500"
+          />
+          <input
+            type="text"
+            placeholder="Project ID (optional)"
+            value={newKeyProject}
+            onChange={(e) => setNewKeyProject(e.target.value)}
+            className="w-full px-3 py-2 text-sm rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-100 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500"
+          />
+          {error && <div className="text-xs text-red-400">{error}</div>}
+          <button
+            onClick={createKey}
+            disabled={creating || !newKeyName.trim()}
+            className="px-4 py-2 text-sm font-medium rounded-lg bg-zinc-100 text-zinc-900 hover:bg-zinc-200 disabled:opacity-40 transition-colors"
+          >
+            {creating ? 'Creating...' : 'Create Key'}
+          </button>
+        </div>
+      )}
+
+      {createdKey && (
+        <div className="mb-4 p-4 rounded-lg border border-green-800 bg-green-900/20">
+          <div className="text-xs text-green-400 font-medium mb-2">Key created. Copy it now — it won't be shown again.</div>
+          <code className="block p-3 rounded bg-zinc-900 text-sm font-mono text-green-300 break-all select-all">{createdKey}</code>
+          <button
+            onClick={() => { navigator.clipboard.writeText(createdKey); }}
+            className="mt-2 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+          >
+            Copy to clipboard
+          </button>
+        </div>
+      )}
+
+      {loading ? (
+        <div className="text-sm text-zinc-500 py-4">Loading...</div>
+      ) : keys.length === 0 ? (
+        <div className="text-sm text-zinc-500 py-4">No API keys yet. Create one to get started.</div>
+      ) : (
+        <div className="space-y-2">
+          {keys.map((key) => (
+            <div key={key.id} className="flex items-center justify-between p-3 rounded-lg border border-zinc-800 hover:border-zinc-700 transition-colors">
+              <div className="min-w-0">
+                <div className="text-sm font-medium">{key.name}</div>
+                <div className="text-xs text-zinc-500 font-mono">{key.prefix}...</div>
+                <div className="text-[10px] text-zinc-600 mt-0.5">
+                  Created {new Date(key.createdAt).toLocaleDateString()}
+                  {key.lastUsedAt && ` · Last used ${new Date(key.lastUsedAt).toLocaleDateString()}`}
+                </div>
+              </div>
+              <button
+                onClick={() => revokeKey(key.id)}
+                className="px-2.5 py-1 text-xs text-zinc-500 hover:text-red-400 hover:bg-red-900/20 rounded transition-colors"
+              >
+                Revoke
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CalculatorsSection({ authFetch }: { authFetch: (url: string, init?: RequestInit) => Promise<Response> }) {
+  const [calculators, setCalculators] = useState<Calculator[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await authFetch(`${API}/api/calculators`);
+        const data = await res.json();
+        setCalculators(data.calculators ?? []);
+      } catch {
+        // API may not be available
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [authFetch]);
+
+  return (
+    <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold">Calculators</h2>
+        <Link to="/playground" className="px-3 py-1.5 text-xs font-medium rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors">
+          + New Calculator
+        </Link>
+      </div>
+      {loading ? (
+        <div className="text-sm text-zinc-500 py-4">Loading...</div>
+      ) : calculators.length === 0 ? (
+        <div className="text-sm text-zinc-500 py-4">
+          No calculators yet.{' '}
+          <Link to="/playground" className="text-zinc-300 hover:text-zinc-100 underline">Try the playground</Link>{' '}
+          to create one.
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {calculators.map((calc) => (
+            <div key={calc.id} className="flex items-center justify-between p-3 rounded-lg border border-zinc-800 hover:border-zinc-700 transition-colors">
+              <div>
+                <div className="text-sm font-medium">{calc.name}</div>
+                <div className="text-xs text-zinc-500 font-mono">{calc.id}</div>
+                <div className="text-[10px] text-zinc-600 mt-0.5">
+                  {calc.type} · Created {new Date(calc.createdAt).toLocaleDateString()}
+                  {calc.publishedAt && ' · Published'}
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <a
+                  href={`/embed/${calc.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-2.5 py-1 text-xs text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded transition-colors"
+                >
+                  Preview
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const sidebarLinks = [
   { label: 'Overview', href: '/dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-  { label: 'Projects', href: '/dashboard/projects', icon: 'M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z' },
   { label: 'Calculators', href: '/dashboard/calculators', icon: 'M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z' },
   { label: 'API Keys', href: '/dashboard/api-keys', icon: 'M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z' },
-  { label: 'Analytics', href: '/dashboard/analytics', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
   { label: 'Usage', href: '/dashboard/usage', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6' },
-  { label: 'Billing', href: '/dashboard/billing', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z' },
   { label: 'Settings', href: '/dashboard/settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
 ];
 
 export function DashboardPage() {
+  const { token, loading: authLoading, authFetch } = useAuth();
+  const [keyCount, setKeyCount] = useState(0);
+  const [calcCount, setCalcCount] = useState(0);
+
+  if (authLoading) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center py-20 text-zinc-500">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!token) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center py-20">
+          <h1 className="text-2xl font-bold mb-4">Sign in to access your dashboard</h1>
+          <p className="text-zinc-400 mb-6">Manage your API keys, calculators, and usage.</p>
+          <Link
+            to="/login"
+            className="inline-flex items-center justify-center rounded-xl bg-zinc-100 text-zinc-900 px-6 py-2.5 text-sm font-semibold hover:bg-zinc-200 transition-colors"
+          >
+            Sign in
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const mockUsage: UsagePoint[] = [];
+
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex gap-8">
@@ -42,46 +362,24 @@ export function DashboardPage() {
         <div className="flex-1 min-w-0">
           <div className="mb-8">
             <h1 className="text-2xl font-bold">Dashboard</h1>
-            <p className="text-sm text-zinc-400 mt-1">Welcome to calculo. Here's an overview of your account.</p>
+            <p className="text-sm text-zinc-400 mt-1">Manage your calculators, API keys, and usage.</p>
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            {stats.map((stat) => (
-              <div key={stat.label} className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-4">
-                <div className="text-xs text-zinc-500 mb-1">{stat.label}</div>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <div className="text-xs text-zinc-600 mt-1">No change</div>
-              </div>
-            ))}
+            <StatCard label="Total Evaluations" value={keyCount > 0 ? '0' : '—'} sub="Start using the API" />
+            <StatCard label="Calculators" value={calcCount > 0 ? String(calcCount) : '—'} />
+            <StatCard label="API Keys" value={keyCount > 0 ? String(keyCount) : '—'} />
+            <StatCard label="Plan" value="Free" sub="$0 / month" />
+          </div>
+
+          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 mb-8">
+            <h2 className="text-lg font-semibold mb-4">Usage (last 14 days)</h2>
+            <UsageChart data={mockUsage} />
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8">
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
-              <h2 className="text-lg font-semibold mb-4">Recent Activity</h2>
-              <div className="text-sm text-zinc-500 text-center py-8">
-                No recent activity. Start by creating a calculator or making your first API call.
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
-              <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-              <div className="space-y-3">
-                <Link
-                  to="/docs"
-                  className="block px-4 py-3 rounded-lg border border-zinc-800 hover:border-zinc-700 transition-colors"
-                >
-                  <div className="text-sm font-medium">📖 Read the documentation</div>
-                  <div className="text-xs text-zinc-500 mt-1">Learn how to integrate calculo</div>
-                </Link>
-                <Link
-                  to="/playground"
-                  className="block px-4 py-3 rounded-lg border border-zinc-800 hover:border-zinc-700 transition-colors"
-                >
-                  <div className="text-sm font-medium">🎮 Try the playground</div>
-                  <div className="text-xs text-zinc-500 mt-1">Test expressions in your browser</div>
-                </Link>
-              </div>
-            </div>
+            <ApiKeysSection authFetch={authFetch} />
+            <CalculatorsSection authFetch={authFetch} />
           </div>
         </div>
       </div>

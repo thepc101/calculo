@@ -24,12 +24,8 @@ const { result } = await calculo.evaluate({
   },
   {
     title: 'Embed anywhere (HTML)',
-    code: `<div data-calculator="calc_123"
-     data-theme="dark"
-     data-width="100%"
-     data-height="650">
-</div>
-<script src="https://cdn.calculo.dev/widget.js"></script>`,
+    code: `<div data-calculator="demo_scientific"></div>
+<script src="https://calculo-fawn.vercel.app/embed.js"><\/script>`,
     lang: 'HTML',
   },
   {
@@ -115,28 +111,28 @@ const calcTypes = [
 const apiEndpoints = [
   {
     method: 'POST',
-    path: '/v1/evaluate',
+    path: '/api/evaluate',
     desc: 'Evaluate any mathematical expression',
-    example: `curl https://api.calculo.dev/v1/evaluate \\
-  -H "Authorization: Bearer cal_..." \\
+    example: `curl https://calculo-fawn.vercel.app/api/evaluate \\
+  -H "Authorization: Bearer calc_live_..." \\
   -H "Content-Type: application/json" \\
   -d '{"expression": "sin(pi/2) + 2^8"}'`,
   },
   {
     method: 'POST',
-    path: '/v1/render',
+    path: '/api/render',
     desc: 'Generate graph data from expressions',
-    example: `curl https://api.calculo.dev/v1/render \\
-  -H "Authorization: Bearer cal_..." \\
+    example: `curl https://calculo-fawn.vercel.app/api/render \\
+  -H "Authorization: Bearer calc_live_..." \\
   -H "Content-Type: application/json" \\
   -d '{"expressions": [{"expression": "sin(x)"}]}'`,
   },
   {
     method: 'POST',
-    path: '/v1/calculators',
+    path: '/api/calculators',
     desc: 'Create a calculator configuration',
-    example: `curl https://api.calculo.dev/v1/calculators \\
-  -H "Authorization: Bearer cal_..." \\
+    example: `curl https://calculo-fawn.vercel.app/api/calculators \\
+  -H "Authorization: Bearer calc_live_..." \\
   -H "Content-Type: application/json" \\
   -d '{"type": "scientific", "theme": {"mode": "dark"}}'`,
   },
@@ -410,44 +406,94 @@ export function LandingPage() {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-md bg-zinc-800/50 text-xs text-zinc-400 mb-4">
+            Interactive demos
+          </div>
+          <h2 className="text-3xl font-bold mb-4">Every calculator type, live</h2>
+          <p className="text-zinc-400 max-w-2xl mx-auto">
+            Basic for quick math. Scientific for trig, logs, and 2nd functions.
+            Drag them, resize them, switch themes.
+          </p>
+        </div>
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div>
+            <div className="text-xs text-zinc-500 mb-3 font-medium tracking-wider uppercase">Basic</div>
+            <DraggableCalculator initialMode="basic" defaultTheme="dark" />
+          </div>
+          <div>
+            <div className="text-xs text-zinc-500 mb-3 font-medium tracking-wider uppercase">Scientific</div>
+            <DraggableCalculator initialMode="scientific" defaultTheme="dark" />
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid lg:grid-cols-2 gap-16 items-start">
           <div>
             <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-md bg-zinc-800/50 text-xs text-zinc-400 mb-4">
-              Interactive demo
-            </div>
-            <h2 className="text-3xl font-bold mb-4">Try the calculator</h2>
-            <p className="text-zinc-400 mb-6 leading-relaxed">
-              Drag it around. Resize from the corner. Click <strong>Theme</strong> to switch
-              between 8 live themes. Every calculator built with calculo is fully
-              customizable — themes, size, layout, buttons, and behavior — all from a
-              single JSON config.
-            </p>
-            <div className="border border-zinc-800 rounded-xl p-1 bg-zinc-900/30 inline-block text-xs text-zinc-600 mb-6">
-              <span className="px-2 py-1">Drag · Resize · Theme · Evaluate</span>
-            </div>
-            <div className="mt-4">
-              <DraggableCalculator />
-            </div>
-          </div>
-          <div className="space-y-6 lg:pt-16">
-            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-md bg-zinc-800/50 text-xs text-zinc-400 mb-2">
               Quick start
             </div>
-            {quickStarts.map((qs) => (
-              <div key={qs.title}>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-zinc-500">{qs.title}</span>
+            <h2 className="text-3xl font-bold mb-4">Up and running in minutes</h2>
+            <p className="text-zinc-400 mb-6 leading-relaxed">
+              Install the SDK, drop in a component, and you have a production calculator.
+              Every calculator is fully customizable — themes, size, layout, buttons, and behavior — all from a single JSON config.
+            </p>
+            <div className="space-y-4">
+              {quickStarts.map((qs) => (
+                <div key={qs.title}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-zinc-500">{qs.title}</span>
+                  </div>
+                  <CodeBlock code={qs.code} language={qs.lang} />
                 </div>
-                <CodeBlock code={qs.code} language={qs.lang} />
-              </div>
-            ))}
-            <div className="pt-2">
+              ))}
+            </div>
+            <div className="pt-4">
               <Link
                 to="/docs"
                 className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors inline-flex items-center gap-1"
               >
                 View full documentation →
               </Link>
+            </div>
+          </div>
+          <div className="space-y-6 lg:pt-16">
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
+              <div className="text-sm font-semibold mb-3">Calculator types</div>
+              <div className="grid grid-cols-2 gap-3">
+                {calcTypes.map((ct) => (
+                  <div key={ct.name} className="flex items-start gap-2">
+                    <span className="font-mono text-xs text-zinc-500 mt-0.5">{ct.icon}</span>
+                    <div>
+                      <div className="text-sm font-medium">{ct.name}</div>
+                      <div className="text-xs text-zinc-500">{ct.desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
+              <div className="text-sm font-semibold mb-3">API endpoints</div>
+              <div className="space-y-2">
+                {apiEndpoints.map((ep) => (
+                  <div key={ep.path} className="flex items-center gap-2">
+                    <span className="px-1.5 py-0.5 text-[10px] font-medium rounded bg-green-900/50 text-green-400">{ep.method}</span>
+                    <code className="text-xs font-mono text-zinc-400">{ep.path}</code>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
+              <div className="text-sm font-semibold mb-3">Supported frameworks</div>
+              <div className="grid grid-cols-2 gap-2 text-sm text-zinc-400">
+                <div>React</div>
+                <div>Vue</div>
+                <div>Svelte</div>
+                <div>Angular</div>
+                <div>Venilla JS</div>
+                <div>HTML embed</div>
+              </div>
             </div>
           </div>
         </div>
