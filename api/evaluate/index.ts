@@ -2,6 +2,8 @@ import type { IncomingMessage, ServerResponse } from 'http';
 import { jsonResponse, readBody, getHeader } from '../_lib/http';
 import { checkRateLimit } from '../_lib/rate-limit-middleware';
 import { authenticateApiKey } from '../_lib/auth';
+import { db } from '../_lib/db';
+import { usageEvents } from '../_lib/schema';
 
 // ── Math Expression Evaluator ────────────────────────────────
 
@@ -21,7 +23,7 @@ function tokenize(expr: string): string[] {
       let name = '';
       while (i < expr.length && /[a-zA-Z_0-9]/.test(expr[i])) { name += expr[i]; i++; }
       tokens.push(name);
-    } else if ('+-*/^(),'.includes(expr[i])) {
+    } else if ('+-*/^(),%'.includes(expr[i])) {
       tokens.push(expr[i]); i++;
     } else {
       throw new Error(`Unexpected character: ${expr[i]}`);
@@ -30,52 +32,53 @@ function tokenize(expr: string): string[] {
   return tokens;
 }
 
-function parse(tokens: string[], pos: { i: number }): number {
-  let left = parseMul(pos);
+function parseExpr(tokens: string[], pos: { i: number }): number {
+  let left = parseMulDiv(tokens, pos);
   while (pos.i < tokens.length && (tokens[pos.i] === '+' || tokens[pos.i] === '-')) {
     const op = tokens[pos.i++];
-    const right = parseMul(pos);
+    const right = parseMulDiv(tokens, pos);
     left = op === '+' ? left + right : left - right;
   }
   return left;
 }
 
-function parseMul(pos: { i: number }): number {
-  let left = parsePow(pos);
-  while (pos.i < tokens.length && (tokens[pos.i] === '*' || tokens[pos.i] === '/')) {
+function parseMulDiv(tokens: string[], pos: { i: number }): number {
+  let left = parsePow(tokens, pos);
+  while (pos.i < tokens.length && (tokens[pos.i] === '*' || tokens[pos.i] === '/' || tokens[pos.i] === '%')) {
     const op = tokens[pos.i++];
-    const right = parsePow(pos);
-    left = op === '*' ? left * right : left / right;
+    const right = parsePow(tokens, pos);
+    if (op === '*') left *= right;
+    else if (op === '/') left /= right;
+    else left %= right;
   }
   return left;
 }
 
-function parsePow(pos: { i: number }): number {
-  let left = parseUnary(pos);
+function parsePow(tokens: string[], pos: { i: number }): number {
+  let left = parseUnary(tokens, pos);
   if (pos.i < tokens.length && tokens[pos.i] === '^') {
     pos.i++;
-    const right = parsePow(pos);
+    const right = parsePow(tokens, pos);
     left = Math.pow(left, right);
   }
   return left;
 }
 
-function parseUnary(pos: { i: number }): number {
-  if (pos.i < tokens.length && tokens[pos.i] === '-') { pos.i++; return -parseUnary(pos); }
-  if (pos.i < tokens.length && tokens[pos.i] === '+') { pos.i++; return parseUnary(pos); }
-  return parseAtom(pos);
+function parseUnary(tokens: string[], pos: { i: number }): number {
+  if (pos.i < tokens.length && tokens[pos.i] === '-') { pos.i++; return -parseUnary(tokens, pos); }
+  if (pos.i < tokens.length && tokens[pos.i] === '+') { pos.i++; return parseUnary(tokens, pos); }
+  return parseAtom(tokens, pos);
 }
 
-function parseAtom(pos: { i: number }): number {
+function parseAtom(tokens: string[], pos: { i: number }): number {
   if (pos.i >= tokens.length) throw new Error('Unexpected end of expression');
   const tok = tokens[pos.i];
 
   if (tok === '(') {
     pos.i++;
-    const val = parse(pos, { i: pos.i });
-    pos.i = val.pos;
+    const val = parseExpr(tokens, pos);
     if (pos.i < tokens.length && tokens[pos.i] === ')') pos.i++;
-    return val.result;
+    return val;
   }
 
   if (/^[0-9.]/.test(tok)) { pos.i++; return parseFloat(tok); }
@@ -84,17 +87,19 @@ function parseAtom(pos: { i: number }): number {
     const name = tok.toLowerCase();
     pos.i++;
 
-    // Constants
     if (name === 'pi' || name === 'π') return Math.PI;
-    if (name === 'e') return Math.E;
+    if (name === 'e' && (pos.i >= tokens.length || tokens[pos.i] !== '(')) return Math.E;
 
-    // Functions: expect ( arg )
     if (pos.i < tokens.length && tokens[pos.i] === '(') {
       pos.i++;
-      const arg = parse(pos, { i: pos.i });
-      pos.i = arg.pos;
+      const args: number[] = [parseExpr(tokens, pos)];
+      while (pos.i < tokens.length && tokens[pos.i] === ',') {
+        pos.i++;
+        args.push(parseExpr(tokens, pos));
+      }
       if (pos.i < tokens.length && tokens[pos.i] === ')') pos.i++;
-      const v = arg.result;
+      const v = args[0];
+      const v2 = args[1];
 
       switch (name) {
         case 'sin': return Math.sin(v);
@@ -102,7 +107,7 @@ function parseAtom(pos: { i: number }): number {
         case 'tan': return Math.tan(v);
         case 'asin': return Math.asin(v);
         case 'acos': return Math.acos(v);
-        case 'atan': return Math.atan(v);
+        case 'atan': return v2 !== undefined ? Math.atan2(v, v2) : Math.atan(v);
         case 'sinh': return Math.sinh(v);
         case 'cosh': return Math.cosh(v);
         case 'tanh': return Math.tanh(v);
@@ -117,7 +122,11 @@ function parseAtom(pos: { i: number }): number {
         case 'log2': return Math.log2(v);
         case 'exp': return Math.exp(v);
         case 'sign': return Math.sign(v);
-        default: throw new Error(`Unknown function: ${name}`);
+        case 'pow': return Math.pow(v, v2 ?? 0);
+        case 'min': return Math.min(...args);
+        case 'max': return Math.max(...args);
+        case 'mod': return v % (v2 ?? 1);
+        default: throw new Error(`Unknown function: ${name}()`);
       }
     }
 
@@ -127,14 +136,24 @@ function parseAtom(pos: { i: number }): number {
   throw new Error(`Unexpected token: ${tok}`);
 }
 
-function evaluateExpression(expr: string): number {
+function evaluateExpression(expr: string, angle: string): number {
   const cleaned = expr
     .replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-')
     .replace(/π/g, 'pi');
-  const tokens = tokenize(cleaned);
+
+  // Convert trig args from degrees to radians if angle mode is deg
+  let processed = cleaned;
+  if (angle === 'deg') {
+    processed = processed.replace(/\b(sin|cos|tan|asin|acos|atan)\(([^)]+)\)/g, (_, fn: string, arg: string) => {
+      if (fn.startsWith('a')) return `${fn}((${arg})*180/pi)`;
+      return `${fn}(((${arg})*pi)/180)`;
+    });
+  }
+
+  const tokens = tokenize(processed);
   if (tokens.length === 0) throw new Error('Empty expression');
   const pos = { i: 0 };
-  const result = parse(tokens, pos);
+  const result = parseExpr(tokens, pos);
   if (pos.i < tokens.length) throw new Error(`Unexpected token: ${tokens[pos.i]}`);
   return result;
 }
@@ -147,62 +166,54 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   if (req.method === 'OPTIONS') return jsonResponse(res, {});
 
-  // Rate limit: 60 evals/min per IP
   if (!checkRateLimit(req, res, 60, 60_000)) return;
 
-  // Authenticate API key (optional for demo expressions)
+  // Authenticate API key (optional — allows demo usage without key)
   const authHeader = getHeader(req, 'Authorization');
   let userId: string | null = null;
   if (authHeader?.startsWith('Bearer calc_live_')) {
     userId = await authenticateApiKey(req, res);
-    if (userId === null) return; // auth already sent error response
+    if (userId === null) return;
   }
 
   try {
     let expr: string | undefined;
-    let angleMode: 'rad' | 'deg' = 'rad';
+    let angle: string = 'rad';
 
     if (req.method === 'GET') {
       const url = new URL(req.url ?? '/', `http://${req.headers.host ?? 'localhost'}`);
       expr = url.searchParams.get('expr') ?? undefined;
-      angleMode = (url.searchParams.get('angle') as 'rad' | 'deg') ?? 'rad';
+      angle = url.searchParams.get('angle') ?? 'rad';
     } else if (req.method === 'POST') {
       const body = await readBody(req);
       expr = body?.expr;
-      angleMode = body?.angle ?? 'rad';
+      angle = body?.angle ?? 'rad';
     }
 
     if (!expr || typeof expr !== 'string') {
-      return jsonResponse(res, { error: { code: 'VALIDATION_ERROR', message: 'Missing "expr" parameter. Send ?expr=sin(45)+cos(30) or {"expr":"sin(45)+cos(30)"}' } }, 422);
+      return jsonResponse(res, {
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Missing "expr" parameter. Try GET /api/evaluate?expr=sin(45 deg)+cos(30 deg) or POST {"expr":"2+2","angle":"rad"}',
+        },
+      }, 422);
     }
 
     if (expr.length > 1024) {
       return jsonResponse(res, { error: { code: 'VALIDATION_ERROR', message: 'Expression too long (max 1024 characters)' } }, 422);
     }
 
-    // Convert degree trig functions if angle mode is deg
-    let processedExpr = expr;
-    if (angleMode === 'deg') {
-      processedExpr = processedExpr.replace(/\b(sin|cos|tan|asin|acos|atan)\(/g, (_, fn: string) => `${fn}(`);
-      // Wrap trig args in deg-to-rad conversion
-      processedExpr = processedExpr.replace(/\b(sin|cos|tan)\(([^)]+)\)/g, (_, fn: string, arg: string) => `${fn}((${arg})*pi/180)`);
-    }
+    const result = evaluateExpression(expr, angle);
 
-    const result = evaluateExpression(processedExpr);
-
-    // Track usage
+    // Track usage (fire and forget)
     if (userId) {
-      try {
-        const { db } = await import('../_lib/db');
-        const { usageEvents } = await import('../_lib/schema');
-        await db.insert(usageEvents).values({ userId, type: 'evaluate', count: 1, metadata: { expr: expr.slice(0, 128) } });
-      } catch { /* don't fail the request if tracking fails */ }
+      db.insert(usageEvents).values({ userId, type: 'evaluate', count: 1, metadata: { expr: expr.slice(0, 128) } }).catch(() => {});
     }
 
     return jsonResponse(res, {
       result: Number.isFinite(result) ? result : String(result),
       expression: expr,
-      angle: angleMode,
+      angle,
     });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Evaluation error';
