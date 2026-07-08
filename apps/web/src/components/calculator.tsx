@@ -85,6 +85,7 @@ export function Calculator({ theme: themeProp, mode: externalMode, compact = fal
   const [mem, setMem] = useState<number | null>(null);
   const [ans, setAns] = useState<string | null>(null);
   const [prb, setPrb] = useState(false);
+  const [justEval, setJustEval] = useState(false);
   const [graphOpen, setGraphOpen] = useState(false);
   const [graphExprs, setGraphExprs] = useState<{ expr: string; color: string }[]>([
     { expr: 'sin(x)', color: GRAPH_COLORS[0] },
@@ -115,11 +116,23 @@ export function Calculator({ theme: themeProp, mode: externalMode, compact = fal
       return;
     }
 
+    // ── Auto-ans: if just evaluated and user types an operator, prepend ans ──
+    const isOp = ['+', '-', '*', '/'].includes(a);
+    if (justEval && isOp && ans) {
+      setJustEval(false);
+      insert(ans + a);
+      return;
+    }
+    // If just evaluated and user types a number or function, clear ans first
+    if (justEval && !isOp) {
+      setJustEval(false);
+    }
+
     let f = a;
     if (shift && a in SHIFT_MAP) { f = SHIFT_MAP[a]!; }
     setShift(false);
 
-    if (f === 'clearAll') { setExpr(''); setResult('0'); setHistory([]); setHistIdx(-1); setAns(null); return; }
+    if (f === 'clearAll') { setExpr(''); setResult('0'); setHistory([]); setHistIdx(-1); setAns(null); setJustEval(false); return; }
     if (f === 'del') { setExpr(p => p.slice(0, -1)); return; }
     if (f === 'neg') { setExpr(p => p.startsWith('-') ? p.slice(1) : '-' + p); return; }
     if (f === 'left' || f === 'right') return;
@@ -141,12 +154,13 @@ export function Calculator({ theme: themeProp, mode: externalMode, compact = fal
     if (f === 'eval') {
       if (!expr) return;
       const r = eval_(expr);
-      if (r.error) { setResult('Error'); }
+      if (r.error) { setResult('Error'); setJustEval(false); }
       else {
         const rs = String(r.result);
         setResult(rs); setAns(rs);
         setHistory(p => [...p, { e: expr, r: rs }]);
         setHistIdx(-1); setExpr('');
+        setJustEval(true);
       }
       return;
     }
