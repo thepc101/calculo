@@ -1,10 +1,11 @@
 // @ts-nocheck
 import type { IncomingMessage, ServerResponse } from 'http';
 import { db } from '../_lib/db';
-import { calculators, usageEvents } from '../_lib/schema';
+import { calculators, apiKeys, usageEvents } from '../_lib/schema';
 import { eq, and, isNotNull } from 'drizzle-orm';
 import { jsonResponse, readBody, getHeader } from '../_lib/http';
 import { checkRateLimit } from '../_lib/rate-limit-middleware';
+import { hashKey } from '../_lib/crypto';
 
 // ── Math Evaluator (inlined so it works without separate function) ────
 
@@ -173,6 +174,27 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
 
   if (!id || id.length > 64) {
     return jsonResponse(res, { error: { code: 'BAD_REQUEST', message: 'Invalid ID' } }, 400);
+  }
+
+  // ── /api/embed/validate?key=... ──
+  if (id === 'validate') {
+    if (req.method !== 'GET') return jsonResponse(res, { error: { code: 'METHOD_NOT_ALLOWED', message: 'GET only' } }, 405);
+    const key = url.searchParams.get('key') ?? '';
+    if (!key || !key.startsWith('calc_live_')) {
+      return jsonResponse(res, { valid: false }, 200);
+    }
+    try {
+      const tokenHash = await hashKey(key);
+      const rows = await db
+        .select({ id: apiKeys.id, revokedAt: apiKeys.revokedAt })
+        .from(apiKeys)
+        .where(eq(apiKeys.tokenHash, tokenHash))
+        .limit(1);
+      const valid = rows.length > 0 && rows[0].revokedAt === null;
+      return jsonResponse(res, { valid });
+    } catch {
+      return jsonResponse(res, { valid: false }, 200);
+    }
   }
 
   // ── /api/embed/evaluate?expr=... ──

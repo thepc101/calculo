@@ -89,9 +89,9 @@ var mountCalculator;
     var memory = null;
 
     container.innerHTML = '';
-    container.style.cssText = 'font-family:system-ui,-apple-system,sans-serif;color:' + theme.text + ';background:' + theme.bg + ';border-radius:12px;overflow:hidden;width:100%;max-width:340px;';
+    container.style.cssText = 'font-family:system-ui,-apple-system,sans-serif;color:' + theme.text + ';background:' + theme.bg + ';border-radius:12px;overflow:hidden;width:340px;box-sizing:border-box;';
 
-    var wrapper = el('div', { style: { display: 'flex', flexDirection: 'column', height: '100%' } });
+    var wrapper = el('div', { style: { display: 'flex', flexDirection: 'column' } });
 
     // Header
     var isScientific = config.type !== 'basic';
@@ -214,7 +214,7 @@ var mountCalculator;
     }
 
     keyDefs.forEach(function (row) {
-      var rowEl = el('div', { style: { display: 'flex', gap: '3px' } });
+      var rowEl = el('div', { style: { display: 'flex', gap: '3px', padding: '0 8px' } });
       row.forEach(function (def) {
         var label = def[0], kind = def[1], action = def[2], shiftLabel = def[3];
         var btn = makeBtn(label, kind, function () { handleAction(action); });
@@ -228,7 +228,7 @@ var mountCalculator;
     });
 
     // Branding
-    var footer = el('div', { style: { textAlign: 'center', padding: '6px 0 4px' } }, [
+    var footer = el('div', { style: { textAlign: 'center', padding: '8px 0 6px' } }, [
       el('a', { href: 'https://calculo.vercel.app', target: '_blank', rel: 'noopener noreferrer', style: { fontSize: '8px', fontFamily: 'monospace', letterSpacing: '0.2em', textTransform: 'uppercase', color: theme.muted, textDecoration: 'none', opacity: '0.4' } }, 'calculo'),
     ]);
 

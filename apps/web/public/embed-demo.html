@@ -9,7 +9,7 @@
   h2 { font-size: 18px; color: #aaa; margin-top: 32px; border-bottom: 1px solid #333; padding-bottom: 8px; }
   pre { background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 16px; overflow-x: auto; font-size: 14px; line-height: 1.5; }
   a { color: #6af; }
-  #calculator { max-width: 340px; margin: 20px auto; }
+  #calculator { margin: 20px auto; }
   #status { color: #888; margin: 10px 0; }
 </style>
 </head>
@@ -32,6 +32,9 @@
 &lt;div data-calculator="demo_scientific"&gt;&lt;/div&gt;</code></pre>
 
 <script>
+// Set demo API key (required by embed.js)
+window.CALCULO_API_KEY = 'demo';
+
 // Load embed.js
 var script = document.createElement('script');
 script.src = 'https://calculo-fawn.vercel.app/embed.js';

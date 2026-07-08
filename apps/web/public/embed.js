@@ -37,8 +37,11 @@
       console.error('[calculo] CALCULO_API_KEY is not set. Embeds will not render.');
       console.error('[calculo] Add this before embed.js:');
       console.error('[calculo]   <script>window.CALCULO_API_KEY = "calc_live_your_key";<\/script>');
+      console.error('[calculo] Or for demo configs, use: window.CALCULO_API_KEY = "demo";');
       return false;
     }
+    // Demo configs don't need a real API key
+    if (API_KEY === 'demo') return true;
     try {
       var res = await fetch(BASE + '/api/embed/validate?key=' + encodeURIComponent(API_KEY));
       var data = await res.json();
