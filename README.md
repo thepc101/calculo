@@ -151,7 +151,7 @@ MIT
 <div align="center">
   <a href="https://github.com/thepc101/calculo">GitHub</a>
   ·
-  <a href="https://calculo.vercel.app">Website</a>
+  <a href="https://calculo-fawn.vercel.app">Website</a>
   ·
   <a href="https://github.com/thepc101/calculo/issues">Issues</a>
 </div>
