@@ -32,14 +32,6 @@
     }
   ],
   "rewrites": [
-    { "source": "/api/embed/:id", "destination": "/api/embed/[id].ts" },
-    { "source": "/api/calculators/:id", "destination": "/api/calculators/[id].ts" },
-    { "source": "/api/calculators", "destination": "/api/calculators/index.ts" },
-    { "source": "/api/apikeys/:id", "destination": "/api/apikeys/[id].ts" },
-    { "source": "/api/apikeys", "destination": "/api/apikeys/index.ts" },
-    { "source": "/api/auth/signup", "destination": "/api/auth/signup.ts" },
-    { "source": "/api/auth/login", "destination": "/api/auth/login.ts" },
-    { "source": "/api/auth/signout", "destination": "/api/auth/signout.ts" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }

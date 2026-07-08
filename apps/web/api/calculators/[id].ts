@@ -1,11 +1,12 @@
-import type { Context } from 'hono';
+import type { IncomingMessage, ServerResponse } from 'http';
 import { z } from 'zod';
 import { db } from '../../_lib/db';
 import { calculators } from '../../_lib/schema';
 import { eq, and } from 'drizzle-orm';
-import { requireAuth } from '../../_lib/auth';
-import { rateLimiter } from '../../_lib/rate-limit-middleware';
+import { authenticateUser } from '../../_lib/auth-user';
+import { checkRateLimit } from '../../_lib/rate-limit-middleware';
 import { sanitizeInput } from '../../_lib/sanitize';
+import { jsonResponse, readBody } from '../../_lib/http';
 
 const updateSchema = z.object({
   name: z.string().min(1).max(64).optional(),
@@ -18,31 +19,34 @@ const updateSchema = z.object({
   published: z.boolean().optional(),
 });
 
-const limiter = rateLimiter({ limit: 60, windowMs: 60_000 });
+export default async function handler(req: IncomingMessage, res: ServerResponse) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, PATCH, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') return jsonResponse(res, {});
 
-export default async function handler(c: Context) {
-  await limiter(c, async () => {});
-  await requireAuth(c, async () => {});
+  if (!checkRateLimit(req, res, 60, 60_000)) return;
+  const user = await authenticateUser(req, res);
+  if (!user) return;
 
-  const userId = c.get('userId') as string;
-  const { id } = c.req.param();
-  const method = c.req.method;
+  const url = new URL(req.url ?? '/', `http://${req.headers.host}`);
+  const id = url.pathname.split('/').pop();
 
   if (!id || id.length > 64) {
-    return c.json({ error: { code: 'BAD_REQUEST', message: 'Invalid calculator ID' } }, 400);
+    return jsonResponse(res, { error: { code: 'BAD_REQUEST', message: 'Invalid calculator ID' } }, 400);
   }
 
-  if (method === 'GET') {
-    const rows = await db.select().from(calculators).where(and(eq(calculators.id, id), eq(calculators.userId, userId))).limit(1);
-    if (!rows[0]) return c.json({ error: { code: 'NOT_FOUND', message: 'Calculator not found' } }, 404);
-    return c.json(rows[0]);
+  if (req.method === 'GET') {
+    const rows = await db.select().from(calculators).where(and(eq(calculators.id, id), eq(calculators.userId, user.userId))).limit(1);
+    if (!rows[0]) return jsonResponse(res, { error: { code: 'NOT_FOUND', message: 'Calculator not found' } }, 404);
+    return jsonResponse(res, rows[0]);
   }
 
-  if (method === 'PATCH') {
-    const body = await c.req.json();
+  if (req.method === 'PATCH') {
+    const body = await readBody(req);
     const parsed = updateSchema.safeParse(body);
     if (!parsed.success) {
-      return c.json({ error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message ?? 'Invalid input' } }, 422);
+      return jsonResponse(res, { error: { code: 'VALIDATION_ERROR', message: parsed.error.issues[0]?.message ?? 'Invalid input' } }, 422);
     }
 
     const updates: Record<string, unknown> = {};
@@ -57,14 +61,14 @@ export default async function handler(c: Context) {
     if (data.published !== undefined) updates.publishedAt = data.published ? new Date() : null;
     updates.updatedAt = new Date();
 
-    await db.update(calculators).set(updates).where(and(eq(calculators.id, id), eq(calculators.userId, userId)));
-    return c.json({ id, updated: true });
+    await db.update(calculators).set(updates).where(and(eq(calculators.id, id), eq(calculators.userId, user.userId)));
+    return jsonResponse(res, { id, updated: true });
   }
 
-  if (method === 'DELETE') {
-    await db.delete(calculators).where(and(eq(calculators.id, id), eq(calculators.userId, userId)));
-    return c.json({ deleted: true });
+  if (req.method === 'DELETE') {
+    await db.delete(calculators).where(and(eq(calculators.id, id), eq(calculators.userId, user.userId)));
+    return jsonResponse(res, { deleted: true });
   }
 
-  return c.json({ error: { code: 'METHOD_NOT_ALLOWED', message: method + ' not allowed' } }, 405);
+  return jsonResponse(res, { error: { code: 'METHOD_NOT_ALLOWED', message: req.method + ' not allowed' } }, 405);
 }

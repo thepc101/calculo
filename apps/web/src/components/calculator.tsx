@@ -116,21 +116,56 @@ export function Calculator({ theme: themeProp, mode: externalMode, compact = fal
       return;
     }
 
-    // ── Auto-ans: if just evaluated and user types an operator, prepend ans ──
-    const isOp = ['+', '-', '*', '/'].includes(a);
-    if (justEval && isOp && ans) {
-      setJustEval(false);
-      insert(ans + a);
-      return;
-    }
-    // If just evaluated and user types a number or function, clear ans first
-    if (justEval && !isOp) {
-      setJustEval(false);
-    }
-
+    // Resolve shift
     let f = a;
     if (shift && a in SHIFT_MAP) { f = SHIFT_MAP[a]!; }
     setShift(false);
+
+    // Count unclosed parens
+    const countOpenParens = (s: string) => {
+      let d = 0;
+      for (const ch of s) { if (ch === '(') d++; if (ch === ')') d--; }
+      return Math.max(0, d);
+    };
+
+    // ── Auto-close parens before eval ──
+    if (f === 'eval' && expr) {
+      const depth = countOpenParens(expr);
+      const closed = depth > 0 ? expr + ')'.repeat(depth) : expr;
+      if (depth > 0) setExpr(closed);
+      const r = eval_(closed);
+      if (r.error) { setResult('Error'); setJustEval(false); }
+      else {
+        const rs = String(r.result);
+        setResult(rs); setAns(rs);
+        setHistory(p => [...p, { e: closed, r: rs }]);
+        setHistIdx(-1); setExpr('');
+        setJustEval(true);
+      }
+      return;
+    }
+
+    // ── Auto-ans: just evaluated + operator → prepend ans ──
+    const isOp = ['+', '-', '*', '/'].includes(f);
+    if (justEval && isOp && ans) {
+      setJustEval(false);
+      insert(ans + f);
+      return;
+    }
+
+    // ── Auto-close parens before operators ──
+    if (isOp && expr) {
+      const depth = countOpenParens(expr);
+      if (depth > 0) {
+        setExpr(p => p + ')'.repeat(depth) + f);
+        return;
+      }
+    }
+
+    // If just evaluated and user types a number/function, start fresh
+    if (justEval && !isOp) {
+      setJustEval(false);
+    }
 
     if (f === 'clearAll') { setExpr(''); setResult('0'); setHistory([]); setHistIdx(-1); setAns(null); setJustEval(false); return; }
     if (f === 'del') { setExpr(p => p.slice(0, -1)); return; }

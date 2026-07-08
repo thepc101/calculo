@@ -1,10 +1,8 @@
-import type { Context } from 'hono';
+import type { IncomingMessage, ServerResponse } from 'http';
 import { db } from '../_lib/db';
 import { calculators } from '../_lib/schema';
 import { eq, and, isNotNull } from 'drizzle-orm';
-import { rateLimiter } from '../_lib/rate-limit-middleware';
-
-const limiter = rateLimiter({ limit: 60, windowMs: 60_000 });
+import { jsonResponse } from '../_lib/http';
 
 const DEMO_CONFIGS: Record<string, object> = {
   'demo_basic': {
@@ -29,21 +27,21 @@ const DEMO_CONFIGS: Record<string, object> = {
   },
 };
 
-export default async function handler(c: Context) {
-  await limiter(c, async () => {});
+export default async function handler(req: IncomingMessage, res: ServerResponse) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
 
-  const id = c.req.param('id');
+  const url = new URL(req.url ?? '/', `http://${req.headers.host}`);
+  const id = url.pathname.split('/').pop();
+
   if (!id || id.length > 64) {
-    return c.json({ error: { code: 'BAD_REQUEST', message: 'Invalid calculator ID' } }, 400);
+    return jsonResponse(res, { error: { code: 'BAD_REQUEST', message: 'Invalid calculator ID' } }, 400);
   }
 
   // Check demo configs first
   const demo = DEMO_CONFIGS[id];
   if (demo) {
-    return c.json(demo, 200, {
-      'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
-      'Access-Control-Allow-Origin': '*',
-    });
+    return jsonResponse(res, demo);
   }
 
   // Try database
@@ -55,11 +53,8 @@ export default async function handler(c: Context) {
 
   const calc = rows[0];
   if (!calc) {
-    return c.json({ error: { code: 'NOT_FOUND', message: 'Calculator not found' } }, 404);
+    return jsonResponse(res, { error: { code: 'NOT_FOUND', message: 'Calculator not found' } }, 404);
   }
 
-  return c.json(calc, 200, {
-    'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
-    'Access-Control-Allow-Origin': '*',
-  });
+  return jsonResponse(res, calc);
 }
