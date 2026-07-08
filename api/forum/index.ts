@@ -2,7 +2,7 @@ import type { IncomingMessage, ServerResponse } from 'http';
 import { z } from 'zod';
 import { db } from '../_lib/db';
 import { forumPosts, profiles } from '../_lib/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, sql } from 'drizzle-orm';
 import { authenticateUser } from '../_lib/auth-user';
 import { jsonResponse, readBody } from '../_lib/http';
 import { checkRateLimit } from '../_lib/rate-limit-middleware';
@@ -82,12 +82,15 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Unknown error';
     const setup = isSetupError(msg);
+    let debugTables = '';
+    try {
+      const t = await db.execute(sql`SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name`);
+      debugTables = JSON.stringify(t);
+    } catch { debugTables = 'could not list tables'; }
     return jsonResponse(res, {
       error: {
         code: setup ? 'SETUP_REQUIRED' : 'INTERNAL_ERROR',
-        message: setup
-          ? 'Forum not available yet. Run migration SQL in Neon console. If paused, resume at console.neon.tech. (' + msg + ')'
-          : 'Internal error: ' + msg,
+        message: msg + ' | visible tables: ' + debugTables,
       },
     }, setup ? 503 : 500);
   }
