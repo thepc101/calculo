@@ -1,5 +1,11 @@
 import type { ThemeConfig, ThemeMode } from '@calculo/shared';
 
+export const themeOrder: ThemeMode[] = [
+  'dark', 'light', 'oled', 'high-contrast', 'glass',
+  'neumorphism', 'minimal', 'corporate',
+  'cyberpunk', 'retro', 'coffee', 'ocean', 'forest', 'sunset', 'aurora', 'monochrome',
+];
+
 export const themes: Record<ThemeMode, ThemeConfig> = {
   dark: {
     mode: 'dark',
@@ -71,6 +77,78 @@ export const themes: Record<ThemeMode, ThemeConfig> = {
     textColor: '#0f172a',
     fontFamily: 'Inter, system-ui, sans-serif',
     borderRadius: 4,
+    spacing: 4,
+  },
+  cyberpunk: {
+    mode: 'cyberpunk',
+    primaryColor: '#ff00ff',
+    backgroundColor: '#0d0d1a',
+    textColor: '#00ff88',
+    fontFamily: 'JetBrains Mono, monospace',
+    borderRadius: 4,
+    spacing: 4,
+  },
+  retro: {
+    mode: 'retro',
+    primaryColor: '#e85d04',
+    backgroundColor: '#fdf6e3',
+    textColor: '#2d1b00',
+    fontFamily: '"Courier New", monospace',
+    borderRadius: 0,
+    spacing: 6,
+  },
+  coffee: {
+    mode: 'coffee',
+    primaryColor: '#a67c52',
+    backgroundColor: '#3e2723',
+    textColor: '#d7ccc8',
+    fontFamily: 'Georgia, serif',
+    borderRadius: 12,
+    spacing: 4,
+  },
+  ocean: {
+    mode: 'ocean',
+    primaryColor: '#00bcd4',
+    backgroundColor: '#0a1a2e',
+    textColor: '#e0f7fa',
+    fontFamily: 'system-ui, sans-serif',
+    borderRadius: 20,
+    spacing: 6,
+  },
+  forest: {
+    mode: 'forest',
+    primaryColor: '#66bb6a',
+    backgroundColor: '#1b2e1b',
+    textColor: '#e8f5e9',
+    fontFamily: 'system-ui, sans-serif',
+    borderRadius: 8,
+    spacing: 4,
+  },
+  sunset: {
+    mode: 'sunset',
+    primaryColor: '#ff6f00',
+    backgroundColor: '#1a0a2e',
+    textColor: '#ffe0b2',
+    fontFamily: 'system-ui, sans-serif',
+    borderRadius: 16,
+    spacing: 4,
+  },
+  aurora: {
+    mode: 'aurora',
+    primaryColor: '#00e676',
+    backgroundColor: '#0a1628',
+    textColor: '#b9f6ca',
+    fontFamily: 'system-ui, sans-serif',
+    borderRadius: 10,
+    spacing: 4,
+  },
+  monochrome: {
+    mode: 'monochrome',
+    primaryColor: '#888888',
+    backgroundColor: '#121212',
+    textColor: '#f5f5f5',
+    fontFamily: 'system-ui, sans-serif',
+    borderRadius: 6,
     spacing: 4,
   },
   custom: {

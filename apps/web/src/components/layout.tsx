@@ -79,49 +79,35 @@ export function Layout() {
             <div>
               <h3 className="text-sm font-semibold mb-4">Product</h3>
               <ul className="space-y-3">
-                {['Docs', 'API', 'SDKs', 'Examples', 'Playground'].map((item) => (
-                  <li key={item}>
-                    <a href={`/${item.toLowerCase()}`} className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
-                      {item}
-                    </a>
-                  </li>
-                ))}
+                <li><a href="/docs" className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">Docs</a></li>
+                <li><a href="/api" className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">API</a></li>
+                <li><a href="/examples" className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">Examples</a></li>
+                <li><a href="/playground" className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">Playground</a></li>
+                <li><a href="/pricing" className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">Pricing</a></li>
               </ul>
             </div>
             <div>
               <h3 className="text-sm font-semibold mb-4">Resources</h3>
               <ul className="space-y-3">
-                {['Blog', 'Changelog', 'Pricing', 'Support'].map((item) => (
-                  <li key={item}>
-                    <a href={`/${item.toLowerCase()}`} className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
-                      {item}
-                    </a>
-                  </li>
-                ))}
+                <li><a href="/blog" className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">Blog</a></li>
+                <li><a href="/changelog" className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">Changelog</a></li>
+                <li><a href="/docs" className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">Documentation</a></li>
+                <li><a href="https://github.com/thepc101/calculo/issues" target="_blank" rel="noopener noreferrer" className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">Support</a></li>
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-semibold mb-4">Company</h3>
+              <h3 className="text-sm font-semibold mb-4">Community</h3>
               <ul className="space-y-3">
-                {['About', 'Blog', 'Careers', 'Contact'].map((item) => (
-                  <li key={item}>
-                    <a href="#" className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
-                      {item}
-                    </a>
-                  </li>
-                ))}
+                <li><a href="https://github.com/thepc101/calculo" target="_blank" rel="noopener noreferrer" className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">GitHub</a></li>
+                <li><a href="https://github.com/thepc101/calculo/issues" target="_blank" rel="noopener noreferrer" className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">Issues</a></li>
+                <li><a href="https://github.com/thepc101/calculo/discussions" target="_blank" rel="noopener noreferrer" className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">Discussions</a></li>
               </ul>
             </div>
             <div>
               <h3 className="text-sm font-semibold mb-4">Legal</h3>
               <ul className="space-y-3">
-                {['Privacy', 'Terms', 'Status'].map((item) => (
-                  <li key={item}>
-                    <a href="#" className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
-                      {item}
-                    </a>
-                  </li>
-                ))}
+                <li><a href="/privacy" className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">Privacy Policy</a></li>
+                <li><a href="/terms" className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">Terms of Service</a></li>
               </ul>
             </div>
           </div>

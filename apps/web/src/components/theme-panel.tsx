@@ -1,20 +1,15 @@
 import type { ThemeConfig, ThemeMode } from '@calculo/shared';
-import { themes } from '@calculo/config';
+import { themes, themeOrder } from '@calculo/config';
 
 interface ThemePanelProps {
   current: ThemeConfig;
   onSelect: (theme: ThemeConfig) => void;
 }
 
-const themeOrder: ThemeMode[] = [
-  'dark', 'light', 'oled', 'high-contrast', 'glass',
-  'neumorphism', 'minimal', 'corporate',
-];
-
 export function ThemePanel({ current, onSelect }: ThemePanelProps) {
   return (
-    <div className="p-3 space-y-3">
-      <div className="text-[10px] uppercase tracking-widest font-medium opacity-40">Themes</div>
+    <div className="p-4 space-y-4 w-64">
+      <div className="text-[10px] uppercase tracking-widest font-medium opacity-40">Themes ({themeOrder.length})</div>
       <div className="grid grid-cols-4 gap-2">
         {themeOrder.map((mode) => {
           const t = themes[mode];
@@ -25,7 +20,7 @@ export function ThemePanel({ current, onSelect }: ThemePanelProps) {
               onClick={() => onSelect({ ...t })}
               title={mode}
               className={`
-                relative flex flex-col items-center gap-1 p-2 rounded-lg border transition-all duration-150
+                relative flex flex-col items-center gap-1.5 p-2 rounded-lg border transition-all duration-150
                 ${isActive
                   ? 'border-zinc-400 ring-1 ring-zinc-400/30'
                   : 'border-transparent hover:border-zinc-700'
@@ -33,16 +28,16 @@ export function ThemePanel({ current, onSelect }: ThemePanelProps) {
               `}
               style={{ backgroundColor: t.backgroundColor }}
             >
-              <span
-                className="w-full h-6 rounded text-[8px] font-mono flex items-center justify-center font-bold"
-                style={{
-                  backgroundColor: t.primaryColor,
-                  color: t.textColor,
-                  borderRadius: t.borderRadius,
-                }}
-              >
-                a+b
-              </span>
+              <div className="flex gap-0.5 w-full justify-center">
+                <span
+                  className="w-3 h-3 rounded-sm"
+                  style={{ backgroundColor: t.primaryColor }}
+                />
+                <span
+                  className="w-3 h-3 rounded-sm"
+                  style={{ backgroundColor: t.textColor, opacity: 0.3 }}
+                />
+              </div>
               <span
                 className="text-[9px] capitalize truncate w-full text-center"
                 style={{ color: t.textColor }}

@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router';
 
 const plans = [
   {
-    name: 'Hobby',
+    name: 'Free',
     price: '$0',
     description: 'For side projects and experimentation.',
     features: [
@@ -17,41 +17,39 @@ const plans = [
     featured: false,
   },
   {
-    name: 'Pro',
-    price: '$29',
-    description: 'For production applications.',
+    name: 'Beginner',
+    price: '$3',
+    description: 'For indie developers and small projects.',
     features: [
-      '100,000 evaluations/month',
-      '10 projects',
+      '10,000 evaluations/month',
+      '5 projects',
       'Email support',
       'Advanced analytics',
       'Custom themes',
       'Graphing engine',
       'API key management',
-      'Team members',
+    ],
+    cta: 'Start Free Trial',
+    href: '/signup',
+    featured: false,
+  },
+  {
+    name: 'Pro',
+    price: '$5',
+    description: 'For production applications and teams.',
+    features: [
+      '100,000 evaluations/month',
+      'Unlimited projects',
+      'Priority support',
+      'Custom themes & branding',
+      'Graphing engine',
+      'API key management',
+      'Team members (up to 5)',
+      'Audit logs',
     ],
     cta: 'Start Free Trial',
     href: '/signup',
     featured: true,
-  },
-  {
-    name: 'Enterprise',
-    price: 'Custom',
-    description: 'For large-scale deployments.',
-    features: [
-      'Unlimited evaluations',
-      'Unlimited projects',
-      'Priority support',
-      'SLA guarantee',
-      'Custom integrations',
-      'SSO/SAML',
-      'Audit logs',
-      'Dedicated infrastructure',
-      'On-premise deployment',
-    ],
-    cta: 'Contact Sales',
-    href: '#',
-    featured: false,
   },
 ];
 

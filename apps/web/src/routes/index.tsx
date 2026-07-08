@@ -11,6 +11,8 @@ import { ChangelogPage } from '../pages/changelog';
 import { LoginPage } from '../pages/login';
 import { SignupPage } from '../pages/signup';
 import { DashboardPage } from '../pages/dashboard';
+import { TermsOfServicePage } from '../pages/terms-of-service';
+import { PrivacyPolicyPage } from '../pages/privacy-policy';
 import { NotFoundPage } from '../pages/not-found';
 
 const rootRoute = createRootRoute({
@@ -84,6 +86,18 @@ const dashboardRoute = createRoute({
   component: DashboardPage,
 });
 
+const termsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/terms',
+  component: TermsOfServicePage,
+});
+
+const privacyRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/privacy',
+  component: PrivacyPolicyPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   docsRoute,
@@ -96,6 +110,8 @@ const routeTree = rootRoute.addChildren([
   loginRoute,
   signupRoute,
   dashboardRoute,
+  termsRoute,
+  privacyRoute,
 ]);
 
 export { routeTree };
