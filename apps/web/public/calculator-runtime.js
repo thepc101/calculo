@@ -92,8 +92,7 @@ var mountCalculator;
     var w = config._embedWidth || '340px';
     var h = config._embedHeight || '';
     var isScientific = config.type !== 'basic';
-    var minW = isScientific ? '380px' : '280px';
-    container.style.cssText = 'font-family:system-ui,-apple-system,sans-serif;color:' + theme.text + ';background:' + theme.bg + ';border-radius:12px;overflow:hidden;width:100%;min-width:' + minW + ';max-width:' + w + ';box-sizing:border-box;' + (h ? 'height:' + h + ';' : '');
+    container.style.cssText = 'font-family:system-ui,-apple-system,sans-serif;color:' + theme.text + ';background:' + theme.bg + ';border-radius:12px;overflow:hidden;width:' + w + ';box-sizing:border-box;' + (h ? 'height:' + h + ';' : '');
 
     var wrapper = el('div', { style: { display: 'flex', flexDirection: 'column' } });
 
