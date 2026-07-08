@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Calculo Embed Demo</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 20px; background: #111; color: #eee; }
+  h1 { font-size: 24px; }
+  h2 { font-size: 18px; color: #aaa; margin-top: 32px; border-bottom: 1px solid #333; padding-bottom: 8px; }
+  pre { background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 16px; overflow-x: auto; font-size: 14px; line-height: 1.5; }
+  a { color: #6af; }
+  #calculator { max-width: 340px; margin: 20px auto; }
+  #status { color: #888; margin: 10px 0; }
+</style>
+</head>
+<body>
+
+<h1>Calculo Embed Demo</h1>
+<p>Calculator widget embedded via <code>embed.js</code>.</p>
+
+<h2>Live Calculator</h2>
+<div id="status">Loading...</div>
+<div id="calculator" data-calculator="demo_basic"></div>
+
+<h2>Copy &amp; Paste</h2>
+<p>W3Schools Tryit Editor — paste this HTML and click Run:</p>
+<pre><code>&lt;script src="https://calculo-fawn.vercel.app/embed.js"&gt;&lt;/script&gt;
+&lt;div data-calculator="demo_basic"&gt;&lt;/div&gt;</code></pre>
+
+<h2>Custom Theme</h2>
+<pre><code>&lt;script src="https://calculo-fawn.vercel.app/embed.js"&gt;&lt;/script&gt;
+&lt;div data-calculator="demo_scientific"&gt;&lt;/div&gt;</code></pre>
+
+<script>
+// Load embed.js
+var script = document.createElement('script');
+script.src = 'https://calculo-fawn.vercel.app/embed.js';
+script.onload = function() {
+  document.getElementById('status').innerHTML = 'Calculator loaded! Try the buttons below.';
+};
+script.onerror = function() {
+  document.getElementById('status').innerHTML = 'Failed to load embed.js';
+};
+document.head.appendChild(script);
+</script>
+
+</body>
+</html>
