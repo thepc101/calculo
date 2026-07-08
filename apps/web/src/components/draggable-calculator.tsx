@@ -24,15 +24,14 @@ export function DraggableCalculator({
   const [size, setSize] = useState({ width: 340, height: 500 });
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
-  const [showThemePanel, setShowThemePanel] = useState(false);
-  const [showEmbedPanel, setShowEmbedPanel] = useState(false);
-  const [showConfigPanel, setShowConfigPanel] = useState(false);
+  const [visible, setVisible] = useState(true);
+  const [menuOpen, setMenuOpen] = useState<'theme' | 'embed' | 'config' | null>(null);
   const [mode, setMode] = useState<'basic' | 'scientific' | 'graphing'>(initialMode);
   const [copyMsg, setCopyMsg] = useState('Copy');
   const dragRef = useRef<{ startX: number; startY: number; startPosX: number; startPosY: number } | null>(null);
   const resizeRef = useRef<{ startX: number; startY: number; startW: number; startH: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -62,17 +61,16 @@ export function DraggableCalculator({
 
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node) && containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setShowThemePanel(false); setShowEmbedPanel(false); setShowConfigPanel(false);
+      if (menuRef.current && !menuRef.current.contains(e.target as Node) && containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setMenuOpen(null);
       }
     };
-    if (showThemePanel || showEmbedPanel || showConfigPanel) { document.addEventListener('mousedown', onClick); return () => document.removeEventListener('mousedown', onClick); }
-  }, [showThemePanel, showEmbedPanel, showConfigPanel]);
+    if (menuOpen) { document.addEventListener('mousedown', onClick); return () => document.removeEventListener('mousedown', onClick); }
+  }, [menuOpen]);
 
-  const handleThemeSelect = useCallback((newTheme: ThemeConfig) => { setTheme(newTheme); setShowThemePanel(false); }, []);
+  const handleThemeSelect = useCallback((newTheme: ThemeConfig) => { setTheme(newTheme); setMenuOpen(null); }, []);
 
-  const embedCode = `<!-- calculo embed -->
-<div class="calculo-calculator"
+  const embedCode = `<div class="calculo-calculator"
   data-mode="${mode}"
   data-theme="${theme.mode}"
   data-width="${size.width}"
@@ -83,16 +81,37 @@ export function DraggableCalculator({
 ></div>
 <script src="https://cdn.calculo.dev/widget.js"><\/script>`;
 
-  const configJson = JSON.stringify({
-    mode, theme: theme.mode, width: size.width, height: size.height,
-    lockTheme, lockSize, lockMode,
-  }, null, 2);
+  const configJson = JSON.stringify({ mode, theme: theme.mode, width: size.width, height: size.height, lockTheme, lockSize, lockMode }, null, 2);
 
   const copy = async (text: string, label: string) => {
     await navigator.clipboard.writeText(text);
     setCopyMsg('Done');
     setTimeout(() => setCopyMsg(label), 2000);
   };
+
+  const [menuTab, setMenuTab] = useState<'theme' | 'embed' | 'config'>('theme');
+
+  const toggleMenu = () => {
+    setMenuOpen(prev => prev ? null : 'menu');
+    setMenuTab('theme');
+  };
+
+  if (!visible) {
+    return (
+      <button
+        onClick={() => setVisible(true)}
+        className="flex items-center gap-2 px-4 py-2 rounded-xl border border-zinc-800 bg-zinc-900/80 text-sm text-zinc-400 hover:text-zinc-100 hover:border-zinc-700 transition-all shadow-lg"
+      >
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <rect x="4" y="2" width="16" height="20" rx="2" />
+          <line x1="9" y1="6" x2="15" y2="6" />
+          <line x1="9" y1="10" x2="15" y2="10" />
+          <line x1="9" y1="14" x2="13" y2="14" />
+        </svg>
+        Show Calculator
+      </button>
+    );
+  }
 
   return (
     <div className="relative inline-block">
@@ -113,29 +132,68 @@ export function DraggableCalculator({
           onMouseDown={handleMouseDown}
         >
           <div className="flex items-center gap-2.5">
-            <div className="flex gap-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-500/70" />
-              <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/70" />
-              <span className="w-2.5 h-2.5 rounded-full bg-green-500/70" />
-            </div>
-            <span className="opacity-40 font-medium">calculo</span>
+            <span className="opacity-30 font-semibold tracking-wide text-[10px] uppercase">calculo</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <button onClick={(e) => { e.stopPropagation(); setShowConfigPanel(!showConfigPanel); setShowThemePanel(false); setShowEmbedPanel(false); }}
-              className="px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-medium opacity-50 hover:opacity-100 transition-opacity"
-              style={{ backgroundColor: `color-mix(in srgb, ${theme.primaryColor} 15%, transparent)`, color: theme.primaryColor }}
-            >Config</button>
-            <button onClick={(e) => { e.stopPropagation(); setShowEmbedPanel(!showEmbedPanel); setShowThemePanel(false); setShowConfigPanel(false); }}
-              className="px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-medium opacity-50 hover:opacity-100 transition-opacity"
-              style={{ backgroundColor: `color-mix(in srgb, ${theme.primaryColor} 15%, transparent)`, color: theme.primaryColor }}
-            >Embed</button>
-            {!lockTheme && (
-              <button onClick={(e) => { e.stopPropagation(); setShowThemePanel(!showThemePanel); setShowEmbedPanel(false); setShowConfigPanel(false); }}
-                className="px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-medium opacity-50 hover:opacity-100 transition-opacity"
-                style={{ backgroundColor: `color-mix(in srgb, ${theme.primaryColor} 15%, transparent)`, color: theme.primaryColor }}
-              >Theme</button>
-            )}
-            <span className="text-[9px] opacity-20 font-mono ml-0.5">{size.width}×{size.height}</span>
+          <div className="flex items-center gap-1">
+            <div className="relative">
+              <button
+                onClick={(e) => { e.stopPropagation(); toggleMenu(); }}
+                className="p-1 rounded opacity-40 hover:opacity-80 transition-opacity"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="1" /><circle cx="12" cy="5" r="1" /><circle cx="12" cy="19" r="1" />
+                </svg>
+              </button>
+              {menuOpen && (
+                <div
+                  ref={menuRef}
+                  className="absolute z-50 right-0 top-full mt-1 rounded-xl border shadow-2xl overflow-hidden"
+                  style={{
+                    backgroundColor: '#18181b',
+                    borderColor: `color-mix(in srgb, ${theme.primaryColor} 20%, transparent)`,
+                    minWidth: 240,
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="flex border-b border-zinc-800">
+                    {(['theme', 'embed', 'config'] as const).map(tab => (
+                      <button key={tab} onClick={() => setMenuTab(tab)}
+                        className={`flex-1 py-2 text-[10px] uppercase tracking-wider font-medium transition-all ${
+                          menuTab === tab ? 'text-zinc-100 border-b-2 border-zinc-100' : 'text-zinc-500 hover:text-zinc-300'
+                        }`}
+                      >{tab}</button>
+                    ))}
+                  </div>
+                  {menuTab === 'theme' && <ThemePanel current={theme} onSelect={handleThemeSelect} />}
+                  {menuTab === 'embed' && (
+                    <div className="p-4 space-y-3">
+                      <pre className="text-[11px] font-mono p-3 rounded-lg overflow-x-auto leading-relaxed whitespace-pre-wrap"
+                        style={{ backgroundColor: '#09090b', color: theme.textColor, border: '1px solid rgba(255,255,255,0.08)' }}>{embedCode}</pre>
+                      <button onClick={() => copy(embedCode, 'Copy')}
+                        className="w-full py-1.5 text-[10px] rounded-lg uppercase tracking-wider font-medium transition-all hover:brightness-110"
+                        style={{ backgroundColor: `color-mix(in srgb, ${theme.primaryColor} 20%, transparent)`, color: theme.primaryColor }}>{copyMsg}</button>
+                    </div>
+                  )}
+                  {menuTab === 'config' && (
+                    <div className="p-4 space-y-3">
+                      <pre className="text-[10px] font-mono p-3 rounded-lg overflow-x-auto leading-relaxed"
+                        style={{ backgroundColor: '#09090b', color: theme.textColor, border: '1px solid rgba(255,255,255,0.08)' }}>{configJson}</pre>
+                      <button onClick={() => copy(configJson, 'Copy')}
+                        className="w-full py-1.5 text-[10px] rounded-lg uppercase tracking-wider font-medium transition-all hover:brightness-110"
+                        style={{ backgroundColor: `color-mix(in srgb, ${theme.primaryColor} 20%, transparent)`, color: theme.primaryColor }}>{copyMsg}</button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => { setVisible(false); setMenuOpen(null); }}
+              className="p-1 rounded opacity-30 hover:opacity-70 transition-opacity"
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
           </div>
         </div>
 
@@ -150,48 +208,14 @@ export function DraggableCalculator({
         </div>
 
         {!lockSize && (
-          <div className="absolute bottom-0 right-0 w-5 h-5 cursor-se-resize opacity-40 hover:opacity-100 transition-opacity group" style={{ color: theme.textColor }} onMouseDown={handleResizeStart}>
+          <div className="absolute bottom-0 right-0 w-5 h-5 cursor-se-resize opacity-30 hover:opacity-80 transition-opacity" style={{ color: theme.textColor }} onMouseDown={handleResizeStart}>
             <svg viewBox="0 0 16 16" fill="none" className="w-full h-full">
-              <path d="M16 0v16H0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity={0.25} />
-              <path d="M16 8v8H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity={0.12} />
+              <path d="M16 0v16H0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity={0.2} />
+              <path d="M16 8v8H8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" opacity={0.1} />
             </svg>
           </div>
         )}
       </div>
-
-      {(showThemePanel || showEmbedPanel || showConfigPanel) && (
-        <div ref={panelRef} className="absolute z-50 rounded-xl border shadow-2xl"
-          style={{
-            top: `calc(50% - ${size.height / 2}px)`, left: `calc(100% + 12px)`,
-            backgroundColor: theme.backgroundColor,
-            borderColor: `color-mix(in srgb, ${theme.primaryColor} 20%, transparent)`,
-            minWidth: showEmbedPanel ? 300 : 220,
-            transform: `translateY(${position.y > 200 ? '-100%' : '0'})`,
-          }}
-        >
-          {showThemePanel && <ThemePanel current={theme} onSelect={handleThemeSelect} />}
-          {showEmbedPanel && (
-            <div className="p-4 space-y-3">
-              <div className="text-[10px] uppercase tracking-widest font-medium opacity-40">Embed</div>
-              <pre className="text-[11px] font-mono p-3 rounded-lg overflow-x-auto leading-relaxed whitespace-pre-wrap"
-                style={{ backgroundColor: `color-mix(in srgb, ${theme.backgroundColor} 80%, #000)`, color: theme.textColor, border: `1px solid color-mix(in srgb, ${theme.primaryColor} 12%, transparent)` }}>{embedCode}</pre>
-              <button onClick={() => copy(embedCode, 'Copy')}
-                className="w-full py-1.5 text-[10px] rounded-lg uppercase tracking-wider font-medium transition-all hover:brightness-110"
-                style={{ backgroundColor: `color-mix(in srgb, ${theme.primaryColor} 20%, transparent)`, color: theme.primaryColor }}>{copyMsg}</button>
-            </div>
-          )}
-          {showConfigPanel && (
-            <div className="p-4 space-y-3">
-              <div className="text-[10px] uppercase tracking-widest font-medium opacity-40">Config</div>
-              <pre className="text-[10px] font-mono p-3 rounded-lg overflow-x-auto leading-relaxed"
-                style={{ backgroundColor: `color-mix(in srgb, ${theme.backgroundColor} 80%, #000)`, color: theme.textColor, border: `1px solid color-mix(in srgb, ${theme.primaryColor} 12%, transparent)` }}>{configJson}</pre>
-              <button onClick={() => copy(configJson, 'Copy')}
-                className="w-full py-1.5 text-[10px] rounded-lg uppercase tracking-wider font-medium transition-all hover:brightness-110"
-                style={{ backgroundColor: `color-mix(in srgb, ${theme.primaryColor} 20%, transparent)`, color: theme.primaryColor }}>{copyMsg}</button>
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }

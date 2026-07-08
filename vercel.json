@@ -3,10 +3,43 @@
   "buildCommand": "pnpm --filter @calculo/web build",
   "outputDirectory": "apps/web/dist",
   "installCommand": "pnpm install --no-frozen-lockfile",
-  "rewrites": [
+  "headers": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-XSS-Protection", "value": "1; mode=block" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" }
+      ]
+    },
+    {
+      "source": "/embed.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=3600, s-maxage=86400" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Content-Type", "value": "application/javascript; charset=utf-8" }
+      ]
+    },
+    {
+      "source": "/calculator-runtime.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=3600, s-maxage=86400" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Content-Type", "value": "application/javascript; charset=utf-8" }
+      ]
     }
+  ],
+  "rewrites": [
+    { "source": "/api/embed/:id", "destination": "/api/embed/[id].ts" },
+    { "source": "/api/calculators/:id", "destination": "/api/calculators/[id].ts" },
+    { "source": "/api/calculators", "destination": "/api/calculators/index.ts" },
+    { "source": "/api/apikeys/:id", "destination": "/api/apikeys/[id].ts" },
+    { "source": "/api/apikeys", "destination": "/api/apikeys/index.ts" },
+    { "source": "/api/auth/signup", "destination": "/api/auth/signup.ts" },
+    { "source": "/api/auth/login", "destination": "/api/auth/login.ts" },
+    { "source": "/api/auth/signout", "destination": "/api/auth/signout.ts" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }

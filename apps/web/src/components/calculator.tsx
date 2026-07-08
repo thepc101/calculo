@@ -6,69 +6,50 @@ import { GraphCanvas } from './graph-canvas';
 interface CalculatorProps {
   theme?: Partial<ThemeConfig>;
   mode?: 'basic' | 'scientific' | 'graphing';
-  onModeChange?: (mode: 'basic' | 'scientific' | 'graphing') => void;
   compact?: boolean;
-  lockConfig?: { theme?: boolean; size?: boolean; mode?: boolean };
 }
 
 const engine = new CalculatorEngine();
-
 type AngleMode = 'DEG' | 'RAD' | 'GRAD';
 
-const rows = 6;
-const cols = 5;
-
-interface Btn {
+interface KeyDef {
   label: string;
-  shift?: string;
+  shift: string;
   action: string;
-  type: 'num' | 'op' | 'fn' | 'ctrl' | 'mem' | 'eq' | 'alpha' | 'graph';
+  kind: 'num' | 'op' | 'fn' | 'ctrl' | 'mem' | 'eq';
 }
 
-function btn(type: Btn['type'], label: string, action: string, shift?: string): Btn {
-  return { label, action, shift, type };
-}
+const K = (kind: KeyDef['kind'], label: string, action: string, shift: string = ''): KeyDef => ({ label, shift, action, kind });
 
-const basicKeys: Btn[] = [
-  btn('ctrl', 'AC', 'clearAll'),   btn('mem', 'M+', 'm+'),    btn('mem', 'M-', 'm-'),    btn('mem', 'MR', 'mr'),    btn('mem', 'MC', 'mc'),
-  btn('ctrl', '(', '('),            btn('ctrl', ')', ')'),     btn('op', '÷', '/'),       btn('op', '×', '*'),       btn('ctrl', '⌫', 'del'),
-  btn('num', '7', '7'),            btn('num', '8', '8'),      btn('num', '9', '9'),      btn('op', '-', '-'),        btn('op', '+', '+'),
-  btn('num', '4', '4'),            btn('num', '5', '5'),      btn('num', '6', '6'),      btn('ctrl', '±', 'neg'),    btn('eq', '=', 'eval'),
-  btn('num', '1', '1'),            btn('num', '2', '2'),      btn('num', '3', '3'),      btn('ctrl', '^', '^'),      btn('ctrl', '√', 'sqrt'),
-  btn('num', '0', '0'),            btn('num', '.', '.'),      btn('ctrl', 'π', 'pi'),    btn('fn', 'sin', 'sin'),    btn('fn', 'cos', 'cos'),
+const SCIENTIFIC_KEYS: KeyDef[][] = [
+  [K('ctrl','2nd','shift'),   K('ctrl','DRG','mode'),    K('ctrl','DEL','del'),     K('ctrl','←','left'),     K('ctrl','→','right')],
+  [K('fn','LOG','log', '10ˣ'), K('fn','PRB','prb','nPr'), K('ctrl','(','('),          K('ctrl',')',')'),         K('ctrl','CLR','clearAll')],
+  [K('fn','π','pi','e'),       K('fn','SIN','sin','sin⁻¹'), K('fn','COS','cos','cos⁻¹'), K('fn','TAN','tan','tan⁻¹'), K('op','÷','/')],
+  [K('fn','x²','sq','x³'),    K('op','^','^','x√'),       K('fn','√','sqrt','∛'),     K('fn','x⁻¹','inv','|x|'), K('op','×','*')],
+  [K('num','7','7'),           K('num','8','8'),            K('num','9','9'),            K('fn','%','%','nCr'),      K('op','−','-')],
+  [K('num','4','4'),           K('num','5','5'),            K('num','6','6'),            K('mem','M+','m+','STO'),   K('op','+','+')],
+  [K('num','1','1'),           K('num','2','2'),            K('num','3','3'),            K('mem','M−','m−','RCL'),   K('eq','=','eval')],
+  [K('num','0','0'),           K('num','.','.'),            K('ctrl','(−)','neg'),       K('ctrl','ANS','ans','RAND'), K('ctrl','MR','mr')],
 ];
 
-const sciKeys: Btn[] = [
-  btn('ctrl', '2nd', 'shift'),     btn('alpha', 'ALPHA', 'alpha'), btn('ctrl', 'DEG', 'mode'), btn('ctrl', 'AC', 'clearAll'), btn('ctrl', '⌫', 'del'),
-  btn('fn', 'sin', 'sin', 'sin⁻¹'), btn('fn', 'cos', 'cos', 'cos⁻¹'), btn('fn', 'tan', 'tan', 'tan⁻¹'), btn('op', '^', '^'), btn('ctrl', '√', 'sqrt'),
-  btn('fn', 'log', 'log', '10ˣ'), btn('fn', 'ln', 'ln', 'eˣ'),  btn('ctrl', '(','('),        btn('ctrl', ')',')'),       btn('op', '÷', '/'),
-  btn('num', '7', '7'),           btn('num', '8', '8'),         btn('num', '9', '9'),       btn('op', '×', '*'),        btn('ctrl', '±', 'neg'),
-  btn('num', '4', '4'),           btn('num', '5', '5'),         btn('num', '6', '6'),       btn('op', '-', '-'),         btn('op', '+', '+'),
-  btn('num', '1', '1'),           btn('num', '2', '2'),         btn('num', '3', '3'),       btn('eq', '=', 'eval'),      btn('num', '0', '0'),
+const BASIC_KEYS: KeyDef[][] = [
+  [K('ctrl','AC','clearAll'),  K('ctrl','(','('),          K('ctrl',')',')'),         K('op','÷','/'),          K('ctrl','⌫','del')],
+  [K('mem','M+','m+'),        K('num','7','7'),           K('num','8','8'),          K('num','9','9'),         K('op','×','*')],
+  [K('mem','M−','m−'),        K('num','4','4'),           K('num','5','5'),          K('num','6','6'),         K('op','−','-')],
+  [K('mem','MR','mr'),        K('num','1','1'),           K('num','2','2'),          K('num','3','3'),         K('op','+','+')],
+  [K('mem','MC','mc'),        K('num','0','0'),           K('num','.','.'),          K('ctrl','(−)','neg'),    K('eq','=','eval')],
 ];
 
-const graphKeys: Btn[] = [
-  btn('ctrl', '2nd', 'shift'),     btn('graph', 'WINDOW', 'window'), btn('graph', 'ZOOM', 'zoom'), btn('ctrl', 'AC', 'clearAll'), btn('ctrl', '⌫', 'del'),
-  btn('fn', 'sin', 'sin', 'sin⁻¹'), btn('fn', 'cos', 'cos', 'cos⁻¹'), btn('fn', 'tan', 'tan', 'tan⁻¹'), btn('op', '^', '^'), btn('ctrl', '√', 'sqrt'),
-  btn('fn', 'log', 'log', '10ˣ'), btn('fn', 'ln', 'ln', 'eˣ'),  btn('ctrl', '(','('),        btn('ctrl', ')',')'),       btn('ctrl', 'π', 'pi'),
-  btn('num', '7', '7'),           btn('num', '8', '8'),         btn('num', '9', '9'),       btn('op', '×', '*'),        btn('op', '÷', '/'),
-  btn('num', '4', '4'),           btn('num', '5', '5'),         btn('num', '6', '6'),       btn('op', '-', '-'),         btn('op', '+', '+'),
-  btn('num', '1', '1'),           btn('num', '2', '2'),         btn('num', '3', '3'),       btn('eq', '=', 'eval'),      btn('num', '0', '0'),
+const GRAPH_KEYS: KeyDef[][] = [
+  [K('ctrl','2nd','shift'),   K('graph','W','window'),   K('graph','Z','zoom'),     K('ctrl','CLR','clearAll'), K('ctrl','⌫','del')],
+  [K('fn','SIN','sin','sin⁻¹'), K('fn','COS','cos','cos⁻¹'), K('fn','TAN','tan','tan⁻¹'), K('op','^','^'),       K('fn','√','sqrt')],
+  [K('fn','LOG','log','10ˣ'), K('fn','LN','ln','eˣ'),    K('ctrl','π','pi'),         K('op','÷','/'),           K('op','×','*')],
+  [K('num','7','7'),          K('num','8','8'),            K('num','9','9'),           K('op','−','-'),           K('op','+','+')],
+  [K('num','4','4'),          K('num','5','5'),            K('num','6','6'),           K('fn','x²','sq'),         K('eq','=','eval')],
+  [K('num','1','1'),          K('num','2','2'),            K('num','3','3'),           K('num','0','0'),           K('num','.','.')],
 ];
 
-const keyMap: Record<string, Btn[]> = {
-  basic: basicKeys, scientific: sciKeys, graphing: graphKeys,
-};
-
-const SHIFT_MAP: Record<string, string> = {
-  'sin': 'sin⁻¹', 'cos': 'cos⁻¹', 'tan': 'tan⁻¹',
-  'log': '10ˣ', 'ln': 'eˣ',
-};
-
-const SHIFT_TO_FN: Record<string, string> = {
-  'sin⁻¹': 'asin', 'cos⁻¹': 'acos', 'tan⁻¹': 'atan',
-  '10ˣ': '10**', 'eˣ': 'e**',
-};
+const KEYS_MAP: Record<string, KeyDef[][]> = { basic: BASIC_KEYS, scientific: SCIENTIFIC_KEYS, graphing: GRAPH_KEYS };
 
 function toCssVars(t: ThemeConfig): React.CSSProperties {
   return {
@@ -77,252 +58,345 @@ function toCssVars(t: ThemeConfig): React.CSSProperties {
     '--calc-primary': t.primaryColor,
     '--calc-radius': `${t.borderRadius}px`,
     '--calc-spacing': `${t.spacing}px`,
-    '--calc-font': t.fontFamily,
   } as React.CSSProperties;
 }
 
-function styleByType(type: Btn['type'], primary: string, compact: boolean): string {
-  const base = compact
-    ? 'h-8 text-[11px] rounded-lg font-medium transition-all duration-75 active:scale-95 select-none'
-    : 'h-11 text-sm rounded-xl font-medium transition-all duration-75 active:scale-95 select-none';
-  switch (type) {
-    case 'num':   return `${base} bg-zinc-800/50 text-[var(--calc-text)] hover:bg-zinc-700/50`;
-    case 'op':    return `${base} bg-zinc-800/30 text-[var(--calc-primary)] hover:bg-zinc-700/30`;
-    case 'fn':    return `${base} bg-zinc-800/20 text-[var(--calc-primary)] hover:brightness-125 font-mono`;
-    case 'ctrl':  return `${base} bg-zinc-800/30 text-zinc-400 hover:bg-zinc-700/30`;
-    case 'mem':   return `${base} bg-zinc-800/20 text-zinc-400 hover:bg-zinc-700/20 text-[10px]`;
-    case 'eq':    return `${base} bg-[var(--calc-primary)] text-white hover:brightness-110 font-bold text-base`;
-    case 'alpha': return `${base} bg-zinc-800/30 text-blue-400 hover:bg-zinc-700/30 text-[10px]`;
-    case 'graph': return `${base} bg-zinc-800/20 text-emerald-400 hover:brightness-125 font-mono text-[10px]`;
-    default:      return `${base} bg-zinc-800/40 text-[var(--calc-text)]`;
+function keyClasses(kind: KeyDef['kind']): string {
+  const base = 'relative rounded-xl font-medium transition-all duration-100 active:scale-[0.93] select-none flex items-center justify-center leading-none cursor-pointer';
+  switch (kind) {
+    case 'num':  return `${base} bg-zinc-700/60 text-zinc-100 hover:bg-zinc-600/60 active:bg-zinc-500/40`;
+    case 'op':   return `${base} bg-zinc-600/40 text-[var(--calc-primary)] hover:bg-zinc-500/40 active:bg-zinc-400/30`;
+    case 'fn':   return `${base} bg-zinc-800/70 text-zinc-300 hover:bg-zinc-700/70 active:bg-zinc-600/50`;
+    case 'ctrl': return `${base} bg-zinc-800/50 text-zinc-400 hover:bg-zinc-700/50 active:bg-zinc-600/40`;
+    case 'mem':  return `${base} bg-zinc-800/40 text-zinc-400 hover:bg-zinc-700/40 active:bg-zinc-600/30`;
+    case 'eq':   return `${base} bg-[var(--calc-primary)] text-white hover:brightness-110 active:brightness-90 font-bold shadow-lg shadow-[var(--calc-primary)]/20`;
+    default:     return `${base} bg-zinc-800/50 text-zinc-200 hover:bg-zinc-700/50`;
   }
 }
 
-export function Calculator({ theme: themeProp, mode: externalMode, onModeChange, compact = false, lockConfig }: CalculatorProps) {
-  const resolvedTheme: ThemeConfig = { mode: 'dark', primaryColor: '#3b82f6', backgroundColor: '#0a0a0b', textColor: '#fafafa', fontFamily: 'Geist, system-ui, sans-serif', borderRadius: 8, spacing: 4, ...themeProp };
+const SHIFT_MAP: Record<string, string> = {
+  sin: 'asin', cos: 'acos', tan: 'atan', log: '10**', ln: 'e**',
+  sq: '**3', sqrt: 'cbrt', inv: 'abs', '%': 'comb', '^': 'nthroot',
+};
+const SHIFT_LABEL: Record<string, string> = {
+  sin: 'sin⁻¹', cos: 'cos⁻¹', tan: 'tan⁻¹', log: '10ˣ', ln: 'eˣ',
+  sq: 'x³', sqrt: '∛', inv: '|x|', '%': 'nCr', '^': 'x√',
+};
+
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+
+export function Calculator({ theme: themeProp, mode: externalMode, compact = false }: CalculatorProps) {
+  const resolvedTheme: ThemeConfig = {
+    mode: 'dark', primaryColor: '#3b82f6', backgroundColor: '#0a0a0b',
+    textColor: '#fafafa', fontFamily: 'Geist, system-ui, sans-serif',
+    borderRadius: 12, spacing: 4, ...themeProp,
+  };
+
   const [expression, setExpression] = useState('');
   const [result, setResult] = useState('0');
   const [history, setHistory] = useState<Array<{ expr: string; result: string }>>([]);
-  const [showHistory, setShowHistory] = useState(false);
+  const [historyIdx, setHistoryIdx] = useState(-1);
   const [internalMode, setInternalMode] = useState<'basic' | 'scientific' | 'graphing'>('basic');
   const [shiftOn, setShiftOn] = useState(false);
-  const [alphaOn, setAlphaOn] = useState(false);
   const [angleMode, setAngleMode] = useState<AngleMode>('DEG');
   const [memory, setMemory] = useState<number | null>(null);
   const [ans, setAns] = useState<string | null>(null);
-  const [graphExprs, setGraphExprs] = useState<{ expr: string; color: string }[]>([{ expr: 'sin(x)', color: '#3b82f6' }]);
-  const inputRef = useRef<HTMLDivElement>(null);
+  const [graphExprs, setGraphExprs] = useState<{ expr: string; color: string }[]>([
+    { expr: 'sin(x)', color: '#3b82f6' },
+  ]);
+  const [showGraph, setShowGraph] = useState(false);
+  const [prbMenu, setPrbMenu] = useState(false);
+  const displayRef = useRef<HTMLDivElement>(null);
 
   const mode = externalMode ?? internalMode;
-  const keys = keyMap[mode];
+  const keys = KEYS_MAP[mode] ?? SCIENTIFIC_KEYS;
 
-  const setMode = (m: 'basic' | 'scientific' | 'graphing') => {
-    if (lockConfig?.mode) return;
-    setInternalMode(m);
-    onModeChange?.(m);
-    setExpression('');
-    setResult('0');
+  const insert = (text: string) => {
+    setExpression(prev => prev + text);
+    setHistoryIdx(-1);
   };
 
-  const insert = (text: string) => setExpression(prev => prev + text);
+  const evalExpr = useCallback((expr: string) => {
+    const subst = expr
+      .replace(/π/g, 'pi')
+      .replace(/×/g, '*')
+      .replace(/÷/g, '/')
+      .replace(/−/g, '-')
+      .replace(/√\(/g, 'sqrt(')
+      .replace(/\^/g, '**');
+    return engine.evaluate({ expression: subst, angleMode: angleMode.toLowerCase() as any });
+  }, [angleMode]);
 
   const handleAction = useCallback((action: string) => {
-    if (action === 'shift') { setShiftOn(prev => !prev); setAlphaOn(false); return; }
-    if (action === 'alpha') { setAlphaOn(prev => !prev); setShiftOn(false); return; }
-    if (action === 'mode') { setAngleMode(prev => prev === 'DEG' ? 'RAD' : prev === 'RAD' ? 'GRAD' : 'DEG'); return; }
+    if (action === 'shift') { setShiftOn(p => !p); return; }
 
-    if (alphaOn && /^[A-Z]$/.test(action)) {
-      insert(action);
-      setAlphaOn(false);
+    if (action === 'mode') {
+      setAngleMode(p => p === 'DEG' ? 'RAD' : p === 'RAD' ? 'GRAD' : 'DEG');
+      setShiftOn(false);
+      return;
+    }
+
+    if (action === 'prb') { setPrbMenu(p => !p); setShiftOn(false); return; }
+
+    if (prbMenu && ['nPr', 'nCr', 'fact', 'rand'].includes(action)) {
+      setPrbMenu(false);
+      if (action === 'rand') { insert(String(Math.random())); return; }
+      if (action === 'fact') { insert('!'); return; }
+      insert(action === 'nPr' ? 'perm(' : 'comb(');
+      setShiftOn(false);
       return;
     }
 
     let finalAction = action;
-    if (shiftOn && action in SHIFT_MAP) {
-      finalAction = SHIFT_MAP[action]!;
-      setShiftOn(false);
-    } else if (shiftOn) {
+
+    if (shiftOn) {
+      if (action in SHIFT_MAP) {
+        finalAction = SHIFT_MAP[action]!;
+      }
       setShiftOn(false);
     }
 
-    if (finalAction === 'clearAll') { setExpression(''); setResult('0'); setHistory([]); setAns(null); return; }
-    if (finalAction === 'del') { setExpression(prev => prev.slice(0, -1)); return; }
-    if (finalAction === 'neg') { setExpression(prev => prev.startsWith('-') ? prev.slice(1) : '-' + prev); return; }
+    if (finalAction === 'clearAll') {
+      setExpression(''); setResult('0'); setHistory([]); setHistoryIdx(-1); setAns(null); return;
+    }
+    if (finalAction === 'del') { setExpression(p => p.slice(0, -1)); return; }
+    if (finalAction === 'neg') { setExpression(p => p.startsWith('-') ? p.slice(1) : '-' + p); return; }
+    if (finalAction === 'left' || finalAction === 'right') return;
     if (finalAction === 'pi') { insert('π'); return; }
+    if (finalAction === 'ans') { if (ans) insert(ans); return; }
+    if (finalAction === 'mr') { if (memory !== null) insert(String(memory)); return; }
+    if (finalAction === 'window' || finalAction === 'zoom') return;
 
-    if (finalAction in SHIFT_TO_FN) {
-      insert(`${SHIFT_TO_FN[finalAction]}(`);
-      return;
-    }
-    if (['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'log', 'ln', 'sqrt'].includes(finalAction)) {
+    if (['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'log', 'ln', 'sqrt', 'cbrt', 'abs', 'comb', 'perm', '10**', 'e**', 'nthroot'].includes(finalAction)) {
+      if (finalAction === '10**') { insert('10^('); return; }
+      if (finalAction === 'e**') { insert('e^('); return; }
+      if (finalAction === 'nthroot') { insert('root('); return; }
       insert(`${finalAction}(`);
       return;
     }
-    if (finalAction === '10ˣ') { insert('10**'); return; }
-    if (finalAction === 'eˣ') { insert('e**'); return; }
+    if (finalAction === 'sq') { insert('^2'); return; }
+    if (finalAction === '**3') { insert('^3'); return; }
+    if (finalAction === 'inv') { insert('abs('); return; }
 
     if (finalAction === 'm+') {
       const v = parseFloat(result);
-      if (!isNaN(v)) setMemory(prev => (prev ?? 0) + v);
+      if (!isNaN(v)) setMemory(p => (p ?? 0) + v);
       return;
     }
-    if (finalAction === 'm-') {
+    if (finalAction === 'm−') {
       const v = parseFloat(result);
-      if (!isNaN(v)) setMemory(prev => (prev ?? 0) - v);
+      if (!isNaN(v)) setMemory(p => (p ?? 0) - v);
       return;
     }
-    if (finalAction === 'mr') { if (memory !== null) insert(String(memory)); return; }
-    if (finalAction === 'mc') { setMemory(null); return; }
 
     if (finalAction === 'eval') {
-      const subst = expression.replace(/π/g, 'pi').replace(/×/g, '*').replace(/÷/g, '/').replace(/√\(/g, 'sqrt(');
-      const evalResult = engine.evaluate({ expression: subst, angleMode: angleMode.toLowerCase() as any });
-      if (evalResult.error) {
-        setResult(`Error: ${evalResult.error}`);
-      } else {
-        const rs = String(evalResult.result);
+      if (!expression) return;
+      const res = evalExpr(expression);
+      if (res.error) { setResult(`Error`); }
+      else {
+        const rs = typeof res.result === 'number' ? String(res.result) : String(res.result);
         setResult(rs);
         setAns(rs);
-        setHistory(prev => [...prev, { expr: expression, result: rs }]);
+        setHistory(p => [...p, { expr: expression, result: rs }]);
+        setHistoryIdx(-1);
         if (mode === 'graphing') {
-          setGraphExprs(prev => [{ ...prev[0]!, expr: subst }]);
+          setGraphExprs([{ expr: expression.replace(/π/g, 'pi').replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-'), color: COLORS[0]! }]);
+          setShowGraph(true);
         }
         setExpression('');
       }
       return;
     }
 
-    if (finalAction === 'window' || finalAction === 'zoom' || finalAction === 'trace') return;
-
     insert(finalAction);
-  }, [expression, shiftOn, alphaOn, angleMode, memory, result, mode]);
+  }, [expression, shiftOn, angleMode, memory, result, mode, evalExpr, ans, prbMenu]);
+
+  const navigateHistory = useCallback((dir: -1 | 1) => {
+    if (history.length === 0) return;
+    const newIdx = historyIdx + dir;
+    if (newIdx < -1 || newIdx >= history.length) return;
+    setHistoryIdx(newIdx);
+    if (newIdx === -1) { setExpression(''); }
+    else { setExpression(history[history.length - 1 - newIdx]!.expr); }
+  }, [history, historyIdx]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Enter') handleAction('eval');
+      if (e.key === 'Enter') { e.preventDefault(); handleAction('eval'); }
       else if (e.key === 'Backspace') handleAction('del');
       else if (e.key === 'Escape') handleAction('clearAll');
+      else if (e.key === 'ArrowLeft') navigateHistory(-1);
+      else if (e.key === 'ArrowRight') navigateHistory(1);
       else if (/^[0-9+\-*/.^()]$/.test(e.key)) handleAction(e.key);
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [handleAction]);
+  }, [handleAction, navigateHistory]);
 
-  const displayFontSize = compact ? 20 : 28;
+  useEffect(() => {
+    if (displayRef.current) displayRef.current.scrollLeft = displayRef.current.scrollWidth;
+  }, [expression]);
 
-  const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
+  const dispShift = (k: KeyDef) => shiftOn && k.shift ? k.shift : k.label;
+  const shiftLabel = (k: KeyDef) => shiftOn ? '' : (SHIFT_LABEL[k.action] ?? k.shift);
+
+  const modeBtns = !externalMode ? (
+    <div className="flex items-center gap-0.5">
+      {(['basic', 'scientific', 'graphing'] as const).map(m => (
+        <button key={m} onClick={() => { setInternalMode(m); setExpression(''); setResult('0'); setHistory([]); setHistoryIdx(-1); }}
+          className="px-2 py-0.5 text-[9px] rounded-md uppercase tracking-wider font-semibold transition-all duration-150"
+          style={{
+            backgroundColor: mode === m ? `color-mix(in srgb, ${resolvedTheme.primaryColor} 20%, transparent)` : 'transparent',
+            color: mode === m ? resolvedTheme.primaryColor : `${resolvedTheme.textColor}40`,
+          }}
+        >{m === 'basic' ? 'Basic' : m === 'scientific' ? 'Sci' : 'Graph'}</button>
+      ))}
+    </div>
+  ) : null;
 
   return (
-    <div className="w-full select-none" style={{ ...toCssVars(resolvedTheme), fontFamily: resolvedTheme.fontFamily, color: resolvedTheme.textColor }}>
-      <div className="p-[var(--calc-spacing,4px)] space-y-[var(--calc-spacing,4px)]" style={{ backgroundColor: resolvedTheme.backgroundColor, borderRadius: resolvedTheme.borderRadius }}>
-        {!externalMode && (
-          <div className="flex items-center gap-1.5 px-1 pt-1.5">
-            {(['basic', 'scientific', 'graphing'] as const).map(m => (
-              <button key={m} onClick={() => setMode(m)}
-                className={`px-2.5 py-0.5 text-[10px] rounded-md uppercase tracking-wider font-semibold transition-all ${
-                  mode === m ? 'opacity-100' : 'opacity-30 hover:opacity-60'
-                }`}
-                style={{
-                  backgroundColor: mode === m ? `color-mix(in srgb, ${resolvedTheme.primaryColor} 20%, transparent)` : 'transparent',
-                  color: mode === m ? resolvedTheme.primaryColor : resolvedTheme.textColor,
-                }}
-              >{m}</button>
+    <div className="w-full h-full select-none flex flex-col" style={{ ...toCssVars(resolvedTheme), fontFamily: resolvedTheme.fontFamily, color: resolvedTheme.textColor }}>
+      <div className="flex-1 flex flex-col rounded-2xl overflow-hidden" style={{ backgroundColor: resolvedTheme.backgroundColor }}>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-3 pt-2.5 pb-1">
+          {modeBtns}
+          <div className="flex items-center gap-2 text-[9px] font-mono tracking-wider">
+            <span style={{ color: `${resolvedTheme.textColor}50` }}>{angleMode}</span>
+            {memory !== null && <span style={{ color: '#facc15', opacity: 0.6 }}>M</span>}
+            {shiftOn && <span style={{ color: '#34d399', opacity: 0.8 }}>2ND</span>}
+          </div>
+        </div>
+
+        {/* LCD Display */}
+        <div className="mx-3 mb-2 rounded-xl overflow-hidden" style={{ backgroundColor: '#111113', border: '1px solid rgba(255,255,255,0.04)' }}>
+          <div className="px-3 pt-2 pb-1">
+            {/* Expression line */}
+            <div ref={displayRef} className="overflow-x-auto scrollbar-none font-mono text-xs leading-relaxed" style={{ color: `${resolvedTheme.textColor}55`, minHeight: '1.2em', whiteSpace: 'nowrap' }}>
+              {expression || (ans && result === '0' ? '' : '\u00A0')}
+            </div>
+            {/* Result line */}
+            <div className="font-mono font-semibold truncate leading-none text-right" style={{ fontSize: compact ? '1.25rem' : '1.75rem', color: resolvedTheme.textColor }}>
+              {result}
+            </div>
+          </div>
+          {/* Status bar */}
+          <div className="flex items-center justify-between px-3 py-1" style={{ backgroundColor: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.03)' }}>
+            <div className="flex items-center gap-1.5 text-[8px] font-mono tracking-widest uppercase" style={{ color: `${resolvedTheme.textColor}30` }}>
+              <span>{angleMode}</span>
+              <span>·</span>
+              <span>{mode === 'basic' ? 'BASIC' : mode === 'scientific' ? 'SCI' : 'GRAPH'}</span>
+            </div>
+            {history.length > 0 && (
+              <span className="text-[8px] font-mono" style={{ color: `${resolvedTheme.textColor}25` }}>
+                {history.length} {history.length === 1 ? 'entry' : 'entries'}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* PRB submenu */}
+        {prbMenu && (
+          <div className="mx-3 mb-2 flex gap-1.5">
+            {['nPr', 'nCr', 'fact', 'rand'].map(f => (
+              <button key={f} onClick={() => handleAction(f)}
+                className="flex-1 py-1.5 text-[10px] rounded-lg font-mono uppercase tracking-wider transition-all active:scale-95"
+                style={{ backgroundColor: `color-mix(in srgb, ${resolvedTheme.primaryColor} 15%, transparent)`, color: resolvedTheme.primaryColor }}
+              >{f === 'fact' ? 'x!' : f === 'rand' ? 'Ran#' : f}</button>
             ))}
-            <div className="flex-1" />
-            <span className="text-[10px] font-mono opacity-30 tracking-widest">{angleMode}</span>
-            {memory !== null && <span className="text-[10px] font-mono text-yellow-400 opacity-70">M</span>}
-            {shiftOn && <span className="text-[10px] font-mono text-green-400 opacity-80">2nd</span>}
-            {alphaOn && <span className="text-[10px] font-mono text-blue-400 opacity-80">A</span>}
           </div>
         )}
 
-        <div className="p-4 min-h-[88px] space-y-1 flex flex-col justify-end" style={{ backgroundColor: `color-mix(in srgb, ${resolvedTheme.backgroundColor} 70%, #000)`, borderRadius: resolvedTheme.borderRadius }}>
-          {mode === 'graphing' && graphExprs.length > 0 && !expression && (
-            <div className="mb-2">
-              <GraphCanvas expressions={graphExprs} width={280} height={160} />
-            </div>
-          )}
-          {showHistory && history.length > 0 && (
-            <div className="max-h-20 overflow-y-auto space-y-0.5 mb-1 opacity-50">
-              {history.map((h, i) => (
-                <div key={i} className="flex justify-between gap-4 font-mono text-[10px]">
-                  <span>{h.expr}</span>
-                  <span>= {h.result}</span>
-                </div>
-              ))}
-            </div>
-          )}
-          {ans && !expression && result === '0' && (
-            <div className="text-[10px] opacity-30 font-mono">Ans = {ans}</div>
-          )}
-          <div ref={inputRef} className="font-mono min-h-[1.2em] break-all truncate text-xs opacity-50">
-            {expression || '\u00A0'}
+        {/* Graph area */}
+        {mode === 'graphing' && showGraph && graphExprs.length > 0 && !expression && (
+          <div className="mx-3 mb-2 rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.04)' }}>
+            <GraphCanvas expressions={graphExprs} width={320} height={180} />
           </div>
-          <div className="font-semibold font-mono mt-0.5 truncate leading-none" style={{ fontSize: displayFontSize }}>
-            {result}
-          </div>
+        )}
+
+        {/* Key grid */}
+        <div className="flex-1 flex flex-col gap-[3px] px-2 pb-2 auto-rows-fr">
+          {keys.map((row, ri) => (
+            <div key={ri} className="flex gap-[3px] flex-1">
+              {row.map((k, ci) => {
+                const isActive = shiftOn && k.action === 'shift';
+                const sLabel = shiftLabel(k);
+                const display = dispShift(k);
+                return (
+                  <button key={ci} onClick={() => handleAction(k.action)}
+                    className={`${keyClasses(k.kind)} flex-1 text-xs relative overflow-hidden ${compact ? 'min-h-[32px]' : 'min-h-[38px]'}`}
+                    style={k.kind === 'eq' ? { backgroundColor: resolvedTheme.primaryColor } : k.action === 'shift' && shiftOn ? { backgroundColor: `color-mix(in srgb, ${resolvedTheme.primaryColor} 25%, transparent)`, color: resolvedTheme.primaryColor } : undefined}
+                  >
+                    {/* 2nd function label */}
+                    {sLabel && !shiftOn && (
+                      <span className="absolute top-0.5 left-1 text-[7px] font-semibold tracking-wide pointer-events-none" style={{ color: '#facc15', opacity: 0.7 }}>
+                        {sLabel}
+                      </span>
+                    )}
+                    <span className={sLabel && !shiftOn ? 'mt-1' : ''}>{display}</span>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
         </div>
 
-        <div className="grid grid-cols-5 gap-[var(--calc-spacing,4px)]">
-          {keys.map((btn, i) => {
-            const display = shiftOn && btn.shift ? btn.shift : btn.label;
-            return (
-              <button
-                key={i}
-                onClick={() => handleAction(btn.action)}
-                className={styleByType(btn.type, resolvedTheme.primaryColor, compact)}
-                title={btn.shift ? `${btn.shift}` : undefined}
-              >
-                {display}
-              </button>
-            );
-          })}
-        </div>
+        {/* History arrows (for graphing mode when graph is hidden) */}
+        {mode === 'graphing' && !showGraph && (
+          <div className="flex gap-1.5 px-3 pb-1">
+            <button onClick={() => navigateHistory(-1)}
+              className="flex-1 py-1 text-[9px] rounded-lg font-mono uppercase tracking-wider transition-all active:scale-95"
+              style={{ backgroundColor: `color-mix(in srgb, ${resolvedTheme.textColor} 6%, transparent)`, color: `${resolvedTheme.textColor}50` }}
+            >← Prev</button>
+            <button onClick={() => navigateHistory(1)}
+              className="flex-1 py-1 text-[9px] rounded-lg font-mono uppercase tracking-wider transition-all active:scale-95"
+              style={{ backgroundColor: `color-mix(in srgb, ${resolvedTheme.textColor} 6%, transparent)`, color: `${resolvedTheme.textColor}50` }}
+            >Next →</button>
+          </div>
+        )}
 
+        {/* Graph inputs */}
         {mode === 'graphing' && (
-          <div className="flex gap-1.5 px-1 pb-1">
+          <div className="flex gap-1.5 px-3 pb-1 flex-wrap items-center">
+            <button onClick={() => setShowGraph(p => !p)}
+              className="px-2 py-0.5 text-[9px] rounded-md uppercase tracking-wider font-medium transition-all"
+              style={{ backgroundColor: `color-mix(in srgb, ${resolvedTheme.primaryColor} 12%, transparent)`, color: resolvedTheme.primaryColor }}
+            >{showGraph ? 'Hide' : 'Graph'}</button>
             {graphExprs.map((ge, i) => (
-              <div key={i} className="flex items-center gap-1.5">
-                <input
-                  value={ge.expr}
-                  onChange={e => {
-                    const next = [...graphExprs];
-                    next[i] = { ...next[i]!, expr: e.target.value };
-                    setGraphExprs(next);
-                  }}
-                  className="w-20 h-6 rounded bg-zinc-800/50 px-2 text-[10px] font-mono text-zinc-300 border border-zinc-700/50 focus:outline-none"
-                />
-                <input
-                  type="color"
-                  value={ge.color}
-                  onChange={e => {
-                    const next = [...graphExprs];
-                    next[i] = { ...next[i]!, color: e.target.value };
-                    setGraphExprs(next);
-                  }}
-                  className="w-5 h-5 rounded cursor-pointer border-0 p-0"
-                />
+              <div key={i} className="flex items-center gap-1">
+                <input value={ge.expr}
+                  onChange={e => { const n = [...graphExprs]; n[i] = { ...n[i]!, expr: e.target.value }; setGraphExprs(n); }}
+                  className="w-16 h-5 rounded bg-zinc-800/50 px-1.5 text-[9px] font-mono text-zinc-300 border border-zinc-700/50 focus:outline-none focus:border-zinc-500/50" />
+                <input type="color" value={ge.color}
+                  onChange={e => { const n = [...graphExprs]; n[i] = { ...n[i]!, color: e.target.value }; setGraphExprs(n); }}
+                  className="w-4 h-4 rounded cursor-pointer border-0 p-0" />
                 {i === graphExprs.length - 1 && graphExprs.length < 6 && (
-                  <button onClick={() => setGraphExprs(prev => [...prev, { expr: 'x', color: COLORS[prev.length % COLORS.length]! }])}
-                    className="w-5 h-5 rounded bg-zinc-800/40 text-zinc-500 hover:text-zinc-300 text-xs flex items-center justify-center"
-                  >+</button>
+                  <button onClick={() => setGraphExprs(p => [...p, { expr: 'x', color: COLORS[p.length % COLORS.length]! }])}
+                    className="w-4 h-4 rounded bg-zinc-800/40 text-zinc-500 hover:text-zinc-300 text-[9px] flex items-center justify-center transition-colors">+</button>
                 )}
               </div>
             ))}
           </div>
         )}
 
-        <div className="flex gap-1.5 px-1 pb-1.5">
-          <button onClick={() => setShowHistory(!showHistory)}
-            className="px-2 py-0.5 text-[9px] rounded-md uppercase tracking-wider font-medium"
-            style={{ backgroundColor: `color-mix(in srgb, ${resolvedTheme.primaryColor} 15%, transparent)`, color: resolvedTheme.primaryColor }}
-          >{showHistory ? 'Hide' : 'History'}</button>
+        {/* History / clear row */}
+        <div className="flex gap-1.5 px-3 pb-1">
           {history.length > 0 && (
-            <button onClick={() => { setHistory([]); setShowHistory(false); setAns(null); }}
-              className="px-2 py-0.5 text-[9px] rounded-md uppercase tracking-wider font-medium opacity-40 hover:opacity-80"
-              style={{ backgroundColor: `color-mix(in srgb, ${resolvedTheme.textColor} 8%, transparent)`, color: resolvedTheme.textColor }}
-            >Clear</button>
+            <>
+              <button onClick={() => { setHistory([]); setHistoryIdx(-1); setResult('0'); setAns(null); }}
+                className="px-2 py-0.5 text-[9px] rounded-md uppercase tracking-wider font-medium transition-all opacity-35 hover:opacity-70 active:scale-95"
+                style={{ backgroundColor: `color-mix(in srgb, ${resolvedTheme.textColor} 6%, transparent)`, color: resolvedTheme.textColor }}
+              >Clear</button>
+            </>
           )}
+        </div>
+
+        {/* Calculo branding */}
+        <div className="flex justify-center pb-2 pt-0.5">
+          <a href="https://calculo.vercel.app" target="_blank" rel="noopener noreferrer"
+            className="text-[9px] font-mono tracking-[0.2em] uppercase transition-all hover:opacity-80 active:scale-95"
+            style={{ color: `${resolvedTheme.textColor}20` }}
+          >calculo</a>
         </div>
       </div>
     </div>
