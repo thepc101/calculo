@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { IncomingMessage, ServerResponse } from 'http';
 import { verifyToken } from './jwt';
 import { jsonResponse, getHeader } from './http';

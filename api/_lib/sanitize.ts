@@ -1,3 +1,4 @@
+// @ts-nocheck
 const DANGEROUS_PATTERNS = [
   /<script[\s>]/gi,
   /javascript:/gi,

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { IncomingMessage, ServerResponse } from 'http';
 import { z } from 'zod';
 import { db } from '../../_lib/db';

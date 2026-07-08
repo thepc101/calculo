@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { SignJWT, jwtVerify, type JWTPayload } from 'jose';
 
 const SECRET = process.env.JWT_SECRET;

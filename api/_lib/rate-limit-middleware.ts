@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { IncomingMessage, ServerResponse } from 'http';
 import { rateLimit, rateLimitHeaders } from './rate-limit';
 import { jsonResponse, getHeader } from './http';

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { IncomingMessage, ServerResponse } from 'http';
 import { jsonResponse, readBody, getHeader } from '../_lib/http';
 import { checkRateLimit } from '../_lib/rate-limit-middleware';

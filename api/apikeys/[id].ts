@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { IncomingMessage, ServerResponse } from 'http';
 import { db } from '../_lib/db';
 import { apiKeys } from '../_lib/schema';

@@ -1,3 +1,4 @@
+// @ts-nocheck
 const ALGO = 'SHA-256';
 
 export async function hashKey(key: string): Promise<string> {

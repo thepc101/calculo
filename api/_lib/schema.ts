@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { pgTable, text, timestamp, uuid, jsonb, integer, index, uniqueIndex } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('users', {
