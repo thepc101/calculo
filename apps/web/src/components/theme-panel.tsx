@@ -1,4 +1,4 @@
-import type { ThemeConfig, ThemeMode } from '@calculo/shared';
+import type { ThemeConfig } from '@calculo/shared';
 import { themes, themeOrder } from '@calculo/config';
 
 interface ThemePanelProps {

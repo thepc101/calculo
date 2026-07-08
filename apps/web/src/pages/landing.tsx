@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DraggableCalculator } from '../components/draggable-calculator';
 import { CodeBlock } from '../components/code-block';
 
@@ -183,8 +183,9 @@ function AnimatedTerminal() {
     function typeLine() {
       if (currentLine >= lines.length) return;
       const l = lines[currentLine];
+      if (!l) return;
       if (charIndex < l.text.length) {
-        currentText += l.text[charIndex];
+        currentText += l.text[charIndex]!;
         charIndex++;
         timer = setTimeout(typeLine, l.delay);
       } else {

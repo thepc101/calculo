@@ -90,7 +90,7 @@ function toCssVars(theme: ThemeConfig): React.CSSProperties {
   } as React.CSSProperties;
 }
 
-function btnClass(label: string, primary: string, compact: boolean): string {
+function btnClass(label: string, _primary: string, compact: boolean): string {
   const h = compact ? 'h-8 text-[11px]' : 'h-10 text-sm';
   const base = `${h} rounded-[var(--calc-radius,0.75rem)] font-medium transition-all duration-100 active:scale-95 select-none px-1`;
   if (['Shift', 'Alpha', 'MODE', 'ON', 'AC', 'DEL'].includes(label)) {
