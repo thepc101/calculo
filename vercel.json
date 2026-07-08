@@ -3,7 +3,6 @@
   "buildCommand": "pnpm --filter @calculo/web build",
   "outputDirectory": "apps/web/dist",
   "installCommand": "pnpm install --no-frozen-lockfile",
-  "framework": "vite",
   "rewrites": [
     {
       "source": "/(.*)",
