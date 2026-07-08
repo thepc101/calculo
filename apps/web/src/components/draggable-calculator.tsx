@@ -1,6 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import type { CalculatorConfig, ThemeConfig } from '@calculo/shared';
-import { createDefaultTheme } from '@calculo/shared';
+import type { CalculatorConfig, ThemeConfig, ThemeMode } from '@calculo/shared';
 import { themes } from '@calculo/config';
 import { Calculator } from './calculator';
 import { ThemePanel } from './theme-panel';

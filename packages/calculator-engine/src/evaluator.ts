@@ -1,4 +1,5 @@
 import type { AstNode } from '@calculo/parser';
+import { parse } from '@calculo/parser';
 import { EvaluationError } from '@calculo/shared';
 import { Environment } from './environment';
 import { builtInFunctions } from './functions';
@@ -117,7 +118,6 @@ export class Evaluator {
         childEnv.setVariable(param, args[i]!);
       });
       const childEvaluator = new Evaluator(childEnv);
-      const { parse } = require('@calculo/parser');
       const ast = parse(userFn.body);
       return childEvaluator.evaluate(ast) as number;
     }

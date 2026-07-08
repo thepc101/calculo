@@ -1,4 +1,4 @@
-import type { CalculatorConfig, ThemeConfig, ThemeMode } from './types';
+import type { CalculatorConfig, ThemeConfig } from './types';
 
 export function createDefaultConfig(overrides?: Partial<CalculatorConfig>): CalculatorConfig {
   return {

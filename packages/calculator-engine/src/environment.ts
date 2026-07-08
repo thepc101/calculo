@@ -1,4 +1,4 @@
-import type { AngleMode, Complex, Matrix } from '@calculo/shared';
+import type { AngleMode } from '@calculo/shared';
 import { CONSTANTS } from '@calculo/shared';
 
 export class Environment {

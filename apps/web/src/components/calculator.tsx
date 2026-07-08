@@ -6,7 +6,6 @@ import { createDefaultConfig, createDefaultTheme } from '@calculo/shared';
 interface CalculatorProps {
   config?: Partial<CalculatorConfig>;
   theme?: Partial<ThemeConfig>;
-  onThemeChange?: (theme: ThemeConfig) => void;
 }
 
 const engine = new CalculatorEngine();
@@ -39,13 +38,7 @@ function toCssVars(theme: ThemeConfig): React.CSSProperties {
   } as React.CSSProperties;
 }
 
-function buttonClass(
-  label: string,
-  primary: string,
-  bg: string,
-  text: string,
-  radius: string,
-): string {
+function buttonClass(label: string): string {
   const base = `h-14 rounded-[var(--calc-radius,0.75rem)] text-lg font-medium transition-all duration-100 active:scale-95`;
   const isNum = /^\d$/.test(label);
   const isOp = /[+\-*/÷^%]/.test(label);
@@ -63,7 +56,7 @@ function buttonClass(
   return `${base} bg-zinc-800/60 text-[var(--calc-text)] hover:bg-zinc-700/60`;
 }
 
-export function Calculator({ config, theme: themeProp, onThemeChange }: CalculatorProps) {
+export function Calculator({ config, theme: themeProp }: CalculatorProps) {
   const fullConfig = { ...createDefaultConfig(), ...config };
   const resolvedTheme: ThemeConfig = { ...createDefaultTheme(), ...themeProp };
   const [expression, setExpression] = useState('');
@@ -191,7 +184,7 @@ export function Calculator({ config, theme: themeProp, onThemeChange }: Calculat
             <button
               key={label}
               onClick={() => handleButton(value)}
-              className={buttonClass(label, resolvedTheme.primaryColor, resolvedTheme.backgroundColor, resolvedTheme.textColor, String(resolvedTheme.borderRadius))}
+              className={buttonClass(label)}
             >
               {label}
             </button>

@@ -1,19 +1,17 @@
 import { Link, Outlet, useLocation } from '@tanstack/react-router';
-import { useState } from 'react';
 import { cn } from '../lib/utils';
 
 const navItems = [
-  { href: '/docs', label: 'Docs' },
-  { href: '/api', label: 'API' },
-  { href: '/examples', label: 'Examples' },
-  { href: '/playground', label: 'Playground' },
-  { href: '/pricing', label: 'Pricing' },
-  { href: '/blog', label: 'Blog' },
-  { href: '/changelog', label: 'Changelog' },
+  { href: '/docs' as const, label: 'Docs' },
+  { href: '/api' as const, label: 'API' },
+  { href: '/examples' as const, label: 'Examples' },
+  { href: '/playground' as const, label: 'Playground' },
+  { href: '/pricing' as const, label: 'Pricing' },
+  { href: '/blog' as const, label: 'Blog' },
+  { href: '/changelog' as const, label: 'Changelog' },
 ];
 
 export function Layout() {
-  const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
 
   return (
@@ -83,9 +81,9 @@ export function Layout() {
               <ul className="space-y-3">
                 {['Docs', 'API', 'SDKs', 'Examples', 'Playground'].map((item) => (
                   <li key={item}>
-                    <Link to={`/${item.toLowerCase()}`} className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
+                    <a href={`/${item.toLowerCase()}`} className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
                       {item}
-                    </Link>
+                    </a>
                   </li>
                 ))}
               </ul>
@@ -95,9 +93,9 @@ export function Layout() {
               <ul className="space-y-3">
                 {['Blog', 'Changelog', 'Pricing', 'Support'].map((item) => (
                   <li key={item}>
-                    <Link to={`/${item.toLowerCase()}`} className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
+                    <a href={`/${item.toLowerCase()}`} className="text-sm text-zinc-400 hover:text-zinc-100 transition-colors">
                       {item}
-                    </Link>
+                    </a>
                   </li>
                 ))}
               </ul>
