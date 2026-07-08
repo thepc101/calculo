@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "echo 'lint ok'",
     "clean": "echo 'clean ok'",
-    "postinstall": "npx pnpm install"
+    "postinstall": ""
   },
   "dependencies": {
     "@calculo/calculator-engine": "workspace:*",
