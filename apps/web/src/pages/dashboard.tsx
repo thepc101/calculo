@@ -300,15 +300,16 @@ function CalculatorsSection({ authFetch }: { authFetch: (url: string, init?: Req
 }
 
 const sidebarLinks = [
-  { label: 'Overview', href: '/dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
-  { label: 'Calculators', href: '/dashboard/calculators', icon: 'M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z' },
-  { label: 'API Keys', href: '/dashboard/api-keys', icon: 'M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z' },
-  { label: 'Usage', href: '/dashboard/usage', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6' },
-  { label: 'Settings', href: '/dashboard/settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
+  { id: 'overview', label: 'Overview', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+  { id: 'calculators', label: 'Calculators', icon: 'M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z' },
+  { id: 'api-keys', label: 'API Keys', icon: 'M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z' },
+  { id: 'usage', label: 'Usage', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6' },
+  { id: 'settings', label: 'Settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
 ];
 
 export function DashboardPage() {
   const { token, loading: authLoading, authFetch } = useAuth();
+  const [activeTab, setActiveTab] = useState('overview');
   const [keyCount, setKeyCount] = useState(0);
   const [calcCount, setCalcCount] = useState(0);
 
@@ -345,42 +346,128 @@ export function DashboardPage() {
         <aside className="w-56 flex-shrink-0 hidden lg:block">
           <nav className="space-y-1">
             {sidebarLinks.map((link) => (
-              <Link
-                key={link.label}
-                to={link.href}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50 transition-colors"
+              <button
+                key={link.id}
+                onClick={() => setActiveTab(link.id)}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors text-left ${
+                  activeTab === link.id
+                    ? 'text-zinc-100 bg-zinc-800/50'
+                    : 'text-zinc-400 hover:text-zinc-100 hover:bg-zinc-800/50'
+                }`}
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d={link.icon} />
                 </svg>
                 {link.label}
-              </Link>
+              </button>
             ))}
           </nav>
         </aside>
 
         <div className="flex-1 min-w-0">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold">Dashboard</h1>
-            <p className="text-sm text-zinc-400 mt-1">Manage your calculators, API keys, and usage.</p>
+          {/* ── Mobile tab selector ── */}
+          <div className="lg:hidden mb-4 flex gap-1 overflow-x-auto pb-1">
+            {sidebarLinks.map((link) => (
+              <button
+                key={link.id}
+                onClick={() => setActiveTab(link.id)}
+                className={`px-3 py-1.5 text-xs rounded-lg whitespace-nowrap transition-colors ${
+                  activeTab === link.id
+                    ? 'bg-zinc-800 text-zinc-100'
+                    : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                {link.label}
+              </button>
+            ))}
           </div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatCard label="Total Evaluations" value={keyCount > 0 ? '0' : '—'} sub="Start using the API" />
-            <StatCard label="Calculators" value={calcCount > 0 ? String(calcCount) : '—'} />
-            <StatCard label="API Keys" value={keyCount > 0 ? String(keyCount) : '—'} />
-            <StatCard label="Plan" value="Free" sub="$0 / month" />
-          </div>
+          {activeTab === 'overview' && (
+            <>
+              <div className="mb-8">
+                <h1 className="text-2xl font-bold">Dashboard</h1>
+                <p className="text-sm text-zinc-400 mt-1">Manage your calculators, API keys, and usage.</p>
+              </div>
 
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 mb-8">
-            <h2 className="text-lg font-semibold mb-4">Usage (last 14 days)</h2>
-            <UsageChart data={mockUsage} />
-          </div>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <StatCard label="Total Evaluations" value={keyCount > 0 ? '0' : '—'} sub="Start using the API" />
+                <StatCard label="Calculators" value={calcCount > 0 ? String(calcCount) : '—'} />
+                <StatCard label="API Keys" value={keyCount > 0 ? String(keyCount) : '—'} />
+                <StatCard label="Plan" value="Free" sub="$0 / month" />
+              </div>
 
-          <div className="grid lg:grid-cols-2 gap-8">
-            <ApiKeysSection authFetch={authFetch} />
-            <CalculatorsSection authFetch={authFetch} />
-          </div>
+              <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 mb-8">
+                <h2 className="text-lg font-semibold mb-4">Usage (last 14 days)</h2>
+                <UsageChart data={mockUsage} />
+              </div>
+
+              <div className="grid lg:grid-cols-2 gap-8">
+                <ApiKeysSection authFetch={authFetch} />
+                <CalculatorsSection authFetch={authFetch} />
+              </div>
+            </>
+          )}
+
+          {activeTab === 'calculators' && (
+            <>
+              <div className="mb-8">
+                <h1 className="text-2xl font-bold">Calculators</h1>
+                <p className="text-sm text-zinc-400 mt-1">Create and manage your calculator configurations.</p>
+              </div>
+              <CalculatorsSection authFetch={authFetch} />
+            </>
+          )}
+
+          {activeTab === 'api-keys' && (
+            <>
+              <div className="mb-8">
+                <h1 className="text-2xl font-bold">API Keys</h1>
+                <p className="text-sm text-zinc-400 mt-1">Create and manage API keys for server-side access.</p>
+              </div>
+              <ApiKeysSection authFetch={authFetch} />
+            </>
+          )}
+
+          {activeTab === 'usage' && (
+            <>
+              <div className="mb-8">
+                <h1 className="text-2xl font-bold">Usage</h1>
+                <p className="text-sm text-zinc-400 mt-1">Monitor your API usage and rate limits.</p>
+              </div>
+              <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6">
+                <h2 className="text-lg font-semibold mb-4">API Calls (last 14 days)</h2>
+                <UsageChart data={mockUsage} />
+              </div>
+            </>
+          )}
+
+          {activeTab === 'settings' && (
+            <>
+              <div className="mb-8">
+                <h1 className="text-2xl font-bold">Settings</h1>
+                <p className="text-sm text-zinc-400 mt-1">Account and preferences.</p>
+              </div>
+              <div className="rounded-xl border border-zinc-800 bg-zinc-900/50 p-6 space-y-4">
+                <div>
+                  <div className="text-sm font-medium mb-1">Account</div>
+                  <div className="text-sm text-zinc-400">Signed in as <span className="text-zinc-200 font-mono">{token ? 'you' : '—'}</span></div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium mb-1">Plan</div>
+                  <div className="text-sm text-zinc-400">Free tier — $0/month</div>
+                </div>
+                <div>
+                  <div className="text-sm font-medium mb-1">Danger Zone</div>
+                  <button
+                    onClick={() => { localStorage.removeItem('calculo_token'); window.location.href = '/login'; }}
+                    className="mt-2 px-4 py-2 text-sm rounded-lg border border-red-900/50 text-red-400 hover:bg-red-900/20 transition-colors"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
