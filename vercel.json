@@ -4,6 +4,9 @@
   "buildCommand": "pnpm --filter @calculo/web build",
   "outputDirectory": "apps/web/dist",
   "framework": null,
+  "functions": {
+    "api/evaluate/index.ts": { "maxDuration": 10 }
+  },
   "headers": [
     {
       "source": "/api/(.*)",
