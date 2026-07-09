@@ -160,7 +160,6 @@
       return { result: null, error: e.message || 'Error' };
     }
   }
-  }
 
   var THEMES = {
     dark:  { bg: '#0a0a0b', surface: '#111113', border: 'rgba(255,255,255,0.06)', text: '#fafafa', muted: 'rgba(255,255,255,0.4)', primary: '#3b82f6', numBg: 'rgba(255,255,255,0.08)', opBg: 'rgba(255,255,255,0.05)', fnBg: 'rgba(255,255,255,0.04)', ctrlBg: 'rgba(255,255,255,0.06)', eqBg: '#3b82f6' },
