@@ -115,7 +115,7 @@
 
     var iframe = document.createElement('iframe');
     iframe.src = buildIframeUrl(cfg);
-    iframe.style.cssText = 'width:100%;height:100%;border:none;border-radius:12px;overflow:hidden;';
+    iframe.style.cssText = 'width:100%;height:100%;border:none;border-radius:12px;overflow:hidden;z-index:2147483647;';
     iframe.setAttribute('frameborder', '0');
     iframe.setAttribute('scrolling', 'no');
     iframe.setAttribute('allowfullscreen', 'true');

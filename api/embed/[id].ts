@@ -285,12 +285,12 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'root.innerHTML="";' +
 
   'var outer=document.createElement("div");' +
-  'outer.style.cssText="position:relative;display:inline-block;";' +
+  'outer.style.cssText="position:relative;display:inline-block;z-index:2147483647;";' +
   'root.appendChild(outer);' +
 
   'var calcEl=document.createElement("div");' +
   'calcEl.id="calc";' +
-  'calcEl.style.cssText="position:relative;overflow:hidden;border-radius:"+Math.max(t.radius||8,4)+"px;border:1px solid "+mix(P,0.25)+";box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);width:"+curW+"px;height:"+curH+"px;background:"+t.bg+";color:"+t.text+";transform:translate("+posX+"px,"+posY+"px);display:flex;flex-direction:column;";' +
+  'calcEl.style.cssText="position:relative;overflow:hidden;border-radius:"+Math.max(t.radius||8,4)+"px;border:1px solid "+mix(P,0.25)+";box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);width:"+curW+"px;height:"+curH+"px;background:"+t.bg+";color:"+t.text+";transform:translate("+posX+"px,"+posY+"px);display:flex;flex-direction:column;z-index:2147483647;";' +
   'outer.appendChild(calcEl);' +
 
   // ── Header ──
@@ -562,7 +562,7 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'var kd=d[1];var action=d[2];' +
   'var b=document.createElement("button");' +
   'var sl=SHIFT_LABEL[action]||"";' +
-  'b.innerHTML=(sl?"<span style=\\"position:absolute;top:2px;left:5px;font-size:6px;font-weight:600;color:#facc15;opacity:0.55;line-height:1\\">"+sl+"</span>":"")+"<span"+(sl?" style=\\"margin-top:8px\\"":"")+">"+d[0]+"</span>";' +
+  'b.innerHTML=(sl?"<span style=\\"position:absolute;top:1px;left:4px;font-size:7px;font-weight:700;color:#fbbf24;opacity:0.75;line-height:1;letter-spacing:0.02em\\">"+sl+"</span>":"")+"<span"+(sl?" style=\\"margin-top:8px\\"":"")+">"+d[0]+"</span>";' +
   'b.style.cssText="flex:1;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;font-family:system-ui;position:relative;user-select:none;transition:transform 80ms,background 0.15s;border-radius:16px;min-height:30px;font-size:"+(kd==="fn"||kd==="ctrl"||kd==="mem"?"11px":"13px")+";font-weight:"+(kd==="eq"?"700":"500")+";background:"+keyBg(kd)+";color:"+keyColor(kd)+";";' +
   'b.addEventListener("mousedown",function(){b.style.transform="scale(0.92)"});' +
   'b.addEventListener("mouseup",function(){b.style.transform=""});' +
