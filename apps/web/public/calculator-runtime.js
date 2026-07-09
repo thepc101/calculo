@@ -17,7 +17,10 @@ var mountCalculator;
       .replace(/÷/g, '/')
       .replace(/−/g, '-')
       .replace(/√\(/g, 'sqrt(')
-      .replace(/\^/g, '**');
+      .replace(/\^/g, '**')
+      .replace(/²/g, '**2')
+      .replace(/³/g, '**3')
+      .replace(/⁻¹/g, '**(-1)');
     var DEG = 180 / Math.PI;
     function toRad(x) { return angleMode === 'deg' ? x * Math.PI / 180 : x; }
     function fromRad(x) { return angleMode === 'deg' ? x * DEG : x; }
@@ -27,12 +30,38 @@ var mountCalculator;
     var _asin = function(x) { return fromRad(Math.asin(x)); };
     var _acos = function(x) { return fromRad(Math.acos(x)); };
     var _atan = function(x) { return fromRad(Math.atan(x)); };
+    var _sinh = Math.sinh, _cosh = Math.cosh, _tanh = Math.tanh;
+    var _asinh = Math.asinh, _acosh = Math.acosh, _atanh = Math.atanh;
+    var _sec = function(x) { return 1/Math.cos(toRad(x)); };
+    var _csc = function(x) { return 1/Math.sin(toRad(x)); };
+    var _cot = function(x) { return 1/Math.tan(toRad(x)); };
+    var _fact = function(x) { if(x<0)throw new Error('! of negative');var r=1;for(var i=2;i<=x;i++)r*=i;return r; };
+    var _perm = function(n,k) { var r=1;for(var i=n;i>n-k;i--)r*=i;return r; };
+    var _comb = function(n,k) { if(k>n)return 0;var k2=Math.min(k,n-k),r=1;for(var i=1;i<=k2;i++)r*=(n-k2+i)/i;return Math.round(r); };
+    var _gcd = function(a,b) { a=Math.abs(a);b=Math.abs(b);while(b){var t=b;b=a%b;a=t}return a; };
+    var _lcm = function(a,b) { return Math.abs(a*b)/_gcd(a,b); };
+    var _hyp = Math.hypot;
+    subst = subst
+      .replace(/sinh\(/g, '_sinh(').replace(/cosh\(/g, '_cosh(').replace(/tanh\(/g, '_tanh(')
+      .replace(/asinh\(/g, '_asinh(').replace(/acosh\(/g, '_acosh(').replace(/atanh\(/g, '_atanh(')
+      .replace(/sec\(/g, '_sec(').replace(/csc\(/g, '_csc(').replace(/cot\(/g, '_cot(')
+      .replace(/sin\(/g, '_sin(').replace(/cos\(/g, '_cos(').replace(/tan\(/g, '_tan(')
+      .replace(/asin\(/g, '_asin(').replace(/acos\(/g, '_acos(').replace(/atan\(/g, '_atan(')
+      .replace(/log10\(/g, 'Math.log10(').replace(/log2\(/g, 'Math.log2(').replace(/log\(/g, 'Math.log10(').replace(/ln\(/g, 'Math.log(')
+      .replace(/sqrt\(/g, 'Math.sqrt(').replace(/cbrt\(/g, 'Math.cbrt(').replace(/abs\(/g, 'Math.abs(')
+      .replace(/floor\(/g, 'Math.floor(').replace(/ceil\(/g, 'Math.ceil(').replace(/round\(/g, 'Math.round(').replace(/trunc\(/g, 'Math.trunc(').replace(/sign\(/g, 'Math.sign(')
+      .replace(/exp\(/g, 'Math.exp(').replace(/factorial\(/g, '_fact(').replace(/perm\(/g, '_perm(').replace(/comb\(/g, '_comb(')
+      .replace(/gcd\(/g, '_gcd(').replace(/lcm\(/g, '_lcm(').replace(/hypot\(/g, '_hyp(')
+      .replace(/pi/g, '' + Math.PI)
+      .replace(/e(?!xp|x\()/g, '' + Math.E);
     try {
       var fn = new Function(
         '_sin', '_cos', '_tan', '_asin', '_acos', '_atan',
+        '_sinh', '_cosh', '_tanh', '_asinh', '_acosh', '_atanh',
+        '_sec', '_csc', '_cot', '_fact', '_perm', '_comb', '_gcd', '_lcm', '_hyp',
         'return (' + subst + ')'
       );
-      var result = fn(_sin, _cos, _tan, _asin, _acos, _atan);
+      var result = fn(_sin, _cos, _tan, _asin, _acos, _atan, _sinh, _cosh, _tanh, _asinh, _acosh, _atanh, _sec, _csc, _cot, _fact, _perm, _comb, _gcd, _lcm, _hyp);
       return { result: result, error: null };
     } catch (e) {
       return { result: null, error: e.message || 'Error' };
@@ -273,7 +302,7 @@ var mountCalculator;
       if (finalAction === '**3') { insert('^3'); return; }
       if (finalAction === 'inv') { insert('abs('); return; }
 
-      if (['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'log', 'ln', 'sqrt', 'cbrt'].indexOf(finalAction) >= 0) {
+      if (['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'sinh', 'cosh', 'tanh', 'asinh', 'acosh', 'atanh', 'sec', 'csc', 'cot', 'log', 'ln', 'sqrt', 'cbrt', 'abs', 'floor', 'ceil', 'round', 'trunc', 'sign', 'exp', 'factorial', 'perm', 'comb', 'gcd', 'lcm', 'hypot'].indexOf(finalAction) >= 0) {
         insert(finalAction + '(');
         return;
       }
