@@ -20,7 +20,7 @@
     {
       "source": "/embed.js",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=3600, s-maxage=86400" },
+        { "key": "Cache-Control", "value": "no-store" },
         { "key": "Access-Control-Allow-Origin", "value": "*" },
         { "key": "Content-Type", "value": "application/javascript; charset=utf-8" }
       ]
@@ -28,7 +28,7 @@
     {
       "source": "/calculator-runtime.js",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=3600, s-maxage=86400" },
+        { "key": "Cache-Control", "value": "no-store" },
         { "key": "Access-Control-Allow-Origin", "value": "*" },
         { "key": "Content-Type", "value": "application/javascript; charset=utf-8" }
       ]
