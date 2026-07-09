@@ -99,7 +99,7 @@ export function Calculator({ theme: themeProp, mode: externalMode, compact = fal
 
   const eval_ = useCallback((e: string) => {
     const s = e.replace(/π/g, 'pi').replace(/×/g, '*').replace(/÷/g, '/')
-      .replace(/−/g, '-').replace(/√\(/g, 'sqrt(').replace(/\^/g, '**');
+      .replace(/−/g, '-').replace(/√\(/g, 'sqrt(');
     return engine.evaluate({ expression: s, angleMode: angle.toLowerCase() as any });
   }, [angle]);
 

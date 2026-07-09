@@ -256,7 +256,9 @@ var mountCalculator;
       insert(finalAction);
     }
 
-    keyDefs.forEach(function (row) {
+    var COLS = isScientific ? 5 : 5;
+    for (var ri = 0; ri < keyDefs.length; ri += COLS) {
+      var row = keyDefs.slice(ri, ri + COLS);
       var rowEl = el('div', { style: { display: 'flex', gap: '3px', padding: '0 8px' } });
       row.forEach(function (def) {
         var label = def[0], kind = def[1], action = def[2], shiftLabel = def[3];
@@ -268,7 +270,7 @@ var mountCalculator;
         rowEl.appendChild(btn);
       });
       wrapper.appendChild(rowEl);
-    });
+    }
 
     // Branding
     var footer = el('div', { style: { textAlign: 'center', padding: '8px 0 6px' } }, [

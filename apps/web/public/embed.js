@@ -348,7 +348,9 @@
       insert(finalAction);
     }
 
-    keyDefs.forEach(function (row) {
+    var COLS = 5;
+    for (var ri = 0; ri < keyDefs.length; ri += COLS) {
+      var row = keyDefs.slice(ri, ri + COLS);
       var rowEl = el('div', { style: { display: 'flex', gap: '3px', padding: '0 8px' } });
       row.forEach(function (def) {
         var label = def[0], kind = def[1], action = def[2], shiftLabel = def[3];
@@ -360,7 +362,7 @@
         rowEl.appendChild(btn);
       });
       wrapper.appendChild(rowEl);
-    });
+    }
 
     var footer = el('div', { style: { textAlign: 'center', padding: '8px 0 6px' } }, [
       el('a', { href: 'https://calculo-fawn.vercel.app', target: '_blank', rel: 'noopener noreferrer', style: { fontSize: '8px', fontFamily: 'monospace', letterSpacing: '0.2em', textTransform: 'uppercase', color: theme.muted, textDecoration: 'none', opacity: '0.4' } }, 'calculo'),
