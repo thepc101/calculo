@@ -59,7 +59,15 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
           rows[0].avatarUrl = null;
         }
       }
-      if (!rows[0]) return jsonResponse(res, { error: { code: 'NOT_FOUND', message: 'Profile not found' } }, 404);
+      if (!rows[0]) {
+        // Profile doesn't exist yet — create it with defaults
+        try {
+          await db.insert(profiles).values({ id: user.userId, email: user.email || '' });
+          rows = [{ id: user.userId, email: user.email, name: null, bio: '', avatarUrl: null, createdAt: new Date(), updatedAt: new Date() }] as unknown as Record<string, unknown>[];
+        } catch {
+          return jsonResponse(res, { error: { code: 'NOT_FOUND', message: 'Profile not found' } }, 404);
+        }
+      }
       return jsonResponse(res, { profile: rows[0] });
     }
 
@@ -95,7 +103,6 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
           .where(eq(profiles.id, user.userId))
           .returning({ id: profiles.id, email: profiles.email, name: profiles.name, bio: profiles.bio, avatarUrl: profiles.avatarUrl, createdAt: profiles.createdAt, updatedAt: profiles.updatedAt }) as unknown as Record<string, unknown>[];
       } catch {
-        // Fallback: only update columns that exist
         const safeUpdates: Record<string, unknown> = { updatedAt: new Date() };
         if (parsed.data.name !== undefined) safeUpdates.name = updates.name;
         rows = await db
@@ -106,6 +113,24 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
         if (rows[0]) {
           rows[0].bio = '';
           rows[0].avatarUrl = null;
+        }
+      }
+
+      // If profile doesn't exist, create it
+      if (!rows[0]) {
+        try {
+          const insertData: Record<string, unknown> = { id: user.userId, email: user.email || '' };
+          if (parsed.data.name !== undefined) insertData.name = sanitizeInput(parsed.data.name);
+          if (parsed.data.bio !== undefined) insertData.bio = sanitizeInput(parsed.data.bio);
+          if (parsed.data.avatarUrl !== undefined) insertData.avatarUrl = parsed.data.avatarUrl;
+          const inserted = await db.insert(profiles).values(insertData).returning({ id: profiles.id, email: profiles.email, name: profiles.name, bio: profiles.bio, avatarUrl: profiles.avatarUrl, createdAt: profiles.createdAt, updatedAt: profiles.updatedAt }) as unknown as Record<string, unknown>[];
+          rows = inserted;
+        } catch {
+          // Fallback insert without returning
+          const insertData2: Record<string, unknown> = { id: user.userId, email: user.email || '' };
+          if (parsed.data.name !== undefined) insertData2.name = sanitizeInput(parsed.data.name);
+          await db.insert(profiles).values(insertData2);
+          rows = [{ id: user.userId, email: user.email, name: parsed.data.name || null, bio: parsed.data.bio || '', avatarUrl: parsed.data.avatarUrl || null }] as unknown as Record<string, unknown>[];
         }
       }
 
