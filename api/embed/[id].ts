@@ -210,19 +210,19 @@ function lc(a,b){return Math.abs(a*b)/gd(a,b)}
 
 function ev(s){
   try{
-  s=s.replace(/\u00D7/g,"*").replace(/\u00F7/g,"/").replace(/\u2212/g,"-").replace(/\u03C0/g,""+Math.PI).replace(/\u221A\(/g,"sqt(").replace(/\^/g,"**");
+  s=s.replace(/\u00D7/g,"*").replace(/\u00F7/g,"/").replace(/\u2212/g,"-").replace(/\u03C0/g,""+Math.PI).replace(/\u221A\\(/g,"sqt(").replace(/\\^/g,"**");
   s=s.replace(/\u207B\u00B9/g,"**(-1)").replace(/\u00B2/g,"**2").replace(/\u00B3/g,"**3");
-  s=s.replace(/sinh\(/g,"snh(").replace(/cosh\(/g,"csh(").replace(/tanh\(/g,"tnh(");
-  s=s.replace(/asinh\(/g,"asnh(").replace(/acosh\(/g,"acsh(").replace(/atanh\(/g,"atnh(");
-  s=s.replace(/sec\(/g,"sec2(").replace(/csc\(/g,"csc2(").replace(/cot\(/g,"cot2(");
-  s=s.replace(/sin\(/g,"sn(").replace(/cos\(/g,"cs(").replace(/tan\(/g,"tn(");
-  s=s.replace(/asin\(/g,"asn(").replace(/acos\(/g,"acs(").replace(/atan\(/g,"atn(");
-  s=s.replace(/log10\(/g,"lg(").replace(/log2\(/g,"lg2(").replace(/log\(/g,"lg(").replace(/ln\(/g,"ln2(");
-  s=s.replace(/sqrt\(/g,"sqt(").replace(/cbrt\(/g,"cbr(").replace(/abs\(/g,"ab(");
-  s=s.replace(/floor\(/g,"fl(").replace(/ceil\(/g,"cl(").replace(/round\(/g,"rn(").replace(/trunc\(/g,"tr2(").replace(/sign\(/g,"sg(");
-  s=s.replace(/exp\(/g,"ep(").replace(/factorial\(/g,"fact(").replace(/perm\(/g,"pm(").replace(/comb\(/g,"cb(");
-  s=s.replace(/gcd\(/g,"gd(").replace(/lcm\(/g,"lc(");
-  s=s.replace(/pi/g,""+Math.PI).replace(/e(?!xp|\()/g,""+Math.E);
+  s=s.replace(/sinh\\(/g,"snh(").replace(/cosh\\(/g,"csh(").replace(/tanh\\(/g,"tnh(");
+  s=s.replace(/asinh\\(/g,"asnh(").replace(/acosh\\(/g,"acsh(").replace(/atanh\\(/g,"atnh(");
+  s=s.replace(/sec\\(/g,"sec2(").replace(/csc\\(/g,"csc2(").replace(/cot\\(/g,"cot2(");
+  s=s.replace(/sin\\(/g,"sn(").replace(/cos\\(/g,"cs(").replace(/tan\\(/g,"tn(");
+  s=s.replace(/asin\\(/g,"asn(").replace(/acos\\(/g,"acs(").replace(/atan\\(/g,"atn(");
+  s=s.replace(/log10\\(/g,"lg(").replace(/log2\\(/g,"lg2(").replace(/log\\(/g,"lg(").replace(/ln\\(/g,"ln2(");
+  s=s.replace(/sqrt\\(/g,"sqt(").replace(/cbrt\\(/g,"cbr(").replace(/abs\\(/g,"ab(");
+  s=s.replace(/floor\\(/g,"fl(").replace(/ceil\\(/g,"cl(").replace(/round\\(/g,"rn(").replace(/trunc\\(/g,"tr2(").replace(/sign\\(/g,"sg(");
+  s=s.replace(/exp\\(/g,"ep(").replace(/factorial\\(/g,"fact(").replace(/perm\\(/g,"pm(").replace(/comb\\(/g,"cb(");
+  s=s.replace(/gcd\\(/g,"gd(").replace(/lcm\\(/g,"lc(");
+  s=s.replace(/pi/g,""+Math.PI).replace(/e(?!xp|\\()/g,""+Math.E);
   var fn=new Function("sn","cs","tn","asn","acs","atn","snh","csh","tnh","asnh","acsh","atnh","sec2","csc2","cot2","lg","ln2","lg2","sqt","cbr","ab","fl","cl","rn","tr2","sg","ep","fact","pm","cb","gd","lc","return("+s+")");
   var r=fn(sn,cs,tn,asn,acs,atn,snh,csh,tnh,asnh,acsh,atnh,sec2,csc2,cot2,lg,ln2,lg2,sqt,cbr,ab,fl,cl,rn,tr2,sg,ep,fact,pm,cb,gd,lc);
   return{r:r,e:null}
@@ -507,7 +507,7 @@ function act(a){
   if(["sin","cos","tan","asin","acos","atan","sinh","cosh","tanh","asinh","acosh","atanh","sec","csc","cot","log","ln","sqrt","cbrt","abs","floor","ceil","round","trunc","sign","exp","factorial","perm","comb","gcd","lcm"].indexOf(f)>=0){ex+=f+"(";upd();return}
   if(f==="10**"){ex+="10^(";upd();return}
   if(f==="m+"){var v=parseFloat(re);if(!isNaN(v))mem=(mem||0)+v;upd();return}
-  if(f==="m\u2212"){var v=parseFloat(re);if(!isNaN(v))mem=(mem||0)-v;upd();return}
+  if(f==="m-"){var v=parseFloat(re);if(!isNaN(v))mem=(mem||0)-v;upd();return}
   if(f==="MR"){if(mem!==null)ex+=String(mem);upd();return}
   if(f==="MC"){mem=null;upd();return}
   if(f==="eval"){evl();return}
