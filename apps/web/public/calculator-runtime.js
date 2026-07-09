@@ -61,9 +61,8 @@ var mountCalculator;
     if (attrs) {
       for (var k in attrs) {
         if (k === 'style' && typeof attrs[k] === 'object') {
-          var s = '';
-          for (var p in attrs[k]) { s += p + ':' + attrs[k][p] + ';'; }
-          e.style.cssText += s;
+          var styles = attrs[k];
+          for (var p in styles) { e.style[p] = styles[p]; }
         } else if (k.startsWith('on')) {
           e.addEventListener(k.slice(2), attrs[k]);
         } else if (k === 'id') {
