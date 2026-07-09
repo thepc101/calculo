@@ -284,6 +284,8 @@ var mountCalculator;
       if (finalAction === 'MC') { memory = null; return; }
       if (finalAction === 'eval') { doEval(); return; }
 
+      if (finalAction === '^' && (expression === '' || expression === '(') && ans !== null) { insert(ans + '^'); return; }
+
       insert(finalAction);
     }
 

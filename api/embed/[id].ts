@@ -247,6 +247,7 @@ function act(a){
   if(f==='MR'){if(mem!==null)ex+=String(mem);upd();return}
   if(f==='MC'){mem=null;return}
   if(f==='eval'){evl();return}
+  if(f==='^'&&(ex===''||ex==='(')&&ans!==null){ex+=ans+'^';upd();return}
   ex+=f;upd();
 }
 
