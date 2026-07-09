@@ -173,34 +173,38 @@
   }
 
   // Auto-scan on load
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function () { init().then(scan); });
-  } else {
+  function startScan() {
     init().then(scan);
-  }
 
-  // Observe for dynamically added elements
-  if (typeof MutationObserver !== 'undefined') {
-    var observer = new MutationObserver(function (mutations) {
-      for (var i = 0; i < mutations.length; i++) {
-        var nodes = mutations[i].addedNodes;
-        for (var j = 0; j < nodes.length; j++) {
-          var node = nodes[j];
-          if (node.nodeType === 1) {
-            if (node.hasAttribute && node.hasAttribute('data-calculator')) {
-              mount(node);
-            }
-            if (node.querySelectorAll) {
-              var children = node.querySelectorAll('[data-calculator]');
-              for (var k = 0; k < children.length; k++) {
-                mount(children[k]);
+    // Observe for dynamically added elements
+    if (typeof MutationObserver !== 'undefined' && document.body) {
+      var observer = new MutationObserver(function (mutations) {
+        for (var i = 0; i < mutations.length; i++) {
+          var nodes = mutations[i].addedNodes;
+          for (var j = 0; j < nodes.length; j++) {
+            var node = nodes[j];
+            if (node.nodeType === 1) {
+              if (node.hasAttribute && node.hasAttribute('data-calculator')) {
+                mount(node);
+              }
+              if (node.querySelectorAll) {
+                var children = node.querySelectorAll('[data-calculator]');
+                for (var k = 0; k < children.length; k++) {
+                  mount(children[k]);
+                }
               }
             }
           }
         }
-      }
-    });
-    observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startScan);
+  } else {
+    startScan();
   }
 
   // Public API
