@@ -220,8 +220,26 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'function ev(s){' +
   'try{' +
   // IMPORTANT: In string concatenation, \\ produces \ in browser output
-  's=s.replace(/\\u00D7/g,"*").replace(/\\u00F7/g,"/").replace(/\\u2212/g,"-").replace(/\\u03C0/g,""+Math.PI).replace(/\\u221A\\(/g,"sqt(").replace(/\\^/g,"**");' +
+  's=s.replace(/\\u00D7/g,"*").replace(/\\u00F7/g,"/").replace(/\\u2212/g,"-").replace(/\\u221A\\(/g,"sqt(").replace(/\\^/g,"**");' +
   's=s.replace(/\\u207B\\u00B9/g,"**(-1)").replace(/\\u00B2/g,"**2").replace(/\\u00B3/g,"**3");' +
+  // Implicit multiplication: 9sin( → 9*sin(, 9( → 9*(, )( → )*(
+  's=s.replace(/([0-9.])(sin|cos|tan|log|ln|sqrt|cbrt|abs|floor|ceil|round|trunc|sign|exp|factorial|perm|comb|gcd|lcm|nroot|asin|acos|atan|sinh|cosh|tanh|asinh|acosh|atanh|sec|csc|cot|pi|e)\\(/g,"$1*$2(");' +
+  's=s.replace(/([0-9.])\\(/g,"$1*(");' +
+  's=s.replace(/\\)([0-9.])/g,")*$1");' +
+  's=s.replace(/\\)\\(/g,")*(");' +
+  's=s.replace(/\\)(sin|cos|tan|log|ln|sqrt|cbrt|abs|floor|ceil|round|trunc|sign|exp|factorial|perm|comb|gcd|lcm|nroot|asin|acos|atan|sinh|cosh|tanh|asinh|acosh|atanh|sec|csc|cot|pi|e)\\(/g,")*$1(");' +
+  // Implicit multiplication for constants: 2pi → 2*pi, 2e → 2*e
+  's=s.replace(/([0-9.])pi/g,"$1*pi");' +
+  's=s.replace(/([0-9.])e(?!xp|x\\(|[0-9.])/g,"$1*e");' +
+  // Implicit multiplication for π unicode character: 2π → 2*π
+  's=s.replace(/([0-9.])\\u03C0/g,"$1*\\u03C0");' +
+  's=s.replace(/\\u03C0([0-9.])/g,"\\u03C0*$1");' +
+  's=s.replace(/\\)\\u03C0/g,")*\\u03C0");' +
+  's=s.replace(/\\u03C0\\(/g,"\\u03C0*(");' +
+  // Now replace π/e text and unicode with values
+  's=s.replace(/pi/g,""+Math.PI);' +
+  's=s.replace(/\\u03C0/g,""+Math.PI);' +
+  's=s.replace(/e(?!xp|\\()/g,""+Math.E);' +
   's=s.replace(/sinh\\(/g,"snh(").replace(/cosh\\(/g,"csh(").replace(/tanh\\(/g,"tnh(");' +
   's=s.replace(/asinh\\(/g,"asnh(").replace(/acosh\\(/g,"acsh(").replace(/atanh\\(/g,"atnh(");' +
   's=s.replace(/sec\\(/g,"sec2(").replace(/csc\\(/g,"csc2(").replace(/cot\\(/g,"cot2(");' +
@@ -232,7 +250,6 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   's=s.replace(/floor\\(/g,"fl(").replace(/ceil\\(/g,"cl(").replace(/round\\(/g,"rn(").replace(/trunc\\(/g,"tr2(").replace(/sign\\(/g,"sg(");' +
   's=s.replace(/exp\\(/g,"ep(").replace(/factorial\\(/g,"fact(").replace(/perm\\(/g,"pm(").replace(/comb\\(/g,"cb(");' +
   's=s.replace(/gcd\\(/g,"gd(").replace(/lcm\\(/g,"lc(").replace(/nroot\\(/g,"nroot(");' +
-  's=s.replace(/pi/g,""+Math.PI).replace(/e(?!xp|\\()/g,""+Math.E);' +
   'var fn=new Function("sn","cs","tn","asn","acs","atn","snh","csh","tnh","asnh","acsh","atnh","sec2","csc2","cot2","lg","ln2","lg2","sqt","cbr","ab","fl","cl","rn","tr2","sg","ep","fact","pm","cb","gd","lc","nroot","return("+s+")");' +
   'var r=fn(sn,cs,tn,asn,acs,atn,snh,csh,tnh,asnh,acsh,atnh,sec2,csc2,cot2,lg,ln2,lg2,sqt,cbr,ab,fl,cl,rn,tr2,sg,ep,fact,pm,cb,gd,lc,nroot);' +
   'return{r:r,e:null}' +
