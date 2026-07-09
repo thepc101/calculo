@@ -255,7 +255,7 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   '];' +
 
   'var SHIFT_MAP={sin:"asin",cos:"acos",tan:"atan",log:"10**",ln:"e**",sq:"**3",sqrt:"cbrt",inv:"abs","%":"comb","^":"nthroot"};' +
-  'var SHIFT_LABEL={sin:"sin\\u207B\\u00B9",cos:"cos\\u207B\\u00B9",tan:"tan\\u207B\\u00B9",log:"10\\u02E3",ln:"e\\u02E3",sq:"x\\u00B3",sqrt:"\\u221B",inv:"|x|",%:"nCr",%:"nCr",^:"\\u207F\\u221A"};' +
+  'var SHIFT_LABEL={sin:"sin\\u207B\\u00B9",cos:"cos\\u207B\\u00B9",tan:"tan\\u207B\\u00B9",log:"10\\u02E3",ln:"e\\u02E3",sq:"x\\u00B3",sqrt:"\\u221B",inv:"|x|","%":"nCr","^":"\\u207F\\u221A"};' +
 
   // ── Build DOM ──
   'var root=document.getElementById("root");' +
@@ -475,9 +475,11 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   // ── Evaluate ──
   'function evl(){' +
   'if(!ex)return;' +
-  'var r=ev(ex);' +
-  'if(r.e){re="Error";ex=""}' +
-  'else{re=String(r.r);ans=re;hist.push({e:ex,r:re});ex="";}' +
+  'var depth=0;for(var i=0;i<ex.length;i++){if(ex[i]==="(")depth++;if(ex[i]===")")depth--;}' +
+  'var toEval=depth>0?ex+")".repeat(depth):ex;' +
+  'var r=ev(toEval);' +
+  'if(r.e){re="Error";ex="";}' +
+  'else{re=String(r.r);ans=re;hist.push({e:toEval,r:re});ex="";}' +
   'curPos=0;' +
   'upd();' +
   '}' +
@@ -509,6 +511,8 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'if(f==="MR"){if(mem!==null){ex=ex.slice(0,curPos)+String(mem)+ex.slice(curPos);curPos+=String(mem).length;}upd();return}' +
   'if(f==="MC"){mem=null;upd();return}' +
   'if(f==="eval"){evl();return}' +
+  // Auto-ans: if expression is empty and ans exists, prepend ans for operators
+  'if(ex===""&&ans&&(f==="+"||f==="-"||f==="*"||f==="/"||f==="^")){ex=ans;curPos=ans.length;}' +
   'ex=ex.slice(0,curPos)+f+ex.slice(curPos);curPos+=f.length;upd();' +
   '}' +
 
