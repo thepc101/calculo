@@ -231,22 +231,22 @@ function ev(s){
 
 // ── BASIC KEYS (5x5) ──
 var BK=[
-["AC","ctrl"],["(","ctrl"],[")","ctrl"],["\u00F7","op"],["\u232B","ctrl"],
-["M+","mem"],["7","num"],["8","num"],["9","num"],["\u00D7","op"],
-["M\u2212","mem"],["4","num"],["5","num"],["6","num"],["\u2212","op"],
-["MR","mem"],["1","num"],["2","num"],["3","num"],["+","op"],
-["MC","mem"],["0","num"],[".","num"],["(\u2212)","ctrl"],["=","eq"]
+["AC","ctrl","clearAll"],["(","ctrl","("],[")","ctrl",")"],["\u00F7","op","/"],["\u232B","ctrl","del"],
+["M+","mem","m+"],["7","num","7"],["8","num","8"],["9","num","9"],["\u00D7","op","*"],
+["M\u2212","mem","m-"],["4","num","4"],["5","num","5"],["6","num","6"],["\u2212","op","-"],
+["MR","mem","mr"],["1","num","1"],["2","num","2"],["3","num","3"],["+","op","+"],
+["MC","mem","mc"],["0","num","0"],[".","num","."],["(\u2212)","ctrl","neg"],["=","eq","eval"]
 ];
 
 // ── SCIENTIFIC KEYS (7x5) ──
 var SK=[
-["2nd","ctrl"],["DRG","ctrl"],["DEL","ctrl"],["(","ctrl"],[")","ctrl"],
-["LOG","fn"],["\u03C0","fn"],["SIN","fn"],["COS","fn"],["TAN","fn"],
-["x\u00B2","fn"],["^","op"],["\u221A","fn"],["x\u207B\u00B9","fn"],["CLR","ctrl"],
-["7","num"],["8","num"],["9","num"],["\u00F7","op"],["\u00D7","op"],
-["4","num"],["5","num"],["6","num"],["\u2212","op"],["+","op"],
-["1","num"],["2","num"],["3","num"],["M+","mem"],["M\u2212","mem"],
-["0","num"],[".","num"],["(\u2212)","ctrl"],["ANS","ctrl"],["=","eq"]
+["2nd","ctrl","shift"],["DRG","ctrl","mode"],["DEL","ctrl","del"],["(","ctrl","("],[")","ctrl",")"],
+["LOG","fn","log"],["\u03C0","fn","pi"],["SIN","fn","sin"],["COS","fn","cos"],["TAN","fn","tan"],
+["x\u00B2","fn","sq"],["^","op","^"],["\u221A","fn","sqrt"],["x\u207B\u00B9","fn","inv"],["CLR","ctrl","clearAll"],
+["7","num","7"],["8","num","8"],["9","num","9"],["\u00F7","op","/"],["\u00D7","op","*"],
+["4","num","4"],["5","num","5"],["6","num","6"],["\u2212","op","-"],["+","op","+"],
+["1","num","1"],["2","num","2"],["3","num","3"],["M+","mem","m+"],["M\u2212","mem","m-"],
+["0","num","0"],[".","num","."],["(\u2212)","ctrl","neg"],["ANS","ctrl","ans"],["=","eq","eval"]
 ];
 
 var SHIFT_MAP={sin:"asin",cos:"acos",tan:"atan",log:"10**",sq:"**3",sqrt:"cbrt",inv:"abs"};
@@ -534,7 +534,7 @@ function buildKeys(){
       b.addEventListener("mousedown",function(){b.style.transform="scale(0.92)"});
       b.addEventListener("mouseup",function(){b.style.transform=""});
       b.addEventListener("mouseleave",function(){b.style.transform=""});
-      b.addEventListener("click",function(){act(d[1]==="ctrl"?d[0]:d[0])});
+      b.addEventListener("click",function(){act(d[2])});
       r.appendChild(b);
     });
     keysEl.appendChild(r);
