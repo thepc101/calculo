@@ -56,13 +56,19 @@ var mountCalculator;
     return THEMES[mode] || THEMES.dark;
   }
 
+  function toKebab(s) {
+    return s.replace(/([A-Z])/g, '-$1').toLowerCase();
+  }
+
   function el(tag, attrs, children) {
     var e = document.createElement(tag);
     if (attrs) {
       for (var k in attrs) {
         if (k === 'style' && typeof attrs[k] === 'object') {
+          var parts = [];
           var styles = attrs[k];
-          for (var p in styles) { e.style[p] = styles[p]; }
+          for (var p in styles) { parts.push(toKebab(p) + ':' + styles[p]); }
+          e.setAttribute('style', parts.join(';'));
         } else if (k.startsWith('on')) {
           e.addEventListener(k.slice(2), attrs[k]);
         } else if (k === 'id') {
