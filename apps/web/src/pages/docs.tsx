@@ -361,6 +361,73 @@ export function Demo() {
 }
 \`\`\`
 
+## Iframe Embed
+
+Embed as a standalone HTML page inside an iframe. The calculator renders as a complete, self-contained page with drag-to-move, resize handle, minimize button, theme switcher, and 3-dot menu.
+
+### Basic Iframe
+
+\`\`\`html
+<iframe
+  src="${SITE}/api/embed/demo_basic?html=1"
+  width="340"
+  height="520"
+  style="border:none;border-radius:14px"
+  loading="lazy"
+></iframe>
+\`\`\`
+
+### Iframe with Theme
+
+\`\`\`html
+<iframe
+  src="${SITE}/api/embed/demo_scientific?html=1&theme=cyberpunk"
+  width="340"
+  height="520"
+  style="border:none;border-radius:14px"
+></iframe>
+\`\`\`
+
+### Iframe with Custom Size
+
+\`\`\`html
+<iframe
+  src="${SITE}/api/embed/demo_basic?html=1&width=400px&height=600px"
+  style="border:none;border-radius:14px"
+></iframe>
+\`\`\`
+
+### Iframe Query Parameters
+
+| Parameter | Description | Default | Example |
+|-----------|-------------|---------|---------|
+| \`html=1\` | Returns full HTML page (required) | — | \`?html=1\` |
+| \`theme\` | Theme override | from config | \`theme=ocean\` |
+| \`type\` | Calculator type override | from config | \`type=scientific\` |
+| \`width\` | Widget width | \`340px\` | \`width=400px\` |
+| \`height\` | Widget height | auto | \`height=600px\` |
+
+### Iframe Features
+
+- **Drag to move** — Grab the header bar to reposition
+- **Resize handle** — Bottom-right corner grip to resize
+- **Minimize (−)** — Collapses to a floating button (⊕)
+- **3-dot menu (⋮)** — Switch between Basic/Scientific mode, change themes
+- **16 themes** — Dark, light, oled, cyberpunk, ocean, and 11 more
+- **30+ math functions** — Trig, hyperbolic, log, stats, combinatorics, constants
+- **Keyboard support** — Enter to evaluate, Backspace to delete, Escape to clear
+
+### Custom Calculator Iframe
+
+\`\`\`html
+<iframe
+  src="${SITE}/api/embed/calc_abc123?html=1&theme=forest"
+  width="340"
+  height="520"
+  style="border:none;border-radius:14px"
+></iframe>
+\`\`\`
+
 ## Best Practices
 
 - Use \`demo_basic\` for simple arithmetic, \`demo_scientific\` for advanced math

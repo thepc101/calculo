@@ -449,6 +449,28 @@
     container.appendChild(wrapper);
     container.appendChild(fabBtn);
 
+    var resizeHandle = el('div', { style: { position: 'absolute', bottom: '0', right: '0', width: '16px', height: '16px', cursor: 'nwse-resize', zIndex: '50' } });
+    var resizeInner = el('span', { style: { position: 'absolute', bottom: '3px', right: '3px', width: '8px', height: '8px', borderRight: '2px solid rgba(128,128,128,0.4)', borderBottom: '2px solid rgba(128,128,128,0.4)', pointerEvents: 'none' } });
+    resizeHandle.appendChild(resizeInner);
+    container.appendChild(resizeHandle);
+    var resizing = false, rsx = 0, rsy = 0, rsw = 0, rsh = 0;
+    resizeHandle.addEventListener('mousedown', function(e) {
+      e.preventDefault(); e.stopPropagation();
+      resizing = true; rsx = e.clientX; rsy = e.clientY;
+      rsw = container.offsetWidth; rsh = container.offsetHeight;
+      document.body.style.cursor = 'nwse-resize';
+      document.body.style.userSelect = 'none';
+    });
+    document.addEventListener('mousemove', function(e) {
+      if (!resizing) return;
+      var dw = e.clientX - rsx, dh = e.clientY - rsy;
+      container.style.width = Math.max(260, rsw + dw) + 'px';
+      if (h) container.style.height = Math.max(300, rsh + dh) + 'px';
+    });
+    document.addEventListener('mouseup', function() {
+      if (resizing) { resizing = false; document.body.style.cursor = ''; document.body.style.userSelect = ''; }
+    });
+
     function onKey(e) {
       if (!container.contains(document.activeElement) && document.activeElement !== document.body) return;
       if (e.key === 'Enter') { e.preventDefault(); handleAction('eval'); }

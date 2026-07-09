@@ -146,18 +146,23 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   const isSciJson = JSON.stringify(isSci);
   const themeJson = JSON.stringify(config.theme?.mode || 'dark');
   const primaryJson = JSON.stringify(config.theme?.primaryColor || '#3b82f6');
+  const wJson = JSON.stringify(width || '340px');
+  const hJson = JSON.stringify(height || '');
 
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Calculo</title><style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:transparent;overflow:hidden;font-family:system-ui,sans-serif}
-#calc{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:14px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.5);transition:all 0.2s}
+html,body{width:100%;height:100%;overflow:auto;font-family:system-ui,sans-serif}
+body{background:transparent;display:flex;justify-content:center;align-items:flex-start;padding:8px}
+#calc{border-radius:14px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.5);position:relative;min-width:260px;min-height:300px;transition:box-shadow 0.2s}
 #calc:hover{box-shadow:0 12px 48px rgba(0,0,0,0.6)}
 .hdr{display:flex;align-items:center;padding:6px 10px 2px;cursor:move;-webkit-user-select:none;user-select:none;position:relative}
 .hdr .br{display:flex;align-items:center;gap:2px;margin-left:auto}
 .hdr .br button{width:22px;height:22px;border-radius:6px;border:none;cursor:pointer;background:transparent;font-size:13px;display:flex;align-items:center;justifyContent:center;transition:background 0.15s}
+#resize{position:absolute;bottom:0;right:0;width:16px;height:16px;cursor:nwse-resize;z-index:50}
+#resize::after{content:'';position:absolute;bottom:3px;right:3px;width:8px;height:8px;border-right:2px solid rgba(128,128,128,0.4);border-bottom:2px solid rgba(128,128,128,0.4)}
 </style></head><body>
 <button id="fab" style="display:none;position:fixed;bottom:24px;right:24px;width:52px;height:52px;border-radius:50%;border:none;cursor:pointer;color:#fff;font-size:22px;box-shadow:0 4px 20px rgba(0,0,0,0.4);align-items:center;justifyContent:center;transition:transform 0.2s;z-index:99999"></button>
-<div id="calc"><div id="app"></div></div>
+<div id="calc"><div id="app"></div><div id="resize"></div></div>
 <script>
 (function(){
 var isSci=${isSciJson};
@@ -270,8 +275,29 @@ function ev(s){
 
 var calc=document.getElementById('calc');
 calc.style.background=t.bg;calc.style.color=t.text;
+calc.style.width=${wJson};
+if(${hJson})calc.style.height=${hJson};
 var fab=document.getElementById('fab');
 fab.style.background=P;fab.textContent='\\u2295';
+
+var resizeEl=document.getElementById('resize');
+var resizing=false,rsx=0,rsy=0,rsw=0,rsh=0;
+resizeEl.addEventListener('mousedown',function(e){
+  e.preventDefault();e.stopPropagation();
+  resizing=true;rsx=e.clientX;rsy=e.clientY;
+  rsw=calc.offsetWidth;rsh=calc.offsetHeight;
+  document.body.style.cursor='nwse-resize';
+  document.body.style.userSelect='none';
+});
+document.addEventListener('mousemove',function(e){
+  if(!resizing)return;
+  var dw=e.clientX-rsx,dh=e.clientY-rsy;
+  calc.style.width=Math.max(260,rsw+dw)+'px';
+  if(${hJson})calc.style.height=Math.max(300,rsh+dh)+'px';
+});
+document.addEventListener('mouseup',function(){
+  if(resizing){resizing=false;document.body.style.cursor='';document.body.style.userSelect=''}
+});
 
 function upd(){
   document.getElementById('ex').textContent=ex||'\\u00A0';
@@ -417,15 +443,16 @@ hdrDiv.addEventListener('mousedown',function(e){
   dragging=true;
   var rect=calc.getBoundingClientRect();
   dx=e.clientX-rect.left;dy=e.clientY-rect.top;
-  calc.style.transform='none';
-  calc.style.left=rect.left+'px';
-  calc.style.top=rect.top+'px';
+  calc.style.position='absolute';
+  calc.style.left=(window.scrollX+rect.left)+'px';
+  calc.style.top=(window.scrollY+rect.top)+'px';
+  calc.style.margin='0';
   calc.style.transition='none';
 });
 document.addEventListener('mousemove',function(e){
   if(!dragging)return;
-  calc.style.left=(e.clientX-dx)+'px';
-  calc.style.top=(e.clientY-dy)+'px';
+  calc.style.left=(window.scrollX+e.clientX-dx)+'px';
+  calc.style.top=(window.scrollY+e.clientY-dy)+'px';
 });
 document.addEventListener('mouseup',function(){dragging=false;calc.style.transition=''});
 
