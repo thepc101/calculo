@@ -1,18 +1,18 @@
 /**
  * Calculo Embed Loader v4.0
- * Self-contained: calculator runtime inlined, no import() needed.
+ * Renders calculators as iframes pointing to the server-side embed.
  *
  * SETUP:
- *   <script>window.CALCULO_API_KEY = 'calc_live_your_key';</script>
+ *   <script>window.CALCULO_API_KEY = 'demo';</script>
  *   <script src="https://calculo-fawn.vercel.app/embed.js"></script>
  *   <div data-calculator="demo_basic"></div>
  *
  * CONFIGURATION (data-* attributes on the container div):
  *   data-calculator  — calculator ID (required)
- *   data-theme       — theme override: "dark", "light"
+ *   data-theme       — theme override: "dark", "light", "oled", etc.
  *   data-type        — calculator type: "basic", "scientific"
  *   data-width       — widget width (default: "340px")
- *   data-height      — widget height (default: auto)
+ *   data-height      — widget height (default: "520px")
  *   data-primary     — primary color override
  *   data-position    — "inline", "floating", "fixed"
  *   data-fixed-bottom — fixed bottom offset
@@ -80,7 +80,15 @@
     pendingMounts = [];
   }
 
-  async function mount(el) {
+  function buildIframeUrl(cfg) {
+    var url = BASE + '/api/embed/' + encodeURIComponent(cfg.id) + '?html=1';
+    if (cfg.theme) url += '&theme=' + encodeURIComponent(cfg.theme);
+    if (cfg.type) url += '&type=' + encodeURIComponent(cfg.type);
+    if (cfg.primary) url += '&primary=' + encodeURIComponent(cfg.primary);
+    return url;
+  }
+
+  function mount(el) {
     if (!keyValidated) { pendingMounts.push(el); return; }
     if (!keyValid) return;
     var cfg = readConfig(el);
@@ -88,407 +96,47 @@
     if (instances.has(cfg.id)) return;
     el.setAttribute('data-calculo-loading', '');
 
+    var w = cfg.width || '340px';
+    var h = cfg.height || '520px';
+
+    el.innerHTML = '';
+    el.style.position = el.style.position || '';
+
     if (cfg.position === 'floating' || cfg.position === 'fixed') {
       el.style.position = 'fixed';
       el.style.bottom = cfg.fixedBottom || '20px';
       el.style.right = cfg.fixedRight || '20px';
       el.style.zIndex = '99999';
-      el.style.maxWidth = cfg.width || '340px';
-    } else if (cfg.width) {
-      el.style.width = cfg.width;
+      el.style.width = w;
+    } else {
+      if (cfg.width) el.style.width = w;
     }
-    if (cfg.height) el.style.height = cfg.height;
+    if (cfg.height) el.style.height = h;
 
-    try {
-      var res = await fetch(BASE + '/api/embed/' + encodeURIComponent(cfg.id) + '?key=' + encodeURIComponent(API_KEY));
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      var config = await res.json();
-      if (config.error) throw new Error(config.error.message);
-      if (cfg.theme) { config.theme = config.theme || {}; config.theme.mode = cfg.theme; }
-      if (cfg.type) config.type = cfg.type;
-      if (cfg.primary) { config.theme = config.theme || {}; config.theme.primaryColor = cfg.primary; }
-      config._embedWidth = cfg.width;
-      config._embedHeight = cfg.height;
+    var iframe = document.createElement('iframe');
+    iframe.src = buildIframeUrl(cfg);
+    iframe.style.cssText = 'width:100%;height:100%;border:none;border-radius:12px;overflow:hidden;';
+    iframe.setAttribute('frameborder', '0');
+    iframe.setAttribute('scrolling', 'no');
+    iframe.setAttribute('allowfullscreen', 'true');
+    el.appendChild(iframe);
 
-      var cleanup = renderCalculator(el, config);
-      instances.set(cfg.id, { el: el, config: config, cleanup: cleanup });
-      el.removeAttribute('data-calculo-loading');
-    } catch (err) {
-      el.removeAttribute('data-calculo-loading');
-      el.setAttribute('data-calculo-error', err.message);
-      console.error('[calculo]', err);
-    }
+    instances.set(cfg.id, { el: el, iframe: iframe });
+    el.removeAttribute('data-calculo-loading');
   }
 
   function unmount(id) {
     var inst = instances.get(id);
-    if (inst) { if (typeof inst.cleanup === 'function') inst.cleanup(); instances.delete(id); }
+    if (inst) {
+      if (inst.iframe && inst.iframe.parentNode) inst.iframe.parentNode.removeChild(inst.iframe);
+      instances.delete(id);
+    }
   }
 
   function scan() {
     var els = document.querySelectorAll('[data-calculator]');
     for (var i = 0; i < els.length; i++) mount(els[i]);
   }
-
-  // ---------- INLINED CALCULATOR RUNTIME ----------
-
-  function evalExpr(expr, angleMode) {
-    var subst = expr
-      .replace(/\u03C0/g, 'pi')
-      .replace(/\u00D7/g, '*')
-      .replace(/\u00F7/g, '/')
-      .replace(/\u2212/g, '-')
-      .replace(/\u221A\(/g, 'sqrt(')
-      .replace(/\^/g, '**')
-      .replace(/\u00B2/g, '**2')
-      .replace(/\u00B3/g, '**3')
-      .replace(/\u207B\u00B9/g, '**(-1)');
-    var DEG = 180 / Math.PI;
-    function toRad(x) { return angleMode === 'deg' ? x * Math.PI / 180 : x; }
-    function fromRad(x) { return angleMode === 'deg' ? x * DEG : x; }
-    var _sin = function(x) { return Math.sin(toRad(x)); };
-    var _cos = function(x) { return Math.cos(toRad(x)); };
-    var _tan = function(x) { return Math.tan(toRad(x)); };
-    var _asin = function(x) { return fromRad(Math.asin(x)); };
-    var _acos = function(x) { return fromRad(Math.acos(x)); };
-    var _atan = function(x) { return fromRad(Math.atan(x)); };
-    var _sinh = Math.sinh, _cosh = Math.cosh, _tanh = Math.tanh;
-    var _asinh = Math.asinh, _acosh = Math.acosh, _atanh = Math.atanh;
-    var _sec = function(x) { return 1/Math.cos(toRad(x)); };
-    var _csc = function(x) { return 1/Math.sin(toRad(x)); };
-    var _cot = function(x) { return 1/Math.tan(toRad(x)); };
-    var _fact = function(x) { if(x<0)throw new Error('! of negative');var r=1;for(var i=2;i<=x;i++)r*=i;return r; };
-    var _perm = function(n,k) { var r=1;for(var i=n;i>n-k;i--)r*=i;return r; };
-    var _comb = function(n,k) { if(k>n)return 0;var k2=Math.min(k,n-k),r=1;for(var i=1;i<=k2;i++)r*=(n-k2+i)/i;return Math.round(r); };
-    var _gcd = function(a,b) { a=Math.abs(a);b=Math.abs(b);while(b){var t=b;b=a%b;a=t}return a; };
-    var _lcm = function(a,b) { return Math.abs(a*b)/_gcd(a,b); };
-    var _hyp = Math.hypot;
-    subst = subst
-      .replace(/sinh\(/g, '_sinh(').replace(/cosh\(/g, '_cosh(').replace(/tanh\(/g, '_tanh(')
-      .replace(/asinh\(/g, '_asinh(').replace(/acosh\(/g, '_acosh(').replace(/atanh\(/g, '_atanh(')
-      .replace(/sec\(/g, '_sec(').replace(/csc\(/g, '_csc(').replace(/cot\(/g, '_cot(')
-      .replace(/sin\(/g, '_sin(').replace(/cos\(/g, '_cos(').replace(/tan\(/g, '_tan(')
-      .replace(/asin\(/g, '_asin(').replace(/acos\(/g, '_acos(').replace(/atan\(/g, '_atan(')
-      .replace(/log10\(/g, 'Math.log10(').replace(/log2\(/g, 'Math.log2(').replace(/log\(/g, 'Math.log10(').replace(/ln\(/g, 'Math.log(')
-      .replace(/sqrt\(/g, 'Math.sqrt(').replace(/cbrt\(/g, 'Math.cbrt(').replace(/abs\(/g, 'Math.abs(')
-      .replace(/floor\(/g, 'Math.floor(').replace(/ceil\(/g, 'Math.ceil(').replace(/round\(/g, 'Math.round(').replace(/trunc\(/g, 'Math.trunc(').replace(/sign\(/g, 'Math.sign(')
-      .replace(/exp\(/g, 'Math.exp(').replace(/factorial\(/g, '_fact(').replace(/perm\(/g, '_perm(').replace(/comb\(/g, '_comb(')
-      .replace(/gcd\(/g, '_gcd(').replace(/lcm\(/g, '_lcm(').replace(/hypot\(/g, '_hyp(')
-      .replace(/pi/g, '' + Math.PI)
-      .replace(/e(?!xp|x\()/g, '' + Math.E);
-    try {
-      var fn = new Function(
-        '_sin', '_cos', '_tan', '_asin', '_acos', '_atan',
-        '_sinh', '_cosh', '_tanh', '_asinh', '_acosh', '_atanh',
-        '_sec', '_csc', '_cot', '_fact', '_perm', '_comb', '_gcd', '_lcm', '_hyp',
-        'return (' + subst + ')'
-      );
-      var result = fn(_sin, _cos, _tan, _asin, _acos, _atan, _sinh, _cosh, _tanh, _asinh, _acosh, _atanh, _sec, _csc, _cot, _fact, _perm, _comb, _gcd, _lcm, _hyp);
-      return { result: result, error: null };
-    } catch (e) {
-      return { result: null, error: e.message || 'Error' };
-    }
-  }
-
-  var THEMES = {
-    dark:  { bg: '#0a0a0b', surface: '#111113', border: 'rgba(255,255,255,0.06)', text: '#fafafa', muted: 'rgba(255,255,255,0.4)', primary: '#3b82f6', numBg: 'rgba(255,255,255,0.08)', opBg: 'rgba(255,255,255,0.05)', fnBg: 'rgba(255,255,255,0.04)', ctrlBg: 'rgba(255,255,255,0.06)', eqBg: '#3b82f6' },
-    light: { bg: '#ffffff', surface: '#f5f5f5', border: 'rgba(0,0,0,0.08)', text: '#18181b', muted: 'rgba(0,0,0,0.4)', primary: '#2563eb', numBg: 'rgba(0,0,0,0.05)', opBg: 'rgba(0,0,0,0.03)', fnBg: 'rgba(0,0,0,0.02)', ctrlBg: 'rgba(0,0,0,0.04)', eqBg: '#2563eb' },
-  };
-
-  function toKebab(s) { return s.replace(/([A-Z])/g, '-$1').toLowerCase(); }
-
-  function el(tag, attrs, children) {
-    var e = document.createElement(tag);
-    if (attrs) {
-      for (var k in attrs) {
-        if (k === 'style' && typeof attrs[k] === 'object') {
-          var parts = [];
-          var styles = attrs[k];
-          for (var p in styles) parts.push(toKebab(p) + ':' + styles[p]);
-          e.setAttribute('style', parts.join(';'));
-        } else if (k.indexOf('on') === 0) {
-          e.addEventListener(k.slice(2), attrs[k]);
-        } else if (k === 'id') {
-          e.id = attrs[k];
-        } else {
-          e.setAttribute(k, attrs[k]);
-        }
-      }
-    }
-    if (children) {
-      if (typeof children === 'string') e.textContent = children;
-      else if (Array.isArray(children)) children.forEach(function (c) { if (c) e.appendChild(c); });
-      else e.appendChild(children);
-    }
-    return e;
-  }
-
-  function renderCalculator(container, config) {
-    var theme = THEMES[(config.theme && config.theme.mode) || 'dark'] || THEMES.dark;
-    var primary = (config.theme && config.theme.primaryColor) || theme.primary;
-    var angleMode = 'deg';
-    var expression = '';
-    var result = '0';
-    var ans = null;
-    var shiftOn = false;
-    var history = [];
-    var memory = null;
-
-    container.innerHTML = '';
-    var w = config._embedWidth || '340px';
-    var h = config._embedHeight || '';
-    var isScientific = config.type !== 'basic';
-    container.setAttribute('style',
-      'font-family:system-ui,-apple-system,sans-serif;color:' + theme.text +
-      ';background:' + theme.bg + ';border-radius:14px;overflow:hidden;width:' + w +
-      ';box-sizing:border-box;position:relative;box-shadow:0 8px 32px rgba(0,0,0,0.5);' + (h ? 'height:' + h + ';' : ''));
-
-    var wrapper = el('div', { style: { display: 'flex', flexDirection: 'column', flex: '1' } });
-
-    var fabBtn = el('button', { style: { display: 'none', position: 'fixed', bottom: '24px', right: '24px', width: '52px', height: '52px', borderRadius: '50%', border: 'none', cursor: 'pointer', background: primary, color: '#fff', fontSize: '22px', boxShadow: '0 4px 20px rgba(0,0,0,0.4)', zIndex: '99999', alignItems: 'center', justifyContent: 'center', transition: 'transform 0.2s' } }, '\u2295');
-
-    function minimize() {
-      wrapper.style.display = 'none';
-      fabBtn.style.display = 'flex';
-      container.style.background = 'transparent';
-      container.style.overflow = 'visible';
-      container.style.borderRadius = '0';
-    }
-    function restore() {
-      wrapper.style.display = 'flex';
-      fabBtn.style.display = 'none';
-      container.style.background = theme.bg;
-      container.style.overflow = 'hidden';
-      container.style.borderRadius = '14px';
-    }
-    fabBtn.addEventListener('click', restore);
-    fabBtn.addEventListener('mouseenter', function () { fabBtn.style.transform = 'scale(1.1)'; });
-    fabBtn.addEventListener('mouseleave', function () { fabBtn.style.transform = ''; });
-
-    var minBtn = el('button', { style: { width: '22px', height: '22px', borderRadius: '6px', border: 'none', cursor: 'pointer', background: 'transparent', color: theme.muted, fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s' } }, '\u2212');
-    minBtn.addEventListener('click', minimize);
-
-    var menuBtn = el('button', { style: { width: '22px', height: '22px', borderRadius: '6px', border: 'none', cursor: 'pointer', background: 'transparent', color: theme.muted, fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s' } }, '\u22EE');
-
-    var menuDiv = el('div', { style: { display: 'none', position: 'absolute', right: '10px', top: '30px', background: theme.surface, border: '1px solid ' + theme.border, borderRadius: '10px', padding: '4px', zIndex: '100', minWidth: '140px', boxShadow: '0 4px 16px rgba(0,0,0,0.3)' } });
-    var menuToggleSci = el('button', { style: { display: 'block', width: '100%', textAlign: 'left', padding: '8px 12px', border: 'none', background: 'none', color: theme.text, fontSize: '12px', cursor: 'pointer', borderRadius: '6px', fontFamily: 'system-ui, sans-serif' } }, 'Switch to ' + (isScientific ? 'Basic' : 'Scientific'));
-    menuToggleSci.addEventListener('click', function () {
-      isScientific = !isScientific;
-      menuToggleSci.textContent = 'Switch to ' + (isScientific ? 'Basic' : 'Scientific');
-      rebuildKeys();
-      menuDiv.style.display = 'none';
-    });
-    menuDiv.appendChild(menuToggleSci);
-
-    var menuOpen = false;
-    menuBtn.addEventListener('click', function (e) {
-      e.stopPropagation();
-      menuOpen = !menuOpen;
-      menuDiv.style.display = menuOpen ? 'block' : 'none';
-    });
-    document.addEventListener('click', function () { menuOpen = false; menuDiv.style.display = 'none'; });
-
-    var header = el('div', { className: 'calculo-drag-hdr', style: { display: 'flex', alignItems: 'center', padding: '6px 10px 2px', cursor: 'move', position: 'relative', userSelect: 'none' } }, [
-      el('span', { style: { fontSize: '9px', fontWeight: '600', letterSpacing: '0.15em', textTransform: 'uppercase', opacity: '0.3' } }, 'calculo'),
-      el('span', { style: { fontSize: '9px', fontFamily: 'monospace', opacity: '0.35', marginLeft: '8px' }, id: 'calc-status' }, isScientific ? angleMode : ''),
-      el('div', { style: { display: 'flex', alignItems: 'center', gap: '2px', marginLeft: 'auto' } }, [minBtn, menuBtn]),
-    ]);
-    header.appendChild(menuDiv);
-
-    var dragging = false, dragDx = 0, dragDy = 0;
-    header.addEventListener('mousedown', function (e) {
-      if (e.target.tagName === 'BUTTON') return;
-      dragging = true;
-      var rect = container.getBoundingClientRect();
-      dragDx = e.clientX - rect.left;
-      dragDy = e.clientY - rect.top;
-      container.style.position = 'fixed';
-      container.style.left = rect.left + 'px';
-      container.style.top = rect.top + 'px';
-      container.style.transform = 'none';
-      container.style.transition = 'none';
-    });
-    document.addEventListener('mousemove', function (e) {
-      if (!dragging) return;
-      container.style.left = (e.clientX - dragDx) + 'px';
-      container.style.top = (e.clientY - dragDy) + 'px';
-    });
-    document.addEventListener('mouseup', function () { if (dragging) { dragging = false; container.style.transition = ''; } });
-
-    var exprEl = el('div', { style: { fontFamily: 'monospace', fontSize: '11px', color: theme.muted, minHeight: '1.2em', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', padding: '0 12px' } }, '\u00A0');
-    var resultEl = el('div', { style: { fontFamily: 'monospace', fontSize: '24px', fontWeight: '600', textAlign: 'right', padding: '0 12px 8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' } }, '0');
-    var display = el('div', { style: { background: theme.surface, margin: '0 8px 8px', borderRadius: '10px', border: '1px solid ' + theme.border, paddingTop: '8px' } }, [exprEl, resultEl]);
-
-    var statusEl = header.querySelector('#calc-status');
-
-    function updateDisplay() {
-      exprEl.textContent = expression || '\u00A0';
-      resultEl.textContent = result;
-      if (statusEl) statusEl.textContent = isScientific ? (angleMode + (shiftOn ? ' \u00B7 2ND' : '')) : '';
-    }
-
-    function doEval() {
-      if (!expression) return;
-      var res = evalExpr(expression, angleMode);
-      if (res.error) { result = 'Error'; }
-      else { result = String(res.result); ans = result; history.push({ expr: expression, result: result }); expression = ''; }
-      updateDisplay();
-    }
-
-    function insert(t) { expression += t; updateDisplay(); }
-
-    function makeBtn(label, kind, onClick) {
-      var bg = theme.numBg, color = theme.text, fontSize = '13px', fontWeight = '500';
-      if (kind === 'op') { bg = theme.opBg; color = primary; }
-      else if (kind === 'fn') { bg = theme.fnBg; color = theme.muted; fontSize = '11px'; }
-      else if (kind === 'ctrl') { bg = theme.ctrlBg; color = theme.muted; fontSize = '11px'; }
-      else if (kind === 'eq') { bg = primary; color = '#fff'; fontWeight = '700'; }
-      else if (kind === 'mem') { bg = theme.fnBg; color = theme.muted; fontSize = '10px'; }
-
-      var btn = el('button', {
-        style: {
-          flex: '1', height: '38px', borderRadius: '10px', border: 'none', cursor: 'pointer',
-          background: bg, color: color, fontSize: fontSize, fontWeight: fontWeight,
-          fontFamily: 'system-ui, sans-serif', display: 'flex', alignItems: 'center',
-          justifyContent: 'center', transition: 'transform 80ms, opacity 80ms', position: 'relative',
-          userSelect: 'none',
-        },
-      }, label);
-      btn.addEventListener('mousedown', function () { btn.style.transform = 'scale(0.93)'; });
-      btn.addEventListener('mouseup', function () { btn.style.transform = ''; });
-      btn.addEventListener('mouseleave', function () { btn.style.transform = ''; });
-      btn.addEventListener('click', onClick);
-      return btn;
-    }
-
-    var BASIC_KEYS = [
-      ['AC','ctrl','clearAll',''],     ['(','ctrl','(',''],     [')','ctrl',')',''],     ['\u00F7','op','/',''],     ['DEL','ctrl','del',''],
-      ['M+','mem','m+',''],            ['7','num','7',''],     ['8','num','8',''],     ['9','num','9',''],    ['\u00D7','op','*',''],
-      ['M\u2212','mem','m\u2212',''],  ['4','num','4',''],     ['5','num','5',''],     ['6','num','6',''],    ['\u2212','op','-',''],
-      ['MR','mem','mr',''],            ['1','num','1',''],     ['2','num','2',''],     ['3','num','3',''],    ['+','op','+',''],
-      ['MC','mem','mc',''],            ['0','num','0',''],     ['.','num','.',''],     ['(\u2212)','ctrl','neg',''],  ['\uFF1D','eq','eval',''],
-    ];
-
-    var SCI_KEYS = [
-      ['2nd','ctrl','shift',''],   ['DRG','ctrl','mode',''],     ['DEL','ctrl','del',''],     ['(','ctrl','(',''],    [')','ctrl',')',''],
-      ['LOG','fn','log','10\u02E3'],  ['\u03C0','fn','pi','e'],   ['SIN','fn','sin','sin\u207B\u00B9'],  ['COS','fn','cos','cos\u207B\u00B9'], ['TAN','fn','tan','tan\u207B\u00B9'],
-      ['x\u00B2','fn','sq','x\u00B3'],  ['^','op','^','x\u221A'],   ['\u221A','fn','sqrt','\u221B'],       ['x\u207B\u00B9','fn','inv','|x|'], ['CLR','ctrl','clearAll',''],
-      ['7','num','7',''],            ['8','num','8',''],           ['9','num','9',''],           ['\u00F7','op','/',''],        ['\u00D7','op','*',''],
-      ['4','num','4',''],            ['5','num','5',''],           ['6','num','6',''],           ['\u2212','op','-',''],        ['+','op','+',''],
-      ['1','num','1',''],            ['2','num','2',''],           ['3','num','3',''],           ['M+','mem','m+','MR'],   ['M\u2212','mem','m\u2212','MC'],
-      ['0','num','0',''],            ['.','num','.',''],           ['(\u2212)','ctrl','neg',''],  ['ANS','ctrl','ans',''],  ['\uFF1D','eq','eval',''],
-    ];
-
-    var keyDefs = config.type === 'basic' ? BASIC_KEYS : SCI_KEYS;
-    var SHIFT_MAP = { sin: 'asin', cos: 'acos', tan: 'atan', log: '10**', sq: '**3', sqrt: 'cbrt', inv: 'abs' };
-
-    function handleAction(action) {
-      if (action === 'shift') { if (!isScientific) return; shiftOn = !shiftOn; updateDisplay(); return; }
-      if (action === 'mode') { if (!isScientific) return; angleMode = angleMode === 'deg' ? 'rad' : angleMode === 'rad' ? 'grad' : 'deg'; shiftOn = false; updateDisplay(); return; }
-
-      var finalAction = action;
-      if (shiftOn && SHIFT_MAP[action]) finalAction = SHIFT_MAP[action];
-      shiftOn = false;
-
-      if (finalAction === 'clearAll') { expression = ''; result = '0'; ans = null; history = []; updateDisplay(); return; }
-      if (finalAction === 'del') { expression = expression.slice(0, -1); updateDisplay(); return; }
-      if (finalAction === 'neg') { expression = expression.indexOf('-') === 0 ? expression.slice(1) : '-' + expression; updateDisplay(); return; }
-      if (finalAction === 'pi') { insert('\u03C0'); return; }
-      if (finalAction === 'ans') { if (ans) insert(ans); return; }
-      if (finalAction === 'sq') { insert('^2'); return; }
-      if (finalAction === '**3') { insert('^3'); return; }
-      if (finalAction === 'inv') { insert('abs('); return; }
-
-      if (['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'sinh', 'cosh', 'tanh', 'asinh', 'acosh', 'atanh', 'sec', 'csc', 'cot', 'log', 'ln', 'sqrt', 'cbrt', 'abs', 'floor', 'ceil', 'round', 'trunc', 'sign', 'exp', 'factorial', 'perm', 'comb', 'gcd', 'lcm', 'hypot'].indexOf(finalAction) >= 0) {
-        insert(finalAction + '(');
-        return;
-      }
-      if (finalAction === '10**') { insert('10^('); return; }
-      if (finalAction === 'm+') { var v = parseFloat(result); if (!isNaN(v)) memory = (memory || 0) + v; return; }
-      if (finalAction === 'm\u2212') { var v2 = parseFloat(result); if (!isNaN(v2)) memory = (memory || 0) - v2; return; }
-      if (finalAction === 'MR') { if (memory !== null) insert(String(memory)); return; }
-      if (finalAction === 'MC') { memory = null; return; }
-      if (finalAction === 'eval') { doEval(); return; }
-
-      if (finalAction === '^' && (expression === '' || expression === '(') && ans !== null) { insert(ans + '^'); return; }
-
-      insert(finalAction);
-    }
-
-    var COLS = 5;
-    var keysContainer = el('div', { style: { display: 'flex', flexDirection: 'column', gap: '3px', padding: '0 8px' } });
-
-    function rebuildKeys() {
-      keysContainer.innerHTML = '';
-      keyDefs = isScientific ? SCI_KEYS : BASIC_KEYS;
-      for (var ri = 0; ri < keyDefs.length; ri += COLS) {
-        var row = keyDefs.slice(ri, ri + COLS);
-        var rowEl = el('div', { style: { display: 'flex', gap: '3px' } });
-        row.forEach(function (def) {
-          var label = def[0], kind = def[1], action = def[2], shiftLabel = def[3];
-          var btn = makeBtn(label, kind, function () { handleAction(action); });
-          if (shiftLabel && action !== 'shift' && action !== 'mode') {
-            var badge = el('span', { style: { position: 'absolute', top: '1px', left: '3px', fontSize: '7px', fontWeight: '600', color: '#facc15', opacity: '0.65', pointerEvents: 'none', letterSpacing: '0.05em' } }, shiftLabel);
-            btn.appendChild(badge);
-          }
-          rowEl.appendChild(btn);
-        });
-        keysContainer.appendChild(rowEl);
-      }
-    }
-    rebuildKeys();
-
-    var footer = el('div', { style: { textAlign: 'center', padding: '8px 0 6px' } }, [
-      el('a', { href: 'https://calculo-fawn.vercel.app', target: '_blank', rel: 'noopener noreferrer', style: { fontSize: '8px', fontFamily: 'monospace', letterSpacing: '0.2em', textTransform: 'uppercase', color: theme.muted, textDecoration: 'none', opacity: '0.4' } }, 'calculo'),
-    ]);
-
-    wrapper.appendChild(header);
-    wrapper.appendChild(display);
-    wrapper.appendChild(keysContainer);
-    wrapper.appendChild(footer);
-    container.appendChild(wrapper);
-    container.appendChild(fabBtn);
-
-    var resizeHandle = el('div', { style: { position: 'absolute', bottom: '0', right: '0', width: '16px', height: '16px', cursor: 'nwse-resize', zIndex: '50' } });
-    var resizeInner = el('span', { style: { position: 'absolute', bottom: '3px', right: '3px', width: '8px', height: '8px', borderRight: '2px solid rgba(128,128,128,0.4)', borderBottom: '2px solid rgba(128,128,128,0.4)', pointerEvents: 'none' } });
-    resizeHandle.appendChild(resizeInner);
-    container.appendChild(resizeHandle);
-    var resizing = false, rsx = 0, rsy = 0, rsw = 0, rsh = 0;
-    resizeHandle.addEventListener('mousedown', function(e) {
-      e.preventDefault(); e.stopPropagation();
-      resizing = true; rsx = e.clientX; rsy = e.clientY;
-      rsw = container.offsetWidth; rsh = container.offsetHeight;
-      document.body.style.cursor = 'nwse-resize';
-      document.body.style.userSelect = 'none';
-    });
-    document.addEventListener('mousemove', function(e) {
-      if (!resizing) return;
-      var dw = e.clientX - rsx, dh = e.clientY - rsy;
-      container.style.width = Math.max(260, rsw + dw) + 'px';
-      if (h) container.style.height = Math.max(300, rsh + dh) + 'px';
-    });
-    document.addEventListener('mouseup', function() {
-      if (resizing) { resizing = false; document.body.style.cursor = ''; document.body.style.userSelect = ''; }
-    });
-
-    function onKey(e) {
-      if (!container.contains(document.activeElement) && document.activeElement !== document.body) return;
-      if (e.key === 'Enter') { e.preventDefault(); handleAction('eval'); }
-      else if (e.key === 'Backspace') handleAction('del');
-      else if (e.key === 'Escape') handleAction('clearAll');
-      else if (/^[0-9+\-*/.^()]$/.test(e.key)) handleAction(e.key);
-    }
-    document.addEventListener('keydown', onKey);
-    updateDisplay();
-
-    return function cleanup() {
-      document.removeEventListener('keydown', onKey);
-      container.innerHTML = '';
-      if (fabBtn && fabBtn.parentNode) fabBtn.parentNode.removeChild(fabBtn);
-    };
-  }
-
-  // ---------- END INLINED RUNTIME ----------
 
   function startScan() {
     init().then(scan).catch(function (err) {
