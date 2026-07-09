@@ -1,8 +1,8 @@
 /**
- * Calculo Embed Loader v3.0
+ * Calculo Embed Loader v3.1
  *
  * SETUP:
- *   <script>window.CALCULO_API_KEY = 'calc_live_your_key';</script>  <!-- or 'demo' -->
+ *   <script>window.CALCULO_API_KEY = 'calc_live_your_key';</script>
  *   <script src="https://calculo-fawn.vercel.app/embed.js"></script>
  *   <div data-calculator="demo_basic"></div>
  *
@@ -19,6 +19,9 @@
  */
 (function () {
   'use strict';
+
+  var VERSION = '3.1';
+  console.log('[calculo] embed.js v' + VERSION + ' loaded');
 
   var BASE = (function () {
     var s = document.currentScript;
@@ -108,7 +111,6 @@
 
     el.setAttribute('data-calculo-loading', '');
 
-    // Apply position styling
     if (cfg.position === 'floating' || cfg.position === 'fixed') {
       el.style.position = 'fixed';
       el.style.bottom = cfg.fixedBottom || '20px';
@@ -128,7 +130,6 @@
       var config = await res.json();
       if (config.error) throw new Error(config.error.message);
 
-      // Apply overrides from data-* attributes
       if (cfg.theme) {
         config.theme = config.theme || {};
         config.theme.mode = cfg.theme;
@@ -143,17 +144,20 @@
       config._embedWidth = cfg.width;
       config._embedHeight = cfg.height;
 
+      console.log('[calculo] Loading runtime from', BASE + '/calculator-runtime.js');
       var runtime = await loadRuntime();
+      console.log('[calculo] Runtime loaded, exports:', Object.keys(runtime));
       var mountFn = runtime.mountCalculator || runtime.default;
-      if (typeof mountFn !== 'function') throw new Error('Invalid runtime');
+      if (typeof mountFn !== 'function') throw new Error('Invalid runtime: mountCalculator is ' + typeof mountFn);
 
       var cleanup = mountFn(el, config);
       instances.set(cfg.id, { el: el, config: config, cleanup: cleanup });
       el.removeAttribute('data-calculo-loading');
+      console.log('[calculo] Calculator mounted:', cfg.id);
     } catch (err) {
       el.removeAttribute('data-calculo-loading');
       el.setAttribute('data-calculo-error', err.message);
-      console.error('[calculo]', err);
+      console.error('[calculo] Mount failed:', err);
     }
   }
 
@@ -172,32 +176,39 @@
     }
   }
 
-  // Auto-scan on load
   function startScan() {
-    init().then(scan);
+    init().then(scan).catch(function (err) {
+      console.error('[calculo] scan failed:', err);
+    });
 
-    // Observe for dynamically added elements
-    if (typeof MutationObserver !== 'undefined' && document.body) {
-      var observer = new MutationObserver(function (mutations) {
-        for (var i = 0; i < mutations.length; i++) {
-          var nodes = mutations[i].addedNodes;
-          for (var j = 0; j < nodes.length; j++) {
-            var node = nodes[j];
-            if (node.nodeType === 1) {
-              if (node.hasAttribute && node.hasAttribute('data-calculator')) {
-                mount(node);
-              }
-              if (node.querySelectorAll) {
-                var children = node.querySelectorAll('[data-calculator]');
-                for (var k = 0; k < children.length; k++) {
-                  mount(children[k]);
+    try {
+      if (typeof MutationObserver !== 'undefined') {
+        var target = document.body || document.documentElement;
+        if (target) {
+          var observer = new MutationObserver(function (mutations) {
+            for (var i = 0; i < mutations.length; i++) {
+              var nodes = mutations[i].addedNodes;
+              for (var j = 0; j < nodes.length; j++) {
+                var node = nodes[j];
+                if (node.nodeType === 1) {
+                  if (node.hasAttribute && node.hasAttribute('data-calculator')) {
+                    mount(node);
+                  }
+                  if (node.querySelectorAll) {
+                    var children = node.querySelectorAll('[data-calculator]');
+                    for (var k = 0; k < children.length; k++) {
+                      mount(children[k]);
+                    }
+                  }
                 }
               }
             }
-          }
+          });
+          observer.observe(target, { childList: true, subtree: true });
         }
-      });
-      observer.observe(document.body, { childList: true, subtree: true });
+      }
+    } catch (e) {
+      console.warn('[calculo] MutationObserver setup failed (non-critical):', e.message);
     }
   }
 
@@ -207,10 +218,10 @@
     startScan();
   }
 
-  // Public API
   window.CalculoEmbed = {
     mount: mount,
     unmount: unmount,
     scan: scan,
+    version: VERSION,
   };
 })();

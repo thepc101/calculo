@@ -21,16 +21,14 @@
       "source": "/embed.js",
       "headers": [
         { "key": "Cache-Control", "value": "no-store" },
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Content-Type", "value": "application/javascript; charset=utf-8" }
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
       ]
     },
     {
       "source": "/calculator-runtime.js",
       "headers": [
         { "key": "Cache-Control", "value": "no-store" },
-        { "key": "Access-Control-Allow-Origin", "value": "*" },
-        { "key": "Content-Type", "value": "application/javascript; charset=utf-8" }
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
       ]
     },
     {
