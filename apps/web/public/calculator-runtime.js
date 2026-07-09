@@ -101,13 +101,45 @@ var mountCalculator;
     var w = config._embedWidth || '340px';
     var h = config._embedHeight || '';
     var isScientific = config.type !== 'basic';
-    container.style.cssText = 'font-family:system-ui,-apple-system,sans-serif;color:' + theme.text + ';background:' + theme.bg + ';border-radius:12px;overflow:hidden;width:' + w + ';box-sizing:border-box;' + (h ? 'height:' + h + ';' : '');
+    container.setAttribute('style', 'font-family:system-ui,-apple-system,sans-serif;color:' + theme.text + ';background:' + theme.bg + ';border-radius:12px;overflow:hidden;width:' + w + ';box-sizing:border-box;position:relative;' + (h ? 'height:' + h + ';' : ''));
+
+    var minimized = false;
 
     var wrapper = el('div', { style: { display: 'flex', flexDirection: 'column' } });
 
+    // Close button
+    var closeBtn = el('button', { style: { position: 'absolute', top: '6px', right: '8px', width: '20px', height: '20px', borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'rgba(255,255,255,0.08)', color: theme.muted, fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: '10', padding: '0', lineHeight: '1' } }, '\u00D7');
+
+    // Minimized FAB button (hidden initially)
+    var fabBtn = el('button', { style: { display: 'none', position: 'fixed', bottom: '24px', right: '24px', width: '52px', height: '52px', borderRadius: '50%', border: 'none', cursor: 'pointer', background: primary, color: '#fff', fontSize: '22px', boxShadow: '0 4px 16px rgba(0,0,0,0.4)', zIndex: '99998', alignItems: 'center', justifyContent: 'center', transition: 'transform 0.2s, box-shadow 0.2s' } }, '\u2295');
+
+    function minimize() {
+      minimized = true;
+      wrapper.style.display = 'none';
+      fabBtn.style.display = 'flex';
+      container.style.background = 'transparent';
+      container.style.overflow = 'visible';
+      container.style.borderRadius = '0';
+    }
+
+    function restore() {
+      minimized = false;
+      wrapper.style.display = 'flex';
+      fabBtn.style.display = 'none';
+      container.style.background = theme.bg;
+      container.style.overflow = 'hidden';
+      container.style.borderRadius = '12px';
+    }
+
+    closeBtn.addEventListener('click', minimize);
+    fabBtn.addEventListener('click', restore);
+    fabBtn.addEventListener('mouseenter', function () { fabBtn.style.transform = 'scale(1.1)'; fabBtn.style.boxShadow = '0 6px 24px rgba(0,0,0,0.5)'; });
+    fabBtn.addEventListener('mouseleave', function () { fabBtn.style.transform = ''; fabBtn.style.boxShadow = ''; });
+
     // Header
-    var header = el('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px 4px' } }, [
+    var header = el('div', { style: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px 4px', position: 'relative' } }, [
       el('span', { style: { fontSize: '9px', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase', opacity: '0.3' } }, 'calculo'),
+      closeBtn,
       el('span', { style: { fontSize: '9px', fontFamily: 'monospace', opacity: '0.35' }, id: 'calc-status' }, isScientific ? angleMode : ''),
     ]);
 
@@ -245,6 +277,7 @@ var mountCalculator;
 
     wrapper.appendChild(footer);
     container.appendChild(wrapper);
+    container.appendChild(fabBtn);
 
     // Keyboard
     function onKey(e) {
@@ -261,6 +294,7 @@ var mountCalculator;
     return function cleanup() {
       document.removeEventListener('keydown', onKey);
       container.innerHTML = '';
+      if (fabBtn && fabBtn.parentNode) fabBtn.parentNode.removeChild(fabBtn);
     };
   }
 
