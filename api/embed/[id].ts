@@ -546,7 +546,7 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'row.forEach(function(d){' +
   'var kd=d[1];var action=d[2];' +
   'var b=document.createElement("button");' +
-  'var sl=(sh&&SHIFT_LABEL[action])||"";' +
+  'var sl=SHIFT_LABEL[action]||"";' +
   'b.innerHTML=(sl?"<span style=\\"position:absolute;top:2px;left:4px;font-size:7px;font-weight:600;color:"+surfTxt(0.25)+";line-height:1\\">"+sl+"</span>":"")+"<span"+(sl?" style=\\"margin-top:6px\\"":"")+">"+d[0]+"</span>";' +
   'b.style.cssText="flex:1;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;position:relative;user-select:none;transition:all 0.1s ease;border-radius:8px;height:40px;font-size:"+(kd==="fn"||kd==="ctrl"||kd==="mem"?"11px":"14px")+";font-weight:"+(kd==="eq"?"600":"400")+";background:"+keyBg(kd)+";color:"+keyColor(kd)+";font-family:inherit;letter-spacing:0;";' +
   'b.addEventListener("mousedown",function(){b.style.transform="scale(0.95)";b.style.filter="brightness(0.88)"});' +
