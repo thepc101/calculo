@@ -269,18 +269,18 @@ function renderEmbedPage(config: any, width: string, height: string): string {
 
   // ── SCIENTIFIC KEYS (8x5) ──
   'var SK=[' +
-  '["2nd","ctrl","shift"],["DEL","ctrl","del"],["\\u2190","ctrl","left"],["\\u2192","ctrl","right"],["CLR","ctrl","clearAll"],' +
-  '["LOG","fn","log"],["LN","fn","ln"],["SIN","fn","sin"],["COS","fn","cos"],["TAN","fn","tan"],' +
-  '["\\u03C0","fn","pi"],["SEC","fn","sec"],["CSC","fn","csc"],["COT","fn","cot"],["\\u00F7","op","/"],' +
+  '["2nd","ctrl","shift"],["DRG","ctrl","mode"],["DEL","ctrl","del"],["\\u2190","ctrl","left"],["\\u2192","ctrl","right"],' +
+  '["LOG","fn","log"],["LN","fn","ln"],["(","ctrl","("],[")","ctrl",")"],["CLR","ctrl","clearAll"],' +
+  '["\\u03C0","fn","pi"],["SIN","fn","sin"],["COS","fn","cos"],["TAN","fn","tan"],["\\u00F7","op","/"],' +
   '["x\\u00B2","fn","sq"],["^","op","^"],["\\u221A","fn","sqrt"],["x\\u207B\\u00B9","fn","inv"],["\\u00D7","op","*"],' +
-  '["7","num","7"],["8","num","8"],["9","num","9"],["%","fn","%"],["\\u2212","op","-"],' +
-  '["4","num","4"],["5","num","5"],["6","num","6"],["(","ctrl","("],["+","op","+"],' +
-  '["1","num","1"],["2","num","2"],["3","num","3"],[")","ctrl",")"],["=","eq","eval"],' +
-  '["0","num","0"],[".","num","."],["(\\u2212)","ctrl","neg"],["ANS","ctrl","ans"],["M+","mem","m+"]' +
+  '["7","num","7"],["8","num","8"],["9","num","9"],["nCr","fn","comb"],["%","fn","%"],' +
+  '["4","num","4"],["5","num","5"],["6","num","6"],["M+","mem","m+"],["\\u2212","op","-"],' +
+  '["1","num","1"],["2","num","2"],["3","num","3"],["M\\u2212","mem","m-"],["+","op","+"],' +
+  '["0","num","0"],[".","num","."],["(\\u2212)","ctrl","neg"],["ANS","ctrl","ans"],["MR","mem","mr"]' +
   '];' +
 
-  'var SHIFT_MAP={sin:"asin",cos:"acos",tan:"atan",log:"10**",ln:"e**",sq:"**3",sqrt:"cbrt",inv:"abs","%":"comb","^":"nthroot",sec:"asec",csc:"acsc",cot:"acot"};' +
-  'var SHIFT_LABEL={sin:"sin\\u207B\\u00B9",cos:"cos\\u207B\\u00B9",tan:"tan\\u207B\\u00B9",log:"10\\u02E3",ln:"e\\u02E3",sq:"x\\u00B3",sqrt:"\\u221B",inv:"|x|","%":"nCr","^":"\\u207F\\u221A",sec:"sec\\u207B\\u00B9",csc:"csc\\u207B\\u00B9",cot:"cot\\u207B\\u00B9"};' +
+  'var SHIFT_MAP={sin:"asin",cos:"acos",tan:"atan",log:"10**",ln:"e**",sq:"**3",sqrt:"cbrt",inv:"abs","%":"comb","^":"nthroot"};' +
+  'var SHIFT_LABEL={sin:"sin\\u207B\\u00B9",cos:"cos\\u207B\\u00B9",tan:"tan\\u207B\\u00B9",log:"10\\u02E3",ln:"e\\u02E3",sq:"x\\u00B3",sqrt:"\\u221B",inv:"|x|","%":"nCr","^":"\\u207F\\u221A"};' +
 
   // ── Build DOM ──
   'var root=document.getElementById("root");' +
