@@ -169,7 +169,7 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'var menuTab=null,hist=[];' +
   'var curPos=0;' +
 
-  'var THEMES={dark:{bg:"#0a0a0b",text:"#fafafa",muted:"rgba(255,255,255,0.4)",primary:"#3b82f6",radius:8},light:{bg:"#ffffff",text:"#0a0a0b",muted:"rgba(0,0,0,0.4)",primary:"#3b82f6",radius:8},oled:{bg:"#000000",text:"#ffffff",muted:"rgba(255,255,255,0.4)",primary:"#6366f1",radius:4},"high-contrast":{bg:"#000000",text:"#ffffff",muted:"rgba(255,255,255,0.6)",primary:"#ffff00",radius:0},glass:{bg:"rgba(15,15,25,0.85)",text:"#ffffff",muted:"rgba(255,255,255,0.5)",primary:"#8b5cf6",radius:16},neumorphism:{bg:"#e0e5ec",text:"#2d3748",muted:"rgba(0,0,0,0.35)",primary:"#6366f1",radius:16},minimal:{bg:"#ffffff",text:"#000000",muted:"rgba(0,0,0,0.35)",primary:"#000000",radius:0},corporate:{bg:"#f8fafc",text:"#0f172a",muted:"rgba(0,0,0,0.4)",primary:"#1e40af",radius:4},cyberpunk:{bg:"#0d0d1a",text:"#00ff88",muted:"rgba(0,255,136,0.4)",primary:"#ff00ff",radius:4},retro:{bg:"#fdf6e3",text:"#2d1b00",muted:"rgba(45,27,0,0.4)",primary:"#e85d04",radius:0},coffee:{bg:"#3e2723",text:"#d7ccc8",muted:"rgba(215,204,200,0.4)",primary:"#a67c52",radius:12},ocean:{bg:"#0a1a2e",text:"#e0f7fa",muted:"rgba(224,247,250,0.4)",primary:"#00bcd4",radius:20},forest:{bg:"#1b2e1b",text:"#e8f5e9",muted:"rgba(232,245,233,0.4)",primary:"#66bb6a",radius:8},sunset:{bg:"#1a0a2e",text:"#ffe0b2",muted:"rgba(255,224,178,0.4)",primary:"#ff6f00",radius:16},aurora:{bg:"#0a1628",text:"#b9f6ca",muted:"rgba(185,246,202,0.4)",primary:"#00e676",radius:10},monochrome:{bg:"#121212",text:"#f5f5f5",muted:"rgba(255,255,255,0.4)",primary:"#888888",radius:6}};' +
+  'var THEMES={dark:{bg:"#0a0a0b",text:"#fafafa",muted:"rgba(255,255,255,0.4)",primary:"#3b82f6",radius:16,font:"system-ui,-apple-system,sans-serif"},light:{bg:"#f8f9fa",text:"#1a1a2e",muted:"rgba(0,0,0,0.4)",primary:"#2563eb",radius:16,font:"system-ui,-apple-system,sans-serif"},oled:{bg:"#000000",text:"#e0e0e0",muted:"rgba(255,255,255,0.35)",primary:"#818cf8",radius:8,font:"system-ui,-apple-system,sans-serif"},"high-contrast":{bg:"#000000",text:"#ffffff",muted:"rgba(255,255,255,0.6)",primary:"#ffdd00",radius:0,font:"ui-monospace,SFMono-Regular,monospace"},glass:{bg:"rgba(12,12,20,0.88)",text:"#f0f0ff",muted:"rgba(240,240,255,0.45)",primary:"#a78bfa",radius:20,font:"system-ui,-apple-system,sans-serif"},neumorphism:{bg:"#e0e5ec",text:"#2d3748",muted:"rgba(0,0,0,0.3)",primary:"#6366f1",radius:20,font:"system-ui,-apple-system,sans-serif"},minimal:{bg:"#ffffff",text:"#111827",muted:"rgba(0,0,0,0.3)",primary:"#111827",radius:4,font:"system-ui,-apple-system,sans-serif"},corporate:{bg:"#f1f5f9",text:"#0f172a",muted:"rgba(0,0,0,0.35)",primary:"#1e40af",radius:8,font:"system-ui,-apple-system,sans-serif"},cyberpunk:{bg:"#0a0a1a",text:"#00ff88",muted:"rgba(0,255,136,0.35)",primary:"#ff00ff",radius:4,font:"ui-monospace,SFMono-Regular,monospace"},retro:{bg:"#fef3c7",text:"#451a03",muted:"rgba(69,26,3,0.35)",primary:"#ea580c",radius:4,font:"Georgia,Times,serif"},coffee:{bg:"#2c1810",text:"#e8d5c4",muted:"rgba(232,213,196,0.35)",primary:"#d4a574",radius:14,font:"Georgia,Times,serif"},ocean:{bg:"#0c1929",text:"#cce7ff",muted:"rgba(204,231,255,0.35)",primary:"#22d3ee",radius:20,font:"system-ui,-apple-system,sans-serif"},forest:{bg:"#0f1f0f",text:"#d4f5d4",muted:"rgba(212,245,212,0.35)",primary:"#4ade80",radius:12,font:"system-ui,-apple-system,sans-serif"},sunset:{bg:"#1a0a20",text:"#fed7aa",muted:"rgba(254,215,170,0.35)",primary:"#fb923c",radius:18,font:"Georgia,Times,serif"},aurora:{bg:"#0a1628",text:"#bbf7d0",muted:"rgba(187,247,208,0.35)",primary:"#34d399",radius:16,font:"system-ui,-apple-system,sans-serif"},monochrome:{bg:"#171717",text:"#e5e5e5",muted:"rgba(229,229,229,0.35)",primary:"#a3a3a3",radius:10,font:"ui-monospace,SFMono-Regular,monospace"}};' +
   'var themeOrder=["dark","light","oled","high-contrast","glass","neumorphism","minimal","corporate","cyberpunk","retro","coffee","ocean","forest","sunset","aurora","monochrome"];' +
   'var t=THEMES[curTheme]||THEMES.dark;' +
 
@@ -206,6 +206,7 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'function snh(x){return Math.sinh(x)}function csh(x){return Math.cosh(x)}function tnh(x){return Math.tanh(x)}' +
   'function asnh(x){return Math.asinh(x)}function acsh(x){return Math.acosh(x)}function atnh(x){return Math.atanh(x)}' +
   'function sec2(x){return 1/Math.cos(toRad(x))}function csc2(x){return 1/Math.sin(toRad(x))}function cot2(x){return 1/Math.tan(toRad(x))}' +
+  'function asec2(x){return fromRad(Math.acos(1/x))}function acsc2(x){return fromRad(Math.asin(1/x))}function acot2(x){return fromRad(Math.atan(1/x))}' +
   'function lg(x){return Math.log10(x)}function ln2(x){return Math.log(x)}function lg2(x){return Math.log2(x)}' +
   'function sqt(x){return Math.sqrt(x)}function cbr(x){return Math.cbrt(x)}function ab(x){return Math.abs(x)}' +
   'function fl(x){return Math.floor(x)}function cl(x){return Math.ceil(x)}function rn(x){return Math.round(x)}' +
@@ -243,6 +244,7 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   's=s.replace(/sinh\\(/g,"snh(").replace(/cosh\\(/g,"csh(").replace(/tanh\\(/g,"tnh(");' +
   's=s.replace(/asinh\\(/g,"asnh(").replace(/acosh\\(/g,"acsh(").replace(/atanh\\(/g,"atnh(");' +
   's=s.replace(/sec\\(/g,"sec2(").replace(/csc\\(/g,"csc2(").replace(/cot\\(/g,"cot2(");' +
+  's=s.replace(/asec\\(/g,"asec2(").replace(/acsc\\(/g,"acsc2(").replace(/acot\\(/g,"acot2(");' +
   's=s.replace(/sin\\(/g,"sn(").replace(/cos\\(/g,"cs(").replace(/tan\\(/g,"tn(");' +
   's=s.replace(/asin\\(/g,"asn(").replace(/acos\\(/g,"acs(").replace(/atan\\(/g,"atn(");' +
   's=s.replace(/log10\\(/g,"lg(").replace(/log2\\(/g,"lg2(").replace(/log\\(/g,"lg(").replace(/ln\\(/g,"ln2(");' +
@@ -250,8 +252,8 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   's=s.replace(/floor\\(/g,"fl(").replace(/ceil\\(/g,"cl(").replace(/round\\(/g,"rn(").replace(/trunc\\(/g,"tr2(").replace(/sign\\(/g,"sg(");' +
   's=s.replace(/exp\\(/g,"ep(").replace(/factorial\\(/g,"fact(").replace(/perm\\(/g,"pm(").replace(/comb\\(/g,"cb(");' +
   's=s.replace(/gcd\\(/g,"gd(").replace(/lcm\\(/g,"lc(").replace(/nroot\\(/g,"nroot(");' +
-  'var fn=new Function("sn","cs","tn","asn","acs","atn","snh","csh","tnh","asnh","acsh","atnh","sec2","csc2","cot2","lg","ln2","lg2","sqt","cbr","ab","fl","cl","rn","tr2","sg","ep","fact","pm","cb","gd","lc","nroot","return("+s+")");' +
-  'var r=fn(sn,cs,tn,asn,acs,atn,snh,csh,tnh,asnh,acsh,atnh,sec2,csc2,cot2,lg,ln2,lg2,sqt,cbr,ab,fl,cl,rn,tr2,sg,ep,fact,pm,cb,gd,lc,nroot);' +
+  'var fn=new Function("sn","cs","tn","asn","acs","atn","snh","csh","tnh","asnh","acsh","atnh","sec2","csc2","cot2","asec2","acsc2","acot2","lg","ln2","lg2","sqt","cbr","ab","fl","cl","rn","tr2","sg","ep","fact","pm","cb","gd","lc","nroot","return("+s+")");' +
+  'var r=fn(sn,cs,tn,asn,acs,atn,snh,csh,tnh,asnh,acsh,atnh,sec2,csc2,cot2,asec2,acsc2,acot2,lg,ln2,lg2,sqt,cbr,ab,fl,cl,rn,tr2,sg,ep,fact,pm,cb,gd,lc,nroot);' +
   'return{r:r,e:null}' +
   '}catch(e){return{r:null,e:e.message||"Error"}}' +
   '}' +
@@ -267,18 +269,18 @@ function renderEmbedPage(config: any, width: string, height: string): string {
 
   // ── SCIENTIFIC KEYS (8x5) ──
   'var SK=[' +
-  '["2nd","ctrl","shift"],["DRG","ctrl","mode"],["DEL","ctrl","del"],["\\u2190","ctrl","left"],["\\u2192","ctrl","right"],' +
-  '["LOG","fn","log"],["LN","fn","ln"],["(","ctrl","("],[")","ctrl",")"],["CLR","ctrl","clearAll"],' +
-  '["\\u03C0","fn","pi"],["SIN","fn","sin"],["COS","fn","cos"],["TAN","fn","tan"],["\\u00F7","op","/"],' +
+  '["2nd","ctrl","shift"],["DEL","ctrl","del"],["\\u2190","ctrl","left"],["\\u2192","ctrl","right"],["CLR","ctrl","clearAll"],' +
+  '["LOG","fn","log"],["LN","fn","ln"],["SIN","fn","sin"],["COS","fn","cos"],["TAN","fn","tan"],' +
+  '["\\u03C0","fn","pi"],["SEC","fn","sec"],["CSC","fn","csc"],["COT","fn","cot"],["\\u00F7","op","/"],' +
   '["x\\u00B2","fn","sq"],["^","op","^"],["\\u221A","fn","sqrt"],["x\\u207B\\u00B9","fn","inv"],["\\u00D7","op","*"],' +
   '["7","num","7"],["8","num","8"],["9","num","9"],["%","fn","%"],["\\u2212","op","-"],' +
-  '["4","num","4"],["5","num","5"],["6","num","6"],["M+","mem","m+"],["+","op","+"],' +
-  '["1","num","1"],["2","num","2"],["3","num","3"],["M\\u2212","mem","m-"],["=","eq","eval"],' +
-  '["0","num","0"],[".","num","."],["(\\u2212)","ctrl","neg"],["ANS","ctrl","ans"],["MR","mem","mr"]' +
+  '["4","num","4"],["5","num","5"],["6","num","6"],["(","ctrl","("],["+","op","+"],' +
+  '["1","num","1"],["2","num","2"],["3","num","3"],[")","ctrl",")"],["=","eq","eval"],' +
+  '["0","num","0"],[".","num","."],["(\\u2212)","ctrl","neg"],["ANS","ctrl","ans"],["M+","mem","m+"]' +
   '];' +
 
-  'var SHIFT_MAP={sin:"asin",cos:"acos",tan:"atan",log:"10**",ln:"e**",sq:"**3",sqrt:"cbrt",inv:"abs","%":"comb","^":"nthroot"};' +
-  'var SHIFT_LABEL={sin:"sin\\u207B\\u00B9",cos:"cos\\u207B\\u00B9",tan:"tan\\u207B\\u00B9",log:"10\\u02E3",ln:"e\\u02E3",sq:"x\\u00B3",sqrt:"\\u221B",inv:"|x|","%":"nCr","^":"\\u207F\\u221A"};' +
+  'var SHIFT_MAP={sin:"asin",cos:"acos",tan:"atan",log:"10**",ln:"e**",sq:"**3",sqrt:"cbrt",inv:"abs","%":"comb","^":"nthroot",sec:"asec",csc:"acsc",cot:"acot"};' +
+  'var SHIFT_LABEL={sin:"sin\\u207B\\u00B9",cos:"cos\\u207B\\u00B9",tan:"tan\\u207B\\u00B9",log:"10\\u02E3",ln:"e\\u02E3",sq:"x\\u00B3",sqrt:"\\u221B",inv:"|x|","%":"nCr","^":"\\u207F\\u221A",sec:"sec\\u207B\\u00B9",csc:"csc\\u207B\\u00B9",cot:"cot\\u207B\\u00B9"};' +
 
   // ── Build DOM ──
   'var root=document.getElementById("root");' +
@@ -290,7 +292,7 @@ function renderEmbedPage(config: any, width: string, height: string): string {
 
   'var calcEl=document.createElement("div");' +
   'calcEl.id="calc";' +
-  'calcEl.style.cssText="position:relative;overflow:hidden;border-radius:20px;border:1px solid "+surfTxt(0.08)+";box-shadow:0 24px 64px -16px rgba(0,0,0,0.4),0 0 0 1px "+surfTxt(0.04)+";width:"+curW+"px;height:"+curH+"px;background:"+t.bg+";color:"+t.text+";transform:translate("+posX+"px,"+posY+"px);display:flex;flex-direction:column;z-index:2147483647;";' +
+  'calcEl.style.cssText="position:relative;overflow:hidden;border-radius:"+Math.max(t.radius||16,8)+"px;border:1px solid "+surfTxt(0.08)+";box-shadow:0 24px 64px -16px rgba(0,0,0,0.4);width:"+curW+"px;height:"+curH+"px;background:"+t.bg+";color:"+t.text+";transform:translate("+posX+"px,"+posY+"px);display:flex;flex-direction:column;z-index:2147483647;font-family:"+t.font+";";' +
   'outer.appendChild(calcEl);' +
 
   // ── Header ──
@@ -384,7 +386,7 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'themeTitle.textContent="Themes ("+themeOrder.length+")";' +
   'themeContent.appendChild(themeTitle);' +
   'var themeGrid=document.createElement("div");' +
-  'themeGrid.style.cssText="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;";' +
+  'themeGrid.style.cssText="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;";' +
   'themeContent.appendChild(themeGrid);' +
 
   'var embedContent=document.createElement("div");' +
@@ -404,30 +406,27 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'disp.appendChild(dispInner);' +
 
   'var exDiv=document.createElement("div");' +
-  'exDiv.style.cssText="font-family:-apple-system,BlinkMacSystemFont,\'SF Mono\',monospace;font-size:13px;overflow-x:auto;white-space:nowrap;min-height:1.2em;color:"+surfTxt(0.4)+";letter-spacing:0.01em;";' +
+  'exDiv.style.cssText="font-family:system-ui,-apple-system,sans-serif;font-size:13px;overflow-x:auto;white-space:nowrap;min-height:1.2em;color:"+surfTxt(0.4)+";letter-spacing:0.01em;";' +
   'exDiv.textContent="\\u00A0";' +
   'dispInner.appendChild(exDiv);' +
 
   'var rsDiv=document.createElement("div");' +
-  'rsDiv.style.cssText="font-family:-apple-system,BlinkMacSystemFont,\'SF Pro Display\',system-ui,sans-serif;font-size:32px;font-weight:300;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.02em;line-height:1.2;";' +
+  'rsDiv.style.cssText="font-family:system-ui,-apple-system,sans-serif;font-size:32px;font-weight:300;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-0.02em;line-height:1.2;";' +
   'rsDiv.textContent="0";' +
   'dispInner.appendChild(rsDiv);' +
 
   'var dispFooter=document.createElement("div");' +
-  'dispFooter.style.cssText="display:flex;align-items:center;justify-content:space-between;padding:6px 20px 6px;margin-top:6px;border-top:1px solid "+surfTxt(0.04)+";";' +
+  'dispFooter.style.cssText="display:flex;align-items:center;padding:2px 20px 4px;";' +
   'disp.appendChild(dispFooter);' +
   'var modeFooter=document.createElement("div");' +
   'modeFooter.style.cssText="display:flex;align-items:center;gap:8px;font-size:10px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;letter-spacing:0.08em;text-transform:uppercase;color:"+surfTxt(0.3)+";font-weight:500;";' +
   'dispFooter.appendChild(modeFooter);' +
-  'var modeLabel=document.createElement("span");' +
+  'var modeLabel=document.createElement("span");modeLabel.style.cssText="cursor:pointer;";' +
+  'modeLabel.addEventListener("click",function(){angle=angle==="DEG"?"RAD":angle==="RAD"?"GRAD":"DEG";sh=false;upd();});' +
   'modeFooter.appendChild(modeLabel);' +
-  'var histCountEl=document.createElement("span");' +
-  'histCountEl.style.cssText="font-size:10px;font-family:-apple-system,BlinkMacSystemFont,sans-serif;color:"+surfTxt(0.2)+";font-weight:500;";' +
-  'dispFooter.appendChild(histCountEl);' +
-
   // ── Keys ──
   'var keysEl=document.createElement("div");' +
-  'keysEl.style.cssText="flex:1;display:flex;flex-direction:column;gap:6px;padding:0 14px 6px;min-height:0;overflow:hidden;";' +
+  'keysEl.style.cssText="flex:1;display:flex;flex-direction:column;gap:5px;padding:0 14px 4px;min-height:0;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;-ms-overflow-style:none;";' +
   'calcEl.appendChild(keysEl);' +
 
   // ── Branding ──
@@ -449,7 +448,7 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'curTheme=tk;t=THEMES[tk]||THEMES.dark;' +
   'calcEl.style.background=t.bg;calcEl.style.color=t.text;' +
   'calcEl.style.borderColor=mix(P,0.25);' +
-  'calcEl.style.borderRadius=Math.max(t.radius||8,4)+"px";' +
+  'calcEl.style.borderRadius=Math.max(t.radius||16,8)+"px";calcEl.style.fontFamily=t.font;' +
   'hdr.style.background=t.bg;' +
   'modeWrap.style.background=surfTxt(0.06);' +
   'menuPanel.style.background=surfBg();menuPanel.style.borderColor=surfTxt(0.08);' +
@@ -457,9 +456,8 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'tabBtns.forEach(function(tb,i){var active=menuTab===tabs[i];tb.style.color=active?surfTxt(0.8):surfTxt(0.35);tb.style.background=active?surfTxt(0.08):"transparent";});' +
   'themeTitle.style.color=surfTxt(0.4);' +
   'disp.style.background=surfBg2();disp.style.borderColor=surfTxt(0.06);' +
-  'dispFooter.style.borderTopColor=surfTxt(0.04);' +
   'exDiv.style.color=surfTxt(0.4);rsDiv.style.color=t.text;' +
-  'modeFooter.style.color=surfTxt(0.3);histCountEl.style.color=surfTxt(0.2);' +
+  'modeFooter.style.color=surfTxt(0.3);' +
   'menuBtn.style.color=t.text;closeBtn.style.color=t.text;' +
   'footer.querySelector("a").style.color=surfTxt(0.15);' +
   'label.style.color=t.muted;shiftSpan.style.color=t.muted;angleSpan.style.color=t.muted;' +
@@ -483,7 +481,7 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'themeOrder.forEach(function(tk){' +
   'var th=THEMES[tk];var isActive=curTheme===tk;' +
   'var btn=document.createElement("button");btn.title=tk;' +
-  'btn.style.cssText="position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 4px;border-radius:10px;cursor:pointer;transition:all 0.2s;outline:none;border:"+(isActive?"1.5px solid "+P:"1px solid "+surfTxt(0.06))+";background:"+th.bg+";";' +
+  'btn.style.cssText="position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:10px 2px;border-radius:12px;cursor:pointer;transition:all 0.2s;outline:none;border:"+(isActive?"2px solid "+P:"1px solid "+surfTxt(0.06))+";background:"+th.bg+";aspect-ratio:1/1;box-sizing:border-box;";' +
   'var sw=document.createElement("div");sw.style.cssText="display:flex;gap:2px;width:100%;justify-content:center;";' +
   'var s1=document.createElement("span");s1.style.cssText="width:12px;height:12px;border-radius:4px;background:"+th.primary+";";' +
   'var s2=document.createElement("span");s2.style.cssText="width:12px;height:12px;border-radius:4px;background:"+th.text+";opacity:0.25;";' +
@@ -500,7 +498,6 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'var display=ex.slice(0,curPos)+"\\u2502"+ex.slice(curPos);' +
   'exDiv.textContent=ex?display:"\\u00A0";' +
   'rsDiv.textContent=re;' +
-  'histCountEl.textContent=hist.length>0?hist.length:"";' +
   'applyModeBtnStyles();' +
   '}' +
 
@@ -534,7 +531,7 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'if(f==="**3"){ex=ex.slice(0,curPos)+"^(3)"+ex.slice(curPos);curPos+=4;upd();return}' +
   'if(f==="inv"){ex=ex.slice(0,curPos)+"abs("+ex.slice(curPos);curPos+=4;upd();return}' +
   'if(f==="^"&&(ex===""||curPos===0)&&ans!==null){ex=ex.slice(0,curPos)+ans+"^"+ex.slice(curPos);curPos+=ans.length+1;upd();return}' +
-  'if(["sin","cos","tan","asin","acos","atan","sinh","cosh","tanh","asinh","acosh","atanh","sec","csc","cot","log","ln","sqrt","cbrt","abs","floor","ceil","round","trunc","sign","exp","factorial","perm","comb","gcd","lcm","nthroot"].indexOf(f)>=0){' +
+  'if(["sin","cos","tan","asin","acos","atan","sinh","cosh","tanh","asinh","acosh","atanh","sec","csc","cot","asec","acsc","acot","log","ln","sqrt","cbrt","abs","floor","ceil","round","trunc","sign","exp","factorial","perm","comb","gcd","lcm","nthroot"].indexOf(f)>=0){' +
   'var ins=f==="nthroot"?"root(":f+"(";' +
   'ex=ex.slice(0,curPos)+ins+ex.slice(curPos);curPos+=ins.length;upd();return}' +
   'if(f==="10**"){ex=ex.slice(0,curPos)+"10^("+ex.slice(curPos);curPos+=4;upd();return}' +
@@ -559,13 +556,13 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'for(var ri=0;ri<KD.length;ri+=5){' +
   'var row=KD.slice(ri,ri+5);' +
   'var r=document.createElement("div");' +
-  'r.style.cssText="display:flex;gap:6px;flex:1;min-height:0;";' +
+  'r.style.cssText="display:flex;gap:5px;flex-shrink:0;";' +
   'row.forEach(function(d){' +
   'var kd=d[1];var action=d[2];' +
   'var b=document.createElement("button");' +
   'var sl=SHIFT_LABEL[action]||"";' +
-  'b.innerHTML=(sl?"<span style=\\"position:absolute;top:2px;left:6px;font-size:7px;font-weight:600;color:"+surfTxt(0.35)+";line-height:1;letter-spacing:0.01em\\">"+sl+"</span>":"")+"<span"+(sl?" style=\\"margin-top:8px\\"":"")+">"+d[0]+"</span>";' +
-  'b.style.cssText="flex:1;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;font-family:-apple-system,BlinkMacSystemFont,sans-serif;position:relative;user-select:none;transition:all 0.15s ease;border-radius:16px;min-height:42px;font-size:"+(kd==="fn"||kd==="ctrl"||kd==="mem"?"12px":"15px")+";font-weight:"+(kd==="eq"?"600":"400")+";background:"+keyBg(kd)+";color:"+keyColor(kd)+";";' +
+  'b.innerHTML=(sl?"<span style=\\"position:absolute;top:2px;left:5px;font-size:8px;font-weight:600;color:"+surfTxt(0.4)+";line-height:1;letter-spacing:0\\">"+sl+"</span>":"")+"<span"+(sl?" style=\\"margin-top:8px\\"":"")+">"+d[0]+"</span>";' +
+  'b.style.cssText="flex:1;display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;position:relative;user-select:none;transition:all 0.12s ease;border-radius:14px;height:44px;font-size:"+(kd==="fn"||kd==="ctrl"||kd==="mem"?"12px":"15px")+";font-weight:"+(kd==="eq"?"600":"400")+";background:"+keyBg(kd)+";color:"+keyColor(kd)+";font-family:inherit;letter-spacing:0.01em;";' +
   'b.addEventListener("mousedown",function(){b.style.transform="scale(0.93)";b.style.filter="brightness(0.85)"});' +
   'b.addEventListener("mouseup",function(){b.style.transform="";b.style.filter=""});' +
   'b.addEventListener("mouseleave",function(){b.style.transform="";b.style.filter=""});' +
@@ -620,7 +617,7 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'var code="<div class=\\"calculo-calculator\\"\\n  data-mode=\\""+(mode==="scientific"?"scientific":"basic")+"\\"\\n  data-theme=\\""+curTheme+"\\"\\n  data-width=\\""+curW+"\\"\\n  data-height=\\""+curH+"\\"\\n></div>\\n<script src=\\"https://cdn.calculo.dev/widget.js\\"><\\/script>";' +
   'embedContent.innerHTML="<div style=\\"display:flex;flex-direction:column;gap:12px\\">"+' +
   '"<div style=\\"font-size:11px;text-transform:uppercase;letter-spacing:0.1em;font-weight:500;color:"+surfTxt(0.4)+"\\">Embed Code</div>"+' +
-  '"<pre style=\\"font-family:-apple-system,BlinkMacSystemFont,\'SF Mono\',monospace;font-size:11px;padding:12px;border-radius:10px;overflow-x:auto;line-height:1.6;white-space:pre-wrap;word-break:break-all;background:"+surfBg3()+";color:"+t.text+";border:1px solid "+surfTxt(0.06)+"\\">"+code+"</pre>"+' +
+  '"<pre style=\\"font-family:system-ui,monospace;font-size:11px;padding:12px;border-radius:10px;overflow-x:auto;line-height:1.6;white-space:pre-wrap;word-break:break-all;background:"+surfBg3()+";color:"+t.text+";border:1px solid "+surfTxt(0.06)+"\\">"+code+"</pre>"+' +
   '"<button id=\\"copy-embed\\" style=\\"width:100%;padding:8px 0;font-size:11px;border-radius:10px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;border:none;cursor:pointer;background:"+P+";color:#fff;transition:all 0.2s;font-family:inherit\\">Copy</button></div>";' +
   'var cp=document.getElementById("copy-embed");' +
   'if(cp)cp.addEventListener("click",function(){navigator.clipboard.writeText(code).then(function(){cp.textContent="Copied";setTimeout(function(){cp.textContent="Copy"},2000)});});' +
@@ -631,7 +628,7 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'var cfg=JSON.stringify({theme:curTheme,primary:P,width:curW,height:curH,mode:mode},null,2);' +
   'configContent.innerHTML="<div style=\\"display:flex;flex-direction:column;gap:12px\\">"+' +
   '"<div style=\\"font-size:11px;text-transform:uppercase;letter-spacing:0.1em;font-weight:500;color:"+surfTxt(0.4)+"\\">Config JSON</div>"+' +
-  '"<pre style=\\"font-family:-apple-system,BlinkMacSystemFont,\'SF Mono\',monospace;font-size:11px;padding:12px;border-radius:10px;overflow-x:auto;line-height:1.6;background:"+surfBg3()+";color:"+t.text+";border:1px solid "+surfTxt(0.06)+"\\">"+cfg+"</pre>"+' +
+  '"<pre style=\\"font-family:system-ui,monospace;font-size:11px;padding:12px;border-radius:10px;overflow-x:auto;line-height:1.6;background:"+surfBg3()+";color:"+t.text+";border:1px solid "+surfTxt(0.06)+"\\">"+cfg+"</pre>"+' +
   '"<button id=\\"copy-cfg\\" style=\\"width:100%;padding:8px 0;font-size:11px;border-radius:10px;text-transform:uppercase;letter-spacing:0.08em;font-weight:600;border:none;cursor:pointer;background:"+P+";color:#fff;transition:all 0.2s;font-family:inherit\\">Copy</button></div>";' +
   'var cp=document.getElementById("copy-cfg");' +
   'if(cp)cp.addEventListener("click",function(){navigator.clipboard.writeText(cfg).then(function(){cp.textContent="Copied";setTimeout(function(){cp.textContent="Copy"},2000)});});' +
