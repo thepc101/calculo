@@ -168,6 +168,7 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'var dragSX,dragSY,dragPX,dragPY,resizeSX,resizeSY,resizeSW,resizeSH;' +
   'var menuTab=null,hist=[];' +
   'var curPos=0;' +
+  'var baseW=320,baseH=mode==="scientific"?454:320;' +
 
   'var THEMES={dark:{bg:"#0a0a0b",text:"#fafafa",muted:"rgba(255,255,255,0.4)",primary:"#3b82f6",radius:16,font:"system-ui,-apple-system,sans-serif"},light:{bg:"#f8f9fa",text:"#1a1a2e",muted:"rgba(0,0,0,0.4)",primary:"#2563eb",radius:16,font:"system-ui,-apple-system,sans-serif"},oled:{bg:"#000000",text:"#e0e0e0",muted:"rgba(255,255,255,0.35)",primary:"#818cf8",radius:8,font:"system-ui,-apple-system,sans-serif"},"high-contrast":{bg:"#000000",text:"#ffffff",muted:"rgba(255,255,255,0.6)",primary:"#ffdd00",radius:0,font:"ui-monospace,SFMono-Regular,monospace"},glass:{bg:"rgba(12,12,20,0.88)",text:"#f0f0ff",muted:"rgba(240,240,255,0.45)",primary:"#a78bfa",radius:20,font:"system-ui,-apple-system,sans-serif"},neumorphism:{bg:"#e0e5ec",text:"#2d3748",muted:"rgba(0,0,0,0.3)",primary:"#6366f1",radius:20,font:"system-ui,-apple-system,sans-serif"},minimal:{bg:"#ffffff",text:"#111827",muted:"rgba(0,0,0,0.3)",primary:"#111827",radius:4,font:"system-ui,-apple-system,sans-serif"},corporate:{bg:"#f1f5f9",text:"#0f172a",muted:"rgba(0,0,0,0.35)",primary:"#1e40af",radius:8,font:"system-ui,-apple-system,sans-serif"},cyberpunk:{bg:"#0a0a1a",text:"#00ff88",muted:"rgba(0,255,136,0.35)",primary:"#ff00ff",radius:4,font:"ui-monospace,SFMono-Regular,monospace"},retro:{bg:"#fef3c7",text:"#451a03",muted:"rgba(69,26,3,0.35)",primary:"#ea580c",radius:4,font:"Georgia,Times,serif"},coffee:{bg:"#2c1810",text:"#e8d5c4",muted:"rgba(232,213,196,0.35)",primary:"#d4a574",radius:14,font:"Georgia,Times,serif"},ocean:{bg:"#0c1929",text:"#cce7ff",muted:"rgba(204,231,255,0.35)",primary:"#22d3ee",radius:20,font:"system-ui,-apple-system,sans-serif"},forest:{bg:"#0f1f0f",text:"#d4f5d4",muted:"rgba(212,245,212,0.35)",primary:"#4ade80",radius:12,font:"system-ui,-apple-system,sans-serif"},sunset:{bg:"#1a0a20",text:"#fed7aa",muted:"rgba(254,215,170,0.35)",primary:"#fb923c",radius:18,font:"Georgia,Times,serif"},aurora:{bg:"#0a1628",text:"#bbf7d0",muted:"rgba(187,247,208,0.35)",primary:"#34d399",radius:16,font:"system-ui,-apple-system,sans-serif"},monochrome:{bg:"#171717",text:"#e5e5e5",muted:"rgba(229,229,229,0.35)",primary:"#a3a3a3",radius:10,font:"ui-monospace,SFMono-Regular,monospace"}};' +
   'var themeOrder=["dark","light","oled","high-contrast","glass","neumorphism","minimal","corporate","cyberpunk","retro","coffee","ocean","forest","sunset","aurora","monochrome"];' +
@@ -288,12 +289,12 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'root.innerHTML="";' +
 
   'var outer=document.createElement("div");' +
-  'outer.style.cssText="position:relative;display:inline-block;z-index:2147483647;";' +
+  'outer.style.cssText="position:relative;display:inline-block;z-index:2147483647;width:"+curW+"px;height:"+curH+"px;overflow:hidden;";' +
   'root.appendChild(outer);' +
 
   'var calcEl=document.createElement("div");' +
   'calcEl.id="calc";' +
-  'calcEl.style.cssText="position:relative;overflow:hidden;border-radius:"+Math.max(t.radius||12,6)+"px;border:1px solid "+surfTxt(0.08)+";box-shadow:0 1px 3px rgba(0,0,0,0.08),0 8px 24px rgba(0,0,0,0.12);width:"+curW+"px;height:"+curH+"px;background:"+t.bg+";color:"+t.text+";transform:translate("+posX+"px,"+posY+"px);display:flex;flex-direction:column;z-index:2147483647;font-family:"+t.font+";";' +
+  'calcEl.style.cssText="position:absolute;top:0;left:0;overflow:hidden;border-radius:"+Math.max(t.radius||12,6)+"px;border:1px solid "+surfTxt(0.08)+";box-shadow:0 1px 3px rgba(0,0,0,0.08),0 8px 24px rgba(0,0,0,0.12);width:"+baseW+"px;height:"+baseH+"px;background:"+t.bg+";color:"+t.text+";display:flex;flex-direction:column;z-index:2147483647;font-family:"+t.font+";transform-origin:top left;transform:translate("+posX+"px,"+posY+"px) scale(1);";' +
   'outer.appendChild(calcEl);' +
 
   // ── Header ──
@@ -423,6 +424,14 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'resizeHandle.onmouseleave=function(){this.style.opacity="0.15"};' +
   'calcEl.appendChild(resizeHandle);' +
 
+  // ── Scale ──
+  'function updateScale(){' +
+  'var sx=curW/baseW,sy=curH/baseH;' +
+  'var s=Math.min(sx,sy);' +
+  'calcEl.style.transform="translate("+posX+"px,"+posY+"px) scale("+s+")";' +
+  '}' +
+  'updateScale();' +
+
   // ── Apply theme ──
   'function applyTheme(tk){' +
   'curTheme=tk;t=THEMES[tk]||THEMES.dark;' +
@@ -523,8 +532,8 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   '}' +
 
   // ── Mode buttons ──
-  'basicBtn.addEventListener("click",function(){mode="basic";ex="";re="0";hist=[];curPos=0;upd();buildKeys()});' +
-  'sciBtn.addEventListener("click",function(){mode="scientific";ex="";re="0";hist=[];curPos=0;upd();buildKeys()});' +
+  'basicBtn.addEventListener("click",function(){mode="basic";baseH=320;ex="";re="0";hist=[];curPos=0;upd();buildKeys();updateScale();});' +
+  'sciBtn.addEventListener("click",function(){mode="scientific";baseH=454;ex="";re="0";hist=[];curPos=0;upd();buildKeys();updateScale();});' +
 
   // ── Build keys ──
   'function buildKeys(){' +
@@ -554,14 +563,14 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'hdr.addEventListener("mousedown",function(e){' +
   'if(e.target.tagName==="BUTTON")return;' +
   'dragging=true;dragSX=e.clientX;dragSY=e.clientY;dragPX=posX;dragPY=posY;' +
-  'calcEl.style.cursor="grabbing";document.body.style.userSelect="none";' +
+  'document.body.style.userSelect="none";' +
   '});' +
   'document.addEventListener("mousemove",function(e){' +
-  'if(dragging){posX=dragPX+e.clientX-dragSX;posY=dragPY+e.clientY-dragSY;calcEl.style.transform="translate("+posX+"px,"+posY+"px)";}' +
-  'if(resizing){curW=Math.max(280,resizeSW+e.clientX-resizeSX);curH=Math.max(380,resizeSH+e.clientY-resizeSY);calcEl.style.width=curW+"px";calcEl.style.height=curH+"px";}' +
+  'if(dragging){posX=dragPX+e.clientX-dragSX;posY=dragPY+e.clientY-dragSY;calcEl.style.transform="translate("+posX+"px,"+posY+"px) scale("+Math.min(curW/baseW,curH/baseH)+")";}' +
+  'if(resizing){curW=Math.max(200,resizeSW+e.clientX-resizeSX);curH=Math.round(curW*baseH/baseW);outer.style.width=curW+"px";outer.style.height=curH+"px";updateScale();}' +
   '});' +
   'document.addEventListener("mouseup",function(){' +
-  'if(dragging){dragging=false;calcEl.style.cursor="";document.body.style.userSelect="";}' +
+  'if(dragging){dragging=false;document.body.style.userSelect="";}' +
   'if(resizing){resizing=false;document.body.style.cursor="";document.body.style.userSelect="";}' +
   '});' +
 
@@ -612,8 +621,8 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   '}' +
 
   // ── Minimize/Restore ──
-  'function minimize(){calcEl.style.display="none";document.getElementById("show-btn").style.display="flex";}' +
-  'function restore(){calcEl.style.display="flex";document.getElementById("show-btn").style.display="none";}' +
+  'function minimize(){outer.style.display="none";document.getElementById("show-btn").style.display="flex";}' +
+  'function restore(){outer.style.display="inline-block";document.getElementById("show-btn").style.display="none";updateScale();}' +
   'closeBtn.addEventListener("click",minimize);' +
   'var fab=document.getElementById("show-btn");' +
   'fab.style.background=P;' +
