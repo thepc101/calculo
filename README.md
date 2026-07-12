@@ -52,7 +52,7 @@ console.log(result); // 1
 ### Embed in HTML
 
 ```html
-<script src="https://cdn.calculo.dev/widget.js"></script>
+<script src="https://calculo-fawn.vercel.app/embed.js"></script>
 <div
   data-calculator="calc_123"
   data-theme="dark"

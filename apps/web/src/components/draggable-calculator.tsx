@@ -79,7 +79,7 @@ export function DraggableCalculator({
   ${lockSize ? 'data-lock-size="true"' : ''}
   ${lockMode ? 'data-lock-mode="true"' : ''}
 ></div>
-<script src="https://cdn.calculo.dev/widget.js"><\/script>`;
+<script src="https://calculo-fawn.vercel.app/embed.js"><\/script>`;
 
   const configJson = JSON.stringify({ mode, theme: theme.mode, width: size.width, height: size.height, lockTheme, lockSize, lockMode }, null, 2);
 

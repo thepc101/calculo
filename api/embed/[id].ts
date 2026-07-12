@@ -618,7 +618,7 @@ function renderEmbedPage(config: any, width: string, height: string): string {
 
   // ── Embed panel ──
   'function updateEmbedPanel(){' +
-  'var code="<div class=\\"calculo-calculator\\"\\n  data-mode=\\""+(mode==="scientific"?"scientific":"basic")+"\\"\\n  data-theme=\\""+curTheme+"\\"\\n  data-width=\\""+curW+"\\"\\n  data-height=\\""+curH+"\\"\\n></div>\\n<script src=\\"https://cdn.calculo.dev/widget.js\\"><\\/script>";' +
+  'var code="<div class=\\"calculo-calculator\\"\\n  data-calculator=\\""+(mode==="scientific"?"demo_scientific":"demo_basic")+"\\"\\n  data-theme=\\""+curTheme+"\\"\\n  data-width=\\""+curW+"\\"\\n  data-height=\\""+curH+"\\"\\n></div>\\n<script>window.CALCULO_API_KEY=\\"demo\\";<\\/script>\\n<script src=\\""+window.location.origin+"/embed.js\\"><\\/script>";' +
   'embedContent.innerHTML="<div style=\\"display:flex;flex-direction:column;gap:10px\\">"+' +
   '"<div style=\\"font-size:10px;text-transform:uppercase;letter-spacing:0.08em;font-weight:500;color:"+surfTxt(0.3)+"\\">Embed Code</div>"+' +
   '"<pre style=\\"font-family:monospace;font-size:10px;padding:10px;border-radius:8px;overflow-x:auto;line-height:1.5;white-space:pre-wrap;word-break:break-all;background:"+surfBg3()+";color:"+t.text+";border:1px solid "+surfTxt(0.06)+"\\">"+code+"</pre>"+' +
