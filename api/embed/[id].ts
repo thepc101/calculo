@@ -289,7 +289,7 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'root.innerHTML="";' +
 
   'var outer=document.createElement("div");' +
-  'outer.style.cssText="position:fixed;left:0;top:0;z-index:2147483647;width:"+curW+"px;height:"+curH+"px;overflow:hidden;";' +
+  'outer.style.cssText="position:relative;z-index:2147483647;width:"+curW+"px;height:"+curH+"px;overflow:hidden;";' +
   'root.appendChild(outer);' +
 
   'var calcEl=document.createElement("div");' +
@@ -428,7 +428,7 @@ function renderEmbedPage(config: any, width: string, height: string): string {
 'function updateScale(){' +
 'var sx=curW/baseW,sy=curH/baseH;' +
 'var s=Math.min(sx,sy);' +
-'calcEl.style.transform="scale("+s+")";' +
+'calcEl.style.transform="translate("+posX+"px,"+posY+"px) scale("+s+")";' +
 '}' +
   'updateScale();' +
 
@@ -571,11 +571,11 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'document.body.style.userSelect="none";' +
   '},{passive:true});' +
   'document.addEventListener("mousemove",function(e){' +
-  'if(dragging){posX=dragPX+e.clientX-dragSX;posY=dragPY+e.clientY-dragSY;outer.style.left=posX+"px";outer.style.top=posY+"px";}' +
+  'if(dragging){posX=dragPX+e.clientX-dragSX;posY=dragPY+e.clientY-dragSY;updateScale();}' +
   'if(resizing){curW=Math.max(200,resizeSW+e.clientX-resizeSX);curH=Math.max(200,resizeSH+e.clientY-resizeSY);outer.style.width=curW+"px";outer.style.height=curH+"px";updateScale();}' +
   '});' +
   'document.addEventListener("touchmove",function(e){' +
-  'if(dragging){var t=e.touches[0];posX=dragPX+t.clientX-dragSX;posY=dragPY+t.clientY-dragSY;outer.style.left=posX+"px";outer.style.top=posY+"px";}' +
+  'if(dragging){var t=e.touches[0];posX=dragPX+t.clientX-dragSX;posY=dragPY+t.clientY-dragSY;updateScale();}' +
   'if(resizing){var t=e.touches[0];curW=Math.max(200,resizeSW+t.clientX-resizeSX);curH=Math.max(200,resizeSH+t.clientY-resizeSY);outer.style.width=curW+"px";outer.style.height=curH+"px";updateScale();}' +
   '},{passive:true});' +
   'document.addEventListener("mouseup",function(){' +
@@ -640,7 +640,7 @@ function renderEmbedPage(config: any, width: string, height: string): string {
 
   // ── Minimize/Restore ──
   'function minimize(){outer.style.display="none";document.getElementById("show-btn").style.display="flex";}' +
-  'function restore(){outer.style.display="block";document.getElementById("show-btn").style.display="none";updateScale();}' +
+  'function restore(){outer.style.display="";document.getElementById("show-btn").style.display="none";updateScale();}' +
   'closeBtn.addEventListener("click",minimize);' +
   'var fab=document.getElementById("show-btn");' +
   'fab.style.background=P;' +
