@@ -153,9 +153,9 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   return '<!DOCTYPE html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Calculo</title>' +
   '<style>' +
   '*{margin:0;padding:0;box-sizing:border-box}' +
-  'html,body{width:100%;height:100%;overflow:auto;font-family:system-ui,-apple-system,sans-serif}' +
-  'body{background:transparent;display:flex;justify-content:center;align-items:flex-start;padding:8px}' +
-  '#show-btn{display:none;position:fixed;bottom:24px;right:24px;width:48px;height:48px;border-radius:12px;border:none;cursor:pointer;color:#fff;font-size:20px;box-shadow:0 4px 16px rgba(0,0,0,0.25);align-items:center;justify-content:center;z-index:99999;transition:all 0.15s;font-family:inherit}' +
+  'html,body{width:100%;height:100%;overflow:hidden;font-family:system-ui,-apple-system,sans-serif}' +
+  'body{background:transparent;overflow:hidden}' +
+  '#show-btn{display:none;position:fixed;bottom:24px;right:24px;width:48px;height:48px;border-radius:12px;border:none;cursor:pointer;color:#fff;font-size:20px;box-shadow:0 4px 16px rgba(0,0,0,0.25);align-items:center;justify-content:center;z-index:2147483647;transition:all 0.15s;font-family:inherit}' +
   '</style></head><body>' +
   '<button id="show-btn"></button>' +
   '<div id="root"></div>' +
@@ -289,12 +289,12 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'root.innerHTML="";' +
 
   'var outer=document.createElement("div");' +
-  'outer.style.cssText="position:relative;display:inline-block;z-index:2147483647;width:"+curW+"px;height:"+curH+"px;overflow:hidden;";' +
+  'outer.style.cssText="position:fixed;left:0;top:0;z-index:2147483647;width:"+curW+"px;height:"+curH+"px;overflow:hidden;";' +
   'root.appendChild(outer);' +
 
   'var calcEl=document.createElement("div");' +
   'calcEl.id="calc";' +
-  'calcEl.style.cssText="position:absolute;top:0;left:0;overflow:hidden;border-radius:"+Math.max(t.radius||12,6)+"px;border:1px solid "+surfTxt(0.08)+";box-shadow:0 1px 3px rgba(0,0,0,0.08),0 8px 24px rgba(0,0,0,0.12);width:"+baseW+"px;height:"+baseH+"px;background:"+t.bg+";color:"+t.text+";display:flex;flex-direction:column;z-index:2147483647;font-family:"+t.font+";transform-origin:top left;transform:translate("+posX+"px,"+posY+"px) scale(1);";' +
+  'calcEl.style.cssText="position:absolute;top:0;left:0;overflow:hidden;border-radius:"+Math.max(t.radius||12,6)+"px;border:1px solid "+surfTxt(0.08)+";box-shadow:0 1px 3px rgba(0,0,0,0.08),0 8px 24px rgba(0,0,0,0.12);width:"+baseW+"px;height:"+baseH+"px;background:"+t.bg+";color:"+t.text+";display:flex;flex-direction:column;z-index:2147483647;font-family:"+t.font+";transform-origin:0 0;transform:scale(1);box-sizing:border-box;";' +
   'outer.appendChild(calcEl);' +
 
   // ── Header ──
@@ -425,11 +425,11 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'outer.appendChild(resizeHandle);' +
 
   // ── Scale ──
-  'function updateScale(){' +
-  'var sx=curW/baseW,sy=curH/baseH;' +
-  'var s=Math.min(sx,sy);' +
-  'calcEl.style.transform="translate("+posX+"px,"+posY+"px) scale("+s+")";' +
-  '}' +
+'function updateScale(){' +
+'var sx=curW/baseW,sy=curH/baseH;' +
+'var s=Math.min(sx,sy);' +
+'calcEl.style.transform="scale("+s+")";' +
+'}' +
   'updateScale();' +
 
   // ── Apply theme ──
@@ -565,14 +565,27 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'dragging=true;dragSX=e.clientX;dragSY=e.clientY;dragPX=posX;dragPY=posY;' +
   'document.body.style.userSelect="none";' +
   '});' +
+  'hdr.addEventListener("touchstart",function(e){' +
+  'if(e.target.tagName==="BUTTON")return;' +
+  'var t=e.touches[0];dragging=true;dragSX=t.clientX;dragSY=t.clientY;dragPX=posX;dragPY=posY;' +
+  'document.body.style.userSelect="none";' +
+  '},{passive:true});' +
   'document.addEventListener("mousemove",function(e){' +
-  'if(dragging){posX=dragPX+e.clientX-dragSX;posY=dragPY+e.clientY-dragSY;calcEl.style.transform="translate("+posX+"px,"+posY+"px) scale("+Math.min(curW/baseW,curH/baseH)+")";}' +
+  'if(dragging){posX=dragPX+e.clientX-dragSX;posY=dragPY+e.clientY-dragSY;outer.style.left=posX+"px";outer.style.top=posY+"px";}' +
   'if(resizing){curW=Math.max(200,resizeSW+e.clientX-resizeSX);curH=Math.max(200,resizeSH+e.clientY-resizeSY);outer.style.width=curW+"px";outer.style.height=curH+"px";updateScale();}' +
   '});' +
+  'document.addEventListener("touchmove",function(e){' +
+  'if(dragging){var t=e.touches[0];posX=dragPX+t.clientX-dragSX;posY=dragPY+t.clientY-dragSY;outer.style.left=posX+"px";outer.style.top=posY+"px";}' +
+  'if(resizing){var t=e.touches[0];curW=Math.max(200,resizeSW+t.clientX-resizeSX);curH=Math.max(200,resizeSH+t.clientY-resizeSY);outer.style.width=curW+"px";outer.style.height=curH+"px";updateScale();}' +
+  '},{passive:true});' +
   'document.addEventListener("mouseup",function(){' +
   'if(dragging){dragging=false;document.body.style.userSelect="";}' +
   'if(resizing){resizing=false;document.body.style.cursor="";document.body.style.userSelect="";}' +
   '});' +
+  'document.addEventListener("touchend",function(){' +
+  'if(dragging){dragging=false;document.body.style.userSelect="";}' +
+  'if(resizing){resizing=false;document.body.style.cursor="";document.body.style.userSelect="";}' +
+  '},{passive:true});' +
 
   // ── Resize ──
   'resizeHandle.addEventListener("mousedown",function(e){' +
@@ -580,6 +593,11 @@ function renderEmbedPage(config: any, width: string, height: string): string {
   'resizing=true;resizeSX=e.clientX;resizeSY=e.clientY;resizeSW=curW;resizeSH=curH;' +
   'document.body.style.cursor="se-resize";document.body.style.userSelect="none";' +
   '});' +
+  'resizeHandle.addEventListener("touchstart",function(e){' +
+  'e.preventDefault();var t=e.touches[0];' +
+  'resizing=true;resizeSX=t.clientX;resizeSY=t.clientY;resizeSW=curW;resizeSH=curH;' +
+  'document.body.style.cursor="se-resize";document.body.style.userSelect="none";' +
+  '},{passive:false});' +
 
   // ── Menu ──
   'function openMenu(){menuTab="theme";menuPanel.style.display="block";updateMenuTabs();renderThemeGrid();updateEmbedPanel();updateConfigPanel();}' +
@@ -622,7 +640,7 @@ function renderEmbedPage(config: any, width: string, height: string): string {
 
   // ── Minimize/Restore ──
   'function minimize(){outer.style.display="none";document.getElementById("show-btn").style.display="flex";}' +
-  'function restore(){outer.style.display="inline-block";document.getElementById("show-btn").style.display="none";updateScale();}' +
+  'function restore(){outer.style.display="block";document.getElementById("show-btn").style.display="none";updateScale();}' +
   'closeBtn.addEventListener("click",minimize);' +
   'var fab=document.getElementById("show-btn");' +
   'fab.style.background=P;' +
